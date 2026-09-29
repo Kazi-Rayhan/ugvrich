@@ -225,7 +225,7 @@
 
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/75 via-ink-950/15 to-transparent"></div>
 
-                            <span class="absolute left-6 top-5 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 font-display text-[13px] font-bold tabular-nums text-ink-950 backdrop-blur-sm">
+                            <span class="absolute left-6 top-5 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 font-numeric text-[13px] font-bold tabular-nums text-ink-950 backdrop-blur-sm">
                                 {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
 
@@ -454,7 +454,7 @@
                         ]) aria-hidden="true"></span>
 
                         <span @class([
-                            'flex h-11 w-11 items-center justify-center rounded-xl font-display text-[13px] font-bold tabular-nums',
+                            'flex h-11 w-11 items-center justify-center rounded-xl font-numeric text-[13px] font-bold tabular-nums',
                             'bg-white text-navy-800' => $i === 0,
                             'bg-brand-50 text-brand-700' => $i !== 0,
                         ])>{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
@@ -498,7 +498,7 @@
 
                         <p class="relative {{ $label }}">{{ $kpi }}</p>
 
-                        <p class="relative mt-4 font-display text-[46px] font-bold leading-none tabular-nums text-brand-700">{{ $figure }}</p>
+                        <p class="relative mt-4 font-numeric text-[46px] font-bold leading-none tabular-nums text-brand-700">{{ $figure }}</p>
 
                         @if ($rest !== '')
                             <p class="relative mt-3 text-[13.5px] leading-relaxed text-ink-600">{{ $rest }}</p>

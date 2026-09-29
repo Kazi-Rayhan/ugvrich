@@ -139,7 +139,7 @@
                                     <x-ui-icon :name="$missionIcons[$i] ?? 'check'" class="h-[18px] w-[18px]" />
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="block font-display text-[11px] font-bold tabular-nums text-ink-300">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                                    <span class="block font-numeric text-[11px] font-bold tabular-nums text-ink-300">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
                                     <span class="mt-0.5 block text-[14px] leading-snug text-ink-800">{{ rtrim($point, '.') }}</span>
                                 </span>
                             </li>

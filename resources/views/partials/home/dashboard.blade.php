@@ -29,7 +29,7 @@
                                 <x-ui-icon :name="$stat->icon ?? 'chart'" class="h-8 w-8 sm:h-9 sm:w-9" stroke="1.5" />
                             </span>
 
-                            <p class="mt-6 font-display text-[44px] font-bold leading-none tracking-tight tabular-nums text-ink-950 transition duration-500 group-hover:text-white sm:text-[50px]">
+                            <p class="mt-6 font-numeric text-[44px] font-bold leading-none tracking-tight tabular-nums text-ink-950 transition duration-500 group-hover:text-white sm:text-[50px]">
                                 <span x-text="value">{{ $stat->value }}</span><span class="text-brand-600 transition group-hover:text-brand-200">{{ $stat->suffix }}</span>
                             </p>
                             <p class="mt-2 text-[13.5px] font-semibold text-ink-700 transition duration-500 group-hover:text-white">{{ $stat->label }}</p>

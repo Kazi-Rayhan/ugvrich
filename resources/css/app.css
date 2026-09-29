@@ -14,7 +14,14 @@
 
 @theme {
     --font-sans: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-    --font-display: 'Space Grotesk', 'Noto Sans Bengali', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+
+    /* Figures sit out of Space Grotesk. Its 1 is a bare stem with a hairline
+       flag and no foot, which beside its own geometric 2/0/8 reads at display
+       sizes as a glyph that failed to load. Inter's figures are even, so every
+       number on the site — KPIs, counters, page numbers — uses this stack.
+       Bengali digits are in neither Latin face and still come from Noto. */
+    --font-numeric: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
     /* Neutrals */
     --color-ink-50: #f6f8fb;
@@ -785,7 +792,7 @@
 }
 
 .chain-number {
-    @apply absolute -right-1.5 -top-1.5 rounded-full bg-navy-700 px-1.5 py-0.5 font-display
+    @apply absolute -right-1.5 -top-1.5 rounded-full bg-navy-700 px-1.5 py-0.5 font-numeric
            text-[10px] font-bold tabular-nums text-white;
 }
 

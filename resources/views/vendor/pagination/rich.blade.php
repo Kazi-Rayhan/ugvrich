@@ -38,12 +38,12 @@
                         @foreach ($element as $page => $url)
                             @if ($page == $paginator->currentPage())
                                 <span aria-current="page"
-                                      class="flex h-11 min-w-11 items-center justify-center rounded-full bg-brand-600 px-3 font-display text-[14px] font-bold tabular-nums text-white shadow-[0_10px_22px_-10px_var(--color-brand-600)]">
+                                      class="flex h-11 min-w-11 items-center justify-center rounded-full bg-brand-600 px-3 font-numeric text-[14px] font-bold tabular-nums text-white shadow-[0_10px_22px_-10px_var(--color-brand-600)]">
                                     {{ $page }}
                                 </span>
                             @else
                                 <a href="{{ $url }}" aria-label="Go to page {{ $page }}"
-                                   class="flex h-11 min-w-11 items-center justify-center rounded-full px-3 font-display text-[14px] font-semibold tabular-nums text-ink-600 transition hover:bg-brand-50 hover:text-brand-700">
+                                   class="flex h-11 min-w-11 items-center justify-center rounded-full px-3 font-numeric text-[14px] font-semibold tabular-nums text-ink-600 transition hover:bg-brand-50 hover:text-brand-700">
                                     {{ $page }}
                                 </a>
                             @endif
@@ -53,7 +53,7 @@
             </span>
 
             {{-- Compact counter (mobile) --}}
-            <span class="px-3 font-display text-[14px] font-semibold tabular-nums text-ink-700 sm:hidden">
+            <span class="px-3 font-numeric text-[14px] font-semibold tabular-nums text-ink-700 sm:hidden">
                 {{ $paginator->currentPage() }} <span class="text-ink-300">/</span> {{ $paginator->lastPage() }}
             </span>
 

@@ -31,7 +31,7 @@
                         <x-ui-icon :name="$icon" class="h-5 w-5" />
                     </span>
                     <div>
-                        <p class="font-display text-[26px] font-bold leading-none tabular-nums text-ink-950">{{ $value }}</p>
+                        <p class="font-numeric text-[26px] font-bold leading-none tabular-nums text-ink-950">{{ $value }}</p>
                         <p class="mt-1.5 text-[12.5px] leading-snug muted">{{ __('site.labs.count_'.$label) }}</p>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                                     <x-ui-icon :name="$facility->icon ?? 'beaker'" class="h-6 w-6" />
                                 </span>
 
-                                <span class="absolute bottom-4 right-6 font-display text-[12px] font-bold tabular-nums text-ink-300">
+                                <span class="absolute bottom-4 right-6 font-numeric text-[12px] font-bold tabular-nums text-ink-300">
                                     {{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
                                 </span>
                             </div>
@@ -169,7 +169,7 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                                 <x-ui-icon :name="$icon" class="h-4.5 w-4.5" />
                             </span>
-                            <span class="font-display text-[12px] font-bold tabular-nums text-ink-300">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="font-numeric text-[12px] font-bold tabular-nums text-ink-300">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
                         </div>
                         <p class="mt-4 font-display text-[15px] font-semibold text-ink-950">{{ __('site.labs.step_'.$step) }}</p>
                         <p class="mt-1.5 text-[13px] leading-relaxed muted">{{ __('site.labs.step_'.$step.'_note') }}</p>

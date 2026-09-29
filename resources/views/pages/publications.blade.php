@@ -41,7 +41,7 @@
                         <div class="group relative flex h-full gap-5 overflow-hidden rounded-[1.5rem] border border-ink-100 bg-white p-5 transition duration-500 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-[0_22px_48px_-30px_rgba(2,34,81,0.45)] sm:p-6">
                             <div class="flex w-16 shrink-0 flex-col items-center self-start overflow-hidden rounded-2xl border border-ink-100 text-center transition-colors group-hover:border-brand-200">
                                 <span class="w-full bg-navy-700 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition-colors group-hover:bg-brand-600">{{ __('site.publications.year') }}</span>
-                                <span class="py-2 font-display text-[17px] font-bold tabular-nums text-ink-950">{{ $item->year ?: '—' }}</span>
+                                <span class="py-2 font-numeric text-[17px] font-bold tabular-nums text-ink-950">{{ $item->year ?: '—' }}</span>
                             </div>
 
                             <div class="min-w-0 flex-1">
@@ -101,7 +101,7 @@
                             <div class="flex items-start justify-between gap-3">
                                 <h3 class="font-display text-[17px] font-bold leading-snug !text-white">{{ $item->title }}</h3>
                                 @if ($item->year)
-                                    <span class="shrink-0 rounded-full bg-white px-2.5 py-0.5 font-display text-[12px] font-bold tabular-nums text-navy-700">{{ $item->year }}</span>
+                                    <span class="shrink-0 rounded-full bg-white px-2.5 py-0.5 font-numeric text-[12px] font-bold tabular-nums text-navy-700">{{ $item->year }}</span>
                                 @endif
                             </div>
 

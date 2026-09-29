@@ -143,7 +143,7 @@
             <div class="mt-6 grid gap-px overflow-hidden rounded-[1.25rem] border border-ink-100 bg-ink-100 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($f['departments'] as $i => $department)
                     <div class="reveal flex items-center gap-3 bg-white p-5" style="{{ $delay($i, 35) }}">
-                        <span class="font-display text-[22px] font-bold tabular-nums text-brand-200">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
+                        <span class="font-numeric text-[22px] font-bold tabular-nums text-brand-200">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <span class="text-[13.5px] font-semibold leading-snug text-ink-800">{{ $department }}</span>
                     </div>
                 @endforeach
@@ -183,7 +183,7 @@
             <div class="mt-6 grid gap-2.5 lg:grid-cols-2">
                 @foreach ($f['mission'] as $i => $point)
                     <div class="reveal flex items-start gap-3 rounded-xl border border-ink-100 bg-white px-5 py-4" style="{{ $delay($i, 30) }}">
-                        <span class="mt-0.5 font-display text-[11px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
+                        <span class="mt-0.5 font-numeric text-[11px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <span class="text-[14px] leading-snug text-ink-800">{{ $point }}</span>
                     </div>
                 @endforeach
@@ -212,7 +212,7 @@
                             <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition duration-500 group-hover:bg-brand-600 group-hover:text-white">
                                 <x-ui-icon :name="$activityIcons[$i] ?? 'check'" class="h-5 w-5" />
                             </span>
-                            <span class="font-display text-[12px] font-bold tabular-nums text-ink-300 transition-colors duration-500 group-hover:text-brand-500">
+                            <span class="font-numeric text-[12px] font-bold tabular-nums text-ink-300 transition-colors duration-500 group-hover:text-brand-500">
                                 {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
                         </div>
@@ -271,7 +271,7 @@
                             <span class="h-1.5 w-16 overflow-hidden rounded-full bg-ink-100 sm:w-24">
                                 <span class="block h-full rounded-full bg-brand-600" style="width: {{ $funding }}%"></span>
                             </span>
-                            <span class="w-10 text-right font-display text-[14px] font-bold tabular-nums text-ink-950">{{ $num($funding) }}%</span>
+                            <span class="w-10 text-right font-numeric text-[14px] font-bold tabular-nums text-ink-950">{{ $num($funding) }}%</span>
                         </span>
                     </div>
                 @endforeach
@@ -487,7 +487,7 @@
                     @foreach ($f['publication_pathway'] as $i => $stage)
                         @php $width = 100 - $i * 9; @endphp
                         <div class="reveal flex items-center gap-4" style="{{ $delay($i, 45) }}">
-                            <span class="w-6 shrink-0 font-display text-[13px] font-bold tabular-nums text-ink-400">{{ $i + 1 }}</span>
+                            <span class="w-6 shrink-0 font-numeric text-[13px] font-bold tabular-nums text-ink-400">{{ $i + 1 }}</span>
                             <span class="flex h-12 items-center rounded-xl px-5 text-[13.5px] font-semibold text-white transition-all duration-500"
                                   style="width: {{ $width }}%; background: linear-gradient(90deg, var(--color-navy-700), var(--color-brand-600));">
                                 {{ $stage }}
@@ -537,7 +537,7 @@
             <div class="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                 @foreach ($f['collaboration_pathways'] as $i => [$pathway, $output])
                     <div class="reveal relative flex h-full flex-col rounded-2xl border border-ink-100 bg-white p-5" style="{{ $delay($i) }}">
-                        <span class="font-display text-[12px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
+                        <span class="font-numeric text-[12px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <p class="mt-3 font-display text-[14.5px] font-bold leading-snug text-ink-950">{{ $pathway }}</p>
                         <p class="mt-2 text-[12.5px] leading-relaxed muted">{{ $output }}</p>
                         @unless ($loop->last)

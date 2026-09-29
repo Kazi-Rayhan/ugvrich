@@ -97,7 +97,7 @@
                                     id="faq-q-{{ $i }}" aria-controls="faq-a-{{ $i }}"
                                     class="flex w-full items-center gap-4 px-5 py-5 text-left sm:px-6"
                                     :aria-expanded="open === {{ $i }}">
-                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display text-[12.5px] font-bold tabular-nums transition-colors duration-300"
+                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-numeric text-[12.5px] font-bold tabular-nums transition-colors duration-300"
                                       :class="open === {{ $i }} ? 'bg-brand-600 text-white' : 'bg-ink-50 text-ink-400 group-hover/faq:bg-brand-50 group-hover/faq:text-brand-600'">
                                     {{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
                                 </span>

@@ -74,7 +74,7 @@
             {{-- Results bar --}}
             <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
                 <p class="text-[15px] text-ink-700">
-                    {!! trans_choice('site.experts.found', $experts->total(), ['count' => '<span class="font-display text-xl font-bold tabular-nums text-ink-950">'.$experts->total().'</span>']) !!}
+                    {!! trans_choice('site.experts.found', $experts->total(), ['count' => '<span class="font-numeric text-xl font-bold tabular-nums text-ink-950">'.$experts->total().'</span>']) !!}
                 </p>
 
                 @if ($search || $area)

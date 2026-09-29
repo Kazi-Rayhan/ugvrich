@@ -42,7 +42,7 @@
                             [$projectCount, trans_choice('site.services.stat_projects', $projectCount)],
                         ] as [$num, $label])
                             <li class="rounded-xl bg-white/[0.07] px-2 py-3">
-                                <span class="block font-display text-2xl font-bold tabular-nums !text-white">{{ $num }}</span>
+                                <span class="block font-numeric text-2xl font-bold tabular-nums !text-white">{{ $num }}</span>
                                 <span class="mt-0.5 block text-[11.5px] text-white/70">{{ $label }}</span>
                             </li>
                         @endforeach
