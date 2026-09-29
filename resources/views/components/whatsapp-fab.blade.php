@@ -1,13 +1,15 @@
 {{-- The WhatsApp button, opposite the consultation one.
 
      Bottom right, which is where people reach for a chat button, and where
-     the consultation button deliberately is not. It only appears once a
-     number has been saved in Site Settings, so the corner stays empty rather
-     than offering a link to nowhere. --}}
+     the consultation button deliberately is not. It reads the WhatsApp number
+     from Site Settings, falling back to the office phone, and stays out of
+     sight while neither is set. --}}
 
 @php
-    // wa.me takes digits only: no +, no spaces, no dashes.
-    $number = preg_replace('/\D/', '', (string) $site->get('contact_whatsapp'));
+    /* The WhatsApp number if one is set, otherwise the office phone — most
+       places use the same line for both, and a button nobody can see helps
+       nobody. wa.me takes digits only: no +, no spaces, no dashes. */
+    $number = preg_replace('/\D/', '', (string) ($site->get('contact_whatsapp') ?: $site->get('contact_phone')));
     $message = rawurlencode(__('site.actions.whatsapp_message', ['site' => $site->name()]));
 @endphp
 
