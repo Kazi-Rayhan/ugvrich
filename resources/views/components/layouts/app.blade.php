@@ -48,7 +48,6 @@
     {{-- Site-wide, after the footer so it is last in the tab order: a button
          that floats over everything should not be the first thing a keyboard
          user meets on every page. --}}
-    <x-book-consultation-fab />
-    <x-whatsapp-fab />
+    <x-floating-actions />
 </body>
 </html>
