@@ -29,9 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // live server switches over by changing that one line in its .env:
         //
         //     APP_URL=https://ugvrich.com
-        if (str_starts_with((string) config('app.url'), 'https://')) {
-            URL::forceScheme('https');
-        }
+        // if (str_starts_with((string) config('app.url'), 'https://')) {
+        //     URL::forceScheme('https');
+        // }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
