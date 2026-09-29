@@ -15,6 +15,6 @@ class DatabaseSeeder extends Seeder
             ['name' => 'RICH Administrator', 'password' => Hash::make('password')],
         );
 
-        $this->call([RichContentSeeder::class, RichInnovationSeeder::class, RichResearchSeeder::class, RichServiceDepartmentSeeder::class, RichFacilitySeeder::class, BanglaContentSeeder::class]);
+        $this->call([RichContentSeeder::class, RichInnovationSeeder::class, RichResearchSeeder::class, RichServiceDepartmentSeeder::class, RichFacilitySeeder::class, BanglaContentSeeder::class, InnovationRecordSeeder::class]);
     }
 }
