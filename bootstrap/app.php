@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //     APP_URL=https://ugvrich.com
         // if (str_starts_with((string) config('app.url'), 'https://')) {
         //     URL::forceScheme('https');
-        // }
+        // }x`
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
