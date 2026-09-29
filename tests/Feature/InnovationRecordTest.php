@@ -115,4 +115,14 @@ class InnovationRecordTest extends TestCase
             ->assertOk()
             ->assertSee('Solar Scooty');
     }
+
+    public function test_the_sidebar_links_to_the_innovations_screen(): void
+    {
+        // The panel builds its own navigation, so a new resource registers its
+        // routes but is not listed until it is added there by hand.
+        $this->actingAs(User::factory()->create())
+            ->get('/admin')
+            ->assertOk()
+            ->assertSee('/admin/innovations', escape: false);
+    }
 }

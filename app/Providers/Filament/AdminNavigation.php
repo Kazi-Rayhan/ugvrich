@@ -12,6 +12,7 @@ use App\Filament\Resources\Experts\ExpertResource;
 use App\Filament\Resources\Facilities\FacilityResource;
 use App\Filament\Resources\Faqs\FaqResource;
 use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
+use App\Filament\Resources\Innovations\InnovationResource;
 use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
 use App\Filament\Resources\Partners\PartnerResource;
 use App\Filament\Resources\Posts\PostResource;
@@ -81,6 +82,7 @@ class AdminNavigation
                 ->collapsed()
                 ->items([
                     $this->filtered('News', null, PostResource::class, 'type', 'news'),
+                    $this->resource('Innovations', null, InnovationResource::class),
                     $this->resource('Innovation Areas', null, InnovationAreaResource::class),
                     $this->resource('Service Categories', null, ServiceCategoryResource::class),
                     $this->resource('Services', null, ServiceResource::class),
