@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Publication;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Support\MeetingSlots;
 use App\Models\Setting;
 use App\Models\Stat;
 use App\Models\Testimonial;
@@ -618,6 +619,14 @@ class RichContentSeeder extends Seeder
             'contact_website' => 'https://ugv.edu.bd',
             'contact_hours' => 'Sunday – Thursday, 9:00 AM – 5:00 PM',
 
+            // When the office takes consultancy meetings; see App\Support\MeetingSlots.
+            'booking_opens' => MeetingSlots::DEFAULT_OPENS,
+            'booking_closes' => MeetingSlots::DEFAULT_CLOSES,
+            'booking_slot_minutes' => (string) MeetingSlots::DEFAULT_MINUTES,
+            'booking_break_starts' => MeetingSlots::DEFAULT_BREAK_STARTS,
+            'booking_break_ends' => MeetingSlots::DEFAULT_BREAK_ENDS,
+            'booking_closed_days' => json_encode(MeetingSlots::DEFAULT_CLOSED_DAYS),
+
             'social_facebook' => 'https://facebook.com/',
             'social_linkedin' => 'https://linkedin.com/',
             'social_x' => 'https://x.com/',
@@ -629,6 +638,7 @@ class RichContentSeeder extends Seeder
                 str_starts_with($key, 'contact_') => 'contact',
                 str_starts_with($key, 'social_') => 'social',
                 str_starts_with($key, 'hero_') => 'hero',
+                str_starts_with($key, 'booking_') => 'booking',
                 default => 'general',
             };
 

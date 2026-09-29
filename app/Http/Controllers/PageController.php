@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\Publication;
 use App\Models\ServiceCategory;
 use App\Models\Stat;
+use App\Support\MeetingSlots;
 
 class PageController extends Controller
 {
@@ -129,6 +130,8 @@ class PageController extends Controller
     {
         return view('pages.consultancy-request', [
             'categories' => ServiceCategory::active()->with('services')->orderBy('sort_order')->get(),
+            'slots' => MeetingSlots::all(),
+            'takenSlots' => MeetingSlots::taken(),
         ]);
     }
 }

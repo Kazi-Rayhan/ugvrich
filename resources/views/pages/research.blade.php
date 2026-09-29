@@ -4,22 +4,14 @@
     @php
         $f = \App\Support\ResearchFramework::all();
 
-        /*
-         | Figures for the charts are counted from the plan's own tables —
-         | nothing is introduced that the document does not already state.
-         */
+        // The priority areas, and how many of them each department lists.
         $areas = collect($f['priority_areas']);
         $perDepartment = $areas->groupBy(0)->map->count();
-        $avgFunding = $areas->groupBy(0)->map(fn ($g) => round($g->avg(3), 1));
 
-        $sdgCoverage = $areas->flatMap(fn ($r) => array_map('trim', explode(',', str_replace('SDG ', '', $r[2]))))
-            ->filter()
-            ->countBy()
-            ->sortKeysUsing(fn ($a, $b) => (int) $a <=> (int) $b);
-
-        // Which departments each cluster names, in the plan's own order.
-        $departmentKeys = ['English' => 'English', 'BBA' => 'BBA', 'CSE' => 'CSE', 'Mechanical' => 'Mechanical',
-            'Public Health' => 'Public Health', 'Islamic Studies' => 'Islamic Studies', 'Civil' => 'Civil', 'EEE' => 'EEE'];
+        // Numbers the page counts out are written in the digits of the language being read.
+        $num = fn ($value) => app()->getLocale() === 'bn'
+            ? strtr((string) $value, ['0' => '০', '1' => '১', '2' => '২', '3' => '৩', '4' => '৪', '5' => '৫', '6' => '৬', '7' => '৭', '8' => '৮', '9' => '৯'])
+            : (string) $value;
 
         $eyebrow = 'reveal text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-700';
         $h2 = 'reveal mt-3 font-display text-[26px] font-bold leading-tight tracking-tight text-ink-950 sm:text-[34px]';
@@ -72,7 +64,7 @@
 
                                 {{-- Oversized numeral, kept behind the text --}}
                                 <span class="pointer-events-none absolute -right-3 -top-6 select-none font-display text-[7rem] font-bold leading-none text-ink-50 transition-colors duration-500 group-hover:text-brand-50"
-                                      aria-hidden="true">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                                      aria-hidden="true">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
 
                                 <span class="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-navy-700 text-white shadow-[0_14px_28px_-16px_rgba(2,34,81,0.8)] transition duration-500 group-hover:scale-105">
                                     <x-ui-icon :name="$icon" class="h-6 w-6" />
@@ -151,7 +143,7 @@
             <div class="mt-6 grid gap-px overflow-hidden rounded-[1.25rem] border border-ink-100 bg-ink-100 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($f['departments'] as $i => $department)
                     <div class="reveal flex items-center gap-3 bg-white p-5" style="{{ $delay($i, 35) }}">
-                        <span class="font-display text-[22px] font-bold tabular-nums text-brand-200">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                        <span class="font-display text-[22px] font-bold tabular-nums text-brand-200">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <span class="text-[13.5px] font-semibold leading-snug text-ink-800">{{ $department }}</span>
                     </div>
                 @endforeach
@@ -191,7 +183,7 @@
             <div class="mt-6 grid gap-2.5 lg:grid-cols-2">
                 @foreach ($f['mission'] as $i => $point)
                     <div class="reveal flex items-start gap-3 rounded-xl border border-ink-100 bg-white px-5 py-4" style="{{ $delay($i, 30) }}">
-                        <span class="mt-0.5 font-display text-[11px] font-bold tabular-nums text-brand-500">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                        <span class="mt-0.5 font-display text-[11px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <span class="text-[14px] leading-snug text-ink-800">{{ $point }}</span>
                     </div>
                 @endforeach
@@ -221,7 +213,7 @@
                                 <x-ui-icon :name="$activityIcons[$i] ?? 'check'" class="h-5 w-5" />
                             </span>
                             <span class="font-display text-[12px] font-bold tabular-nums text-ink-300 transition-colors duration-500 group-hover:text-brand-500">
-                                {{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
+                                {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
                         </div>
 
@@ -247,70 +239,6 @@
         <div class="container-rich">
             <p class="{{ $eyebrow }}">{{ $f['headings']['section_2'] }}</p>
             <h2 class="{{ $h2 }}">{{ $f['headings']['priority_areas'] }}</h2>
-
-            {{-- Read off the table below: how many areas each department lists,
-                 and the average of their indicative funding alignment. --}}
-            <div class="mt-10 grid gap-5 lg:grid-cols-2">
-                <div class="{{ $panel }}">
-                    <p class="{{ $label }}">{{ $f['headings']['areas_per_department'] }}</p>
-                    <div class="mt-6 space-y-3.5">
-                        @foreach ($perDepartment as $department => $count)
-                            <div class="flex items-center gap-4">
-                                <span class="w-36 shrink-0 truncate text-[13px] font-semibold text-ink-700" title="{{ $department }}">{{ \App\Support\Vocabulary::label('research_departments', $department, $department) }}</span>
-                                <span class="h-2.5 flex-1 overflow-hidden rounded-full bg-ink-100">
-                                    <span class="block h-full rounded-full bg-brand-600" style="width: {{ round($count / $perDepartment->max() * 100) }}%"></span>
-                                </span>
-                                <span class="w-7 shrink-0 text-right font-display text-[14px] font-bold tabular-nums text-ink-950">{{ $count }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="{{ $panel }}">
-                    <p class="{{ $label }}">{{ $f['headings']['average_funding'] }}</p>
-                    <div class="mt-6 space-y-3.5">
-                        @foreach ($avgFunding as $department => $average)
-                            <div class="flex items-center gap-4">
-                                <span class="w-36 shrink-0 truncate text-[13px] font-semibold text-ink-700" title="{{ $department }}">{{ \App\Support\Vocabulary::label('research_departments', $department, $department) }}</span>
-                                <span class="h-2.5 flex-1 overflow-hidden rounded-full bg-ink-100">
-                                    <span class="block h-full rounded-full bg-navy-700" style="width: {{ $average }}%"></span>
-                                </span>
-                                <span class="w-12 shrink-0 text-right font-display text-[14px] font-bold tabular-nums text-ink-950">{{ $average }}%</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- How often each Sustainable Development Goal is named across the table --}}
-            <div class="{{ $panel }} mt-5">
-                <p class="{{ $label }}">{{ $f['headings']['sdg_chart'] }}</p>
-
-                @php
-                    $chartMax = max(1, $sdgCoverage->max());
-                    $step = 740 / max(1, $sdgCoverage->count());
-                @endphp
-
-                <svg viewBox="0 0 760 240" class="mt-6 w-full" role="img" aria-label="{{ $f['headings']['sdg_chart_label'] }}">
-                    @foreach ([0, 0.25, 0.5, 0.75, 1] as $line)
-                        <line x1="0" x2="760" y1="{{ 190 - $line * 160 }}" y2="{{ 190 - $line * 160 }}" stroke="#e5e7eb" stroke-width="1" />
-                    @endforeach
-
-                    @foreach ($sdgCoverage as $goal => $count)
-                        @php
-                            $x = 10 + $loop->index * $step;
-                            $height = $count / $chartMax * 160;
-                        @endphp
-                        <rect x="{{ $x }}" y="{{ 190 - $height }}" width="{{ $step * 0.55 }}" height="{{ $height }}" rx="4" fill="#316d31">
-                            <title>SDG {{ $goal }}: named in {{ $count }} research areas</title>
-                        </rect>
-                        <text x="{{ $x + $step * 0.275 }}" y="{{ 182 - $height }}" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">{{ $count }}</text>
-                        <text x="{{ $x + $step * 0.275 }}" y="212" text-anchor="middle" font-size="12" fill="#64748b">{{ $goal }}</text>
-                    @endforeach
-
-                    <text x="10" y="232" font-size="11" fill="#94a3b8">{{ $f['headings']['sdg_number'] }}</text>
-                </svg>
-            </div>
 
             {{-- The table's rows, filtered by department --}}
             <div class="reveal mt-10 flex flex-wrap gap-1.5 rounded-[1.25rem] border border-ink-200 bg-ink-50 p-1.5">
@@ -343,7 +271,7 @@
                             <span class="h-1.5 w-16 overflow-hidden rounded-full bg-ink-100 sm:w-24">
                                 <span class="block h-full rounded-full bg-brand-600" style="width: {{ $funding }}%"></span>
                             </span>
-                            <span class="w-10 text-right font-display text-[14px] font-bold tabular-nums text-ink-950">{{ $funding }}%</span>
+                            <span class="w-10 text-right font-display text-[14px] font-bold tabular-nums text-ink-950">{{ $num($funding) }}%</span>
                         </span>
                     </div>
                 @endforeach
@@ -358,42 +286,11 @@
             <h2 class="{{ $h2 }}">{{ $f['headings']['clusters'] }}</h2>
             <p class="{{ $para }}">{{ $f['clusters_intro'] }}</p>
 
-            {{-- Which departments each cluster names, side by side --}}
-            <div class="{{ $panel }} mt-10 overflow-x-auto">
-                <p class="{{ $label }}">{{ $f['headings']['participating_departments'] }}</p>
-                <div class="mt-6 min-w-[640px]">
-                    <div class="grid grid-cols-[150px_repeat(5,1fr)] gap-2">
-                        <span></span>
-                        @foreach ($f['clusters'] as $cluster)
-                            <span class="text-center font-display text-[13px] font-bold text-ink-950">{{ $cluster['no'] }}</span>
-                        @endforeach
-
-                        @foreach ($departmentKeys as $token => $name)
-                            <span class="flex items-center text-[12.5px] font-semibold text-ink-700">{{ \App\Support\Vocabulary::label('research_departments', $name, $name) }}</span>
-                            @foreach ($f['clusters'] as $cluster)
-                                @php $inCluster = str_contains($cluster['departments'], $token); @endphp
-                                <span class="flex items-center justify-center py-1.5">
-                                    <span @class([
-                                        'flex h-7 w-7 items-center justify-center rounded-lg',
-                                        'bg-brand-600 text-white' => $inCluster,
-                                        'bg-ink-100' => ! $inCluster,
-                                    ]) title="{{ $cluster['theme'] }}">
-                                        @if ($inCluster)
-                                            <x-ui-icon name="check" class="h-3.5 w-3.5" stroke="2.8" />
-                                        @endif
-                                    </span>
-                                </span>
-                            @endforeach
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-5 space-y-5">
+            <div class="mt-10 space-y-5">
                 @foreach ($f['clusters'] as $i => $cluster)
                     <div class="reveal overflow-hidden rounded-[1.5rem] border border-ink-100 bg-white" style="{{ $delay($i, 55) }}">
                         <div class="flex flex-wrap items-center gap-4 border-b border-ink-100 px-6 py-5">
-                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 font-display text-[13px] font-bold text-white">{{ $cluster['no'] }}</span>
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 font-display text-[13px] font-bold text-white">{{ $num($cluster['no']) }}</span>
                             <p class="font-display text-[18px] font-bold leading-snug text-ink-950 sm:text-[20px]">{{ $cluster['theme'] }}</p>
                         </div>
 
@@ -434,7 +331,7 @@
                     <li @class(['chain-link reveal', 'has-line' => ! $loop->last]) style="{{ $delay($i, 45, 360) }}">
                         <div class="chain-node">
                             <span class="chain-dot"><x-ui-icon name="check" class="h-5 w-5" /></span>
-                            <span class="chain-number">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="chain-number">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         </div>
                         <div class="chain-body">
                             <p class="font-display text-[14.5px] font-bold leading-snug text-ink-950">{{ $stage }}</p>
@@ -640,7 +537,7 @@
             <div class="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                 @foreach ($f['collaboration_pathways'] as $i => [$pathway, $output])
                     <div class="reveal relative flex h-full flex-col rounded-2xl border border-ink-100 bg-white p-5" style="{{ $delay($i) }}">
-                        <span class="font-display text-[12px] font-bold tabular-nums text-brand-500">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                        <span class="font-display text-[12px] font-bold tabular-nums text-brand-500">{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
                         <p class="mt-3 font-display text-[14.5px] font-bold leading-snug text-ink-950">{{ $pathway }}</p>
                         <p class="mt-2 text-[12.5px] leading-relaxed muted">{{ $output }}</p>
                         @unless ($loop->last)

@@ -2,7 +2,6 @@
 
 @php
     $categories = $site->navCategories();
-    $areas = $site->innovationAreas();
 
     // Grouped navigation. `match` lists the route patterns that light a group up;
     // groups with a `panel` open the full-width panel under the bar.
@@ -12,14 +11,7 @@
         ['key' => 'home', 'label' => __('site.nav.home'), 'route' => 'home', 'match' => ['home']],
         ['key' => 'projects', 'label' => __('site.nav.projects'), 'route' => 'projects.index', 'match' => ['projects.*']],
         ['key' => 'research', 'label' => __('site.nav.research'), 'route' => 'research', 'match' => ['research']],
-        ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*'], 'panel' => [
-            'title' => __('site.nav.innovation_panel'),
-            'text' => __('site.nav.innovation_panel_text'),
-            'children' => $areas->map(fn ($area) => [
-                $area->name, route('innovation.index', ['area' => $area->slug]), $area->icon ?? 'lightbulb',
-                \App\Support\Vocabulary::label('departments', $area->department),
-            ])->all(),
-        ]],
+        ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*']],
         ['key' => 'consultancy', 'label' => __('site.nav.consultancy'), 'route' => 'services.index', 'match' => ['services.*', 'consultancy.*'], 'panel' => [
             'title' => __('site.nav.consultancy'),
             'text' => __('site.nav.consultancy_panel_text'),
@@ -77,7 +69,7 @@
                      :style="`padding-inline-start: ${stripInset}px`">
                     @foreach ($utility as [$label, $url, $icon, $patterns])
                         <a href="{{ $url }}"
-                           @class(['flex items-center gap-1.5 transition hover:opacity-100', 'font-semibold' => request()->routeIs(...$patterns)])>
+                           @class(['flex items-center gap-1.5 transition hover:opacity-100', 'font-semibold' => \App\Support\Navigation::isCurrent(...$patterns)])>
                             <x-ui-icon :name="$icon" class="h-3.5 w-3.5" />
                             <span data-strip-label>{{ $label }}</span>
                         </a>
@@ -92,7 +84,7 @@
 
                     <x-language-switch class="!py-1" />
 
-                    <a href="{{ route('contact') }}"
+                    <a href="{{ route('consultancy.create') }}"
                        class="group flex items-center gap-1.5 rounded-full bg-brand-600 px-3.5 py-1 font-semibold text-white transition hover:bg-brand-500">
                         {{ __('site.actions.collaborate') }}
                         <x-ui-icon name="arrow-up-right" class="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-45" />
@@ -124,7 +116,7 @@
                          aria-label="{{ $sideKey === 'left' ? 'Primary' : 'Primary, continued' }}"
                          @mouseleave="settle()">
                         @foreach ($sideLinks as $i => $link)
-                            @php $active = request()->routeIs(...$link['match']); @endphp
+                            @php $active = \App\Support\Navigation::isCurrent(...$link['match']); @endphp
 
                             <a href="{{ route($link['route']) }}"
                                class="nav-item animate-nav-in"
@@ -302,7 +294,7 @@
                     <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}" class="mt-1 block transition hover:text-white">{{ $phone }}</a>
                 @endif
             </div>
-            <a href="{{ route('contact') }}" class="btn-primary w-full sm:w-auto sm:justify-self-end">
+            <a href="{{ route('consultancy.create') }}" class="btn-primary w-full sm:w-auto sm:justify-self-end">
                 {{ __('site.actions.collaborate_with_us') }}
                 <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
             </a>

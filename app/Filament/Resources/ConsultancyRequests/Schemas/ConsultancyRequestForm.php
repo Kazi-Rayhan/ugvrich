@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ConsultancyRequests\Schemas;
 
+use App\Support\MeetingSlots;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -50,6 +52,24 @@ class ConsultancyRequestForm
                             ->downloadable()
                             ->openable()
                             ->columnSpanFull(),
+                    ]),
+
+                Section::make('Requested meeting')
+                    ->description('The day and half-hour slot the requester asked for. The office is closed on Thursday and Friday; slots run 09:00 to 20:00.')
+                    ->columns(2)
+                    ->schema([
+                        DatePicker::make('preferred_date')
+                            ->label('Preferred date')
+                            ->native(false)
+                            ->disabledDates(fn () => [])
+                            ->helperText('Thursday and Friday are closed days.'),
+
+                        Select::make('preferred_slot')
+                            ->label('Preferred slot')
+                            ->native(false)
+                            ->options(fn () => collect(MeetingSlots::all())->mapWithKeys(
+                                fn ($label, $value) => [$value => str_replace('-', ' – ', $value)],
+                            )->all()),
                     ]),
 
                 Section::make('Handling')

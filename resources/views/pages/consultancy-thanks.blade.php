@@ -35,6 +35,16 @@
                     <p class="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed muted">
                         {{ __('site.thanks.consultancy_body') }}
                     </p>
+
+                    {{-- The meeting they asked for, if they named one --}}
+                    @if (($submission['preferred_date'] ?? null) && ($submission['preferred_slot'] ?? null))
+                        <p class="mx-auto mt-6 inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-3 text-[14.5px] font-semibold text-brand-800">
+                            <x-ui-icon name="calendar" class="h-4 w-4 text-brand-600" />
+                            {{ $submission['preferred_date'] }}
+                            <span class="text-brand-300">·</span>
+                            <span class="tabular-nums">{{ $submission['preferred_slot'] }}</span>
+                        </p>
+                    @endif
                 </div>
 
                 {{-- Actions --}}

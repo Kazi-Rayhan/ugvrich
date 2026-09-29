@@ -11,7 +11,14 @@ class ConsultancyRequest extends Model
 
     protected $casts = [
         'handled_at' => 'datetime',
+        'preferred_date' => 'date',
     ];
+
+    /** The requested half-hour slot, read in the language of the page. */
+    public function getPreferredSlotLabelAttribute(): ?string
+    {
+        return \App\Support\MeetingSlots::label($this->preferred_slot);
+    }
 
     public function category(): BelongsTo
     {

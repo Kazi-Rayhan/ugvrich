@@ -33,6 +33,8 @@ Route::get('/services', [ServiceController::class, 'index'])->name('services.ind
 Route::get('/services/{serviceCategory}', [ServiceController::class, 'show'])->name('services.show');
 
 Route::get('/innovation', [InnovationController::class, 'index'])->name('innovation.index');
+Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('innovation.areas');
+Route::redirect('/innovation/plan', '/innovation')->name('innovation.plan');
 
 Route::get('/startup', [PageController::class, 'startup'])->name('startup');
 Route::get('/submit-idea', [IdeaSubmissionController::class, 'create'])->name('ideas.create');

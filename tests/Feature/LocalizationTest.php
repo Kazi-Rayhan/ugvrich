@@ -61,6 +61,8 @@ class LocalizationTest extends TestCase
             ->filter(fn (RoutingRoute $route) => ! str_starts_with((string) $route->getName(), 'en.'))
             ->filter(fn (RoutingRoute $route) => ! str_starts_with((string) $route->getName(), 'filament.'))
             ->filter(fn (RoutingRoute $route) => ! str_contains($route->uri(), '{'))
+            // Routes that only forward somewhere else answer with a redirect.
+            ->filter(fn (RoutingRoute $route) => ! str_contains($route->getActionName(), 'RedirectController'))
             // The thank-you pages send a visitor without a submission back to the form.
             ->filter(fn (RoutingRoute $route) => ! str_contains((string) $route->getName(), 'thanks'))
             ->map(fn (RoutingRoute $route) => '/'.ltrim($route->uri(), '/'))

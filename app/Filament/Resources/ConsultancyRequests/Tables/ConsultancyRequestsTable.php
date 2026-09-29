@@ -9,6 +9,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 
 class ConsultancyRequestsTable
@@ -17,41 +18,65 @@ class ConsultancyRequestsTable
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->defaultPaginationPageOption(25)
+            ->paginationPageOptions([25, 50, 100])
+
+            /*
+             | Six columns, not nine: each one carries its secondary detail
+             | underneath rather than in a column of its own, so a row reads
+             | top to bottom instead of running off the side of the screen.
+             | Everything else is a toggle.
+             */
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Received')
                     ->since()
+                    ->description(fn ($record) => $record->created_at?->format('j M Y'))
                     ->tooltip(fn ($record) => $record->created_at?->format('j F Y, g:i A'))
                     ->sortable(),
 
                 TextColumn::make('name')
-                    ->searchable()
+                    ->label('Requester')
                     ->weight('semibold')
-                    ->description(fn ($record) => $record->designation),
-
-                TextColumn::make('organization')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('email')
-                    ->searchable()
-                    ->copyable()
-                    ->icon('heroicon-m-envelope'),
+                    // Organisation and designation are still searchable, they
+                    // are just not printed under the name any more - a second
+                    // line there is what forced every row taller.
+                    ->searchable(['name', 'organization', 'designation'])
+                    ->tooltip(fn ($record) => collect([$record->designation, $record->organization])
+                        ->filter()
+                        ->implode(' · ') ?: null),
 
                 TextColumn::make('phone')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Phone')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Phone copied')
+                    ->placeholder('Not given'),
+
+                TextColumn::make('email')
+                    ->label('Email')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Email copied')
+                    ->placeholder('Not given'),
 
                 TextColumn::make('category.name')
                     ->label('Area')
                     ->badge()
                     ->color('gray')
-                    ->placeholder('--'),
+                    ->placeholder('Not chosen')
+                    ->description(fn ($record) => $record->area_of_interest)
+                    ->wrap(),
 
-                TextColumn::make('area_of_interest')
-                    ->label('Service')
-                    ->toggleable()
-                    ->placeholder('--')
-                    ->limit(30),
+                TextColumn::make('preferred_date')
+                    ->label('Meeting')
+                    ->date('j M Y')
+                    ->description(fn ($record) => $record->preferred_slot
+                        ? str_replace('-', ' – ', $record->preferred_slot)
+                        : null)
+                    ->placeholder('No preference')
+                    ->sortable(),
 
                 TextColumn::make('status')
                     ->badge()
@@ -66,15 +91,43 @@ class ConsultancyRequestsTable
                     })
                     ->sortable(),
 
-                TextColumn::make('document')
-                    ->label('File')
-                    ->badge()
-                    ->formatStateUsing(fn ($state) => filled($state) ? 'Attached' : '--')
-                    ->color(fn ($state) => filled($state) ? 'success' : 'gray')
-                    ->toggleable(),
+                // Read on demand: useful when scanning, too long to live here.
+                TextColumn::make('requirement')
+                    ->label('Requirement')
+                    ->limit(80)
+                    ->wrap()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('handled_at')
+                    ->label('Handled')
+                    ->dateTime('j M Y, g:i A')
+                    ->placeholder('--')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+
+            // Long lists read better in blocks; none is applied until chosen.
+            ->groups([
+                Group::make('status')
+                    ->label('Status')
+                    ->getTitleFromRecordUsing(fn ($record) => str($record->status)->replace('_', ' ')->title()),
+
+                Group::make('category.name')
+                    ->label('Area of consultancy'),
+
+                Group::make('created_at')
+                    ->label('Month received')
+                    ->date(),
+
+                Group::make('preferred_date')
+                    ->label('Meeting date')
+                    ->date(),
+            ])
+
             ->filters([
                 SelectFilter::make('status')
+                    ->multiple()
                     ->options([
                         'new' => 'New',
                         'in_review' => 'In review',
@@ -89,10 +142,20 @@ class ConsultancyRequestsTable
                     ->relationship('category', 'name')
                     ->preload(),
 
+                Filter::make('has_meeting')
+                    ->label('Asked for a meeting')
+                    ->query(fn ($query) => $query->whereNotNull('preferred_date')),
+
+                Filter::make('upcoming')
+                    ->label('Meeting still ahead')
+                    ->query(fn ($query) => $query->whereDate('preferred_date', '>=', today())),
+
                 Filter::make('has_document')
                     ->label('Has attachment')
                     ->query(fn ($query) => $query->whereNotNull('document')),
             ])
+            ->filtersFormColumns(2)
+
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
@@ -101,6 +164,8 @@ class ConsultancyRequestsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateHeading('No consultancy requests yet')
+            ->emptyStateDescription('Requests sent through the public form land here.');
     }
 }

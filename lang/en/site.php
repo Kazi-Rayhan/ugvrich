@@ -44,10 +44,10 @@ return [
     ],
 
     'actions' => [
-        'collaborate' => 'Collaborate',
-        'collaborate_with_us' => 'Collaborate with us',
+        'collaborate' => 'Book a Consultation',
+        'collaborate_with_us' => 'Book a Consultation',
         'submit_idea' => 'Submit Your Idea',
-        'request_consultancy' => 'Request Consultancy',
+        'request_consultancy' => 'Book a Consultation',
         'have_an_idea' => 'Have an idea? Submit it to RICH',
         'view_all' => 'View all',
         'search' => 'Search',
@@ -330,6 +330,11 @@ return [
     ],
 
     'innovation' => [
+        'section' => 'Section :number',
+        'areas_title' => 'Innovation Areas & Projects',
+        'areas_lead' => 'The eight departmental innovation areas, and the projects running in each.',
+        'areas_link' => 'Innovation areas & projects',
+        'plan_link' => 'Read the innovation plan',
         'meta_description' => 'The UGV RICH Innovation Wing transforms ideas into practical solutions through interdisciplinary collaboration, prototyping, testing, IP development and commercialization support.',
         'hero_eyebrow' => 'UGV RICH Innovation Wing',
         'hero_title' => 'From ideas to <span class="text-accent">practical solutions</span>',
@@ -543,6 +548,19 @@ return [
     ],
 
     'consultancy' => [
+        'meeting_break' => 'Closed for lunch :from – :to.',
+        'slot_taken' => 'That slot has just been taken. Please choose another.',
+        'slot_booked' => 'Booked',
+        'meeting_title' => 'Preferred meeting time',
+        'meeting_note' => 'Pick a day and a half-hour slot that suits you. The office is open every day except Thursday and Friday, from 09:00 to 20:00.',
+        'meeting_optional' => '(optional)',
+        'meeting_date' => 'Date',
+        'meeting_slot' => 'Time slot',
+        'closed_day' => 'The office is closed on Thursday and Friday. Please choose another day.',
+        'pick_date_first' => 'Choose a date to see the slots.',
+        'clear_time' => 'Clear',
+        'summary_meeting' => 'Meeting',
+        'summary_no_meeting' => 'No preference',
         'meta_title' => 'Request Consultancy',
         'meta_description' => 'Submit your requirement to UGV RICH and we will match it to the right faculty and professional expertise.',
         'hero_eyebrow' => 'Request consultancy',

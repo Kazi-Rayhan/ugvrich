@@ -22,16 +22,13 @@ export default defineConfig({
                    back to whatever the reader's system happens to have. These two
                    cover it: Hind Siliguri for text, Anek Bangla for display.
                    Only the bengali subset is downloaded — Latin still comes from
-                   Inter and Space Grotesk, chosen per glyph by the browser. */
-                bunny('Hind Siliguri', {
+                   Inter and Space Grotesk, chosen per glyph by the browser.
+                   Noto draws the Bengali digits the conventional way, which
+                   matters: ১ in some faces is easily read as ৲. */
+                bunny('Noto Sans Bengali', {
                     weights: [400, 500, 600, 700],
                     subsets: ['bengali'],
                     preload: [{ weight: 400, style: 'normal' }],
-                }),
-                bunny('Anek Bangla', {
-                    weights: [500, 600, 700],
-                    subsets: ['bengali'],
-                    preload: [{ weight: 700, style: 'normal' }],
                 }),
             ],
         }),

@@ -24,7 +24,7 @@
 
     {{-- Only the faces this page can use: the Bangla site adds its own two. --}}
     {{ Vite::fonts(app()->getLocale() === 'bn'
-        ? ['space-grotesk', 'inter', 'hind-siliguri', 'anek-bangla']
+        ? ['space-grotesk', 'inter', 'noto-sans-bengali']
         : ['space-grotesk', 'inter']) }}
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -44,5 +44,10 @@
     </main>
 
     <x-site-footer />
+
+    {{-- Site-wide, after the footer so it is last in the tab order: a button
+         that floats over everything should not be the first thing a keyboard
+         user meets on every page. --}}
+    <x-book-consultation-fab />
 </body>
 </html>

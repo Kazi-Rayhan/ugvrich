@@ -4,14 +4,17 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\ServiceCategories\Schemas\ServiceCategoryForm;
 use App\Models\Setting;
+use App\Support\MeetingSlots;
 use App\Support\Site;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TimePicker;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
@@ -45,10 +48,11 @@ class ManageSiteSettings extends Page implements HasSchemas
         'research_activities',
         'partnership_types',
         'process_steps',
+        'booking_closed_days',
     ];
 
     /** Of those, the ones whose items are themselves arrays (not plain strings). */
-    protected const STRUCTURED_KEYS = ['why_choose', 'process_steps'];
+    protected const STRUCTURED_KEYS = ['why_choose', 'process_steps', 'booking_closed_days'];
 
     public ?array $data = [];
 
@@ -247,7 +251,55 @@ class ManageSiteSettings extends Page implements HasSchemas
                                     ),
                             ]),
 
-                            Tabs\Tab::make('Contact')->icon('heroicon-o-phone')->schema([
+                            Tabs\Tab::make('Booking')->icon('heroicon-o-calendar-days')->schema([
+                        Section::make('Consultancy meeting slots')
+                            ->description('The public request form offers these slots, and rejects anything outside them. Changing a value here changes the form, the validation and the admin panel together.')
+                            ->columns(3)
+                            ->schema([
+                                TimePicker::make('booking_opens')
+                                    ->label('Opens')
+                                    ->seconds(false)
+                                    ->default(MeetingSlots::DEFAULT_OPENS)
+                                    ->helperText('First slot starts here.'),
+
+                                TimePicker::make('booking_closes')
+                                    ->label('Closes')
+                                    ->seconds(false)
+                                    ->default(MeetingSlots::DEFAULT_CLOSES)
+                                    ->helperText('Last slot ends here.'),
+
+                                Select::make('booking_slot_minutes')
+                                    ->label('Slot length')
+                                    ->native(false)
+                                    ->default(MeetingSlots::DEFAULT_MINUTES)
+                                    ->options([15 => '15 minutes', 20 => '20 minutes', 30 => '30 minutes', 45 => '45 minutes', 60 => '60 minutes']),
+
+                                TimePicker::make('booking_break_starts')
+                                    ->label('Lunch break starts')
+                                    ->seconds(false)
+                                    ->default(MeetingSlots::DEFAULT_BREAK_STARTS)
+                                    ->helperText('Leave both empty for no break.'),
+
+                                TimePicker::make('booking_break_ends')
+                                    ->label('Lunch break ends')
+                                    ->seconds(false)
+                                    ->default(MeetingSlots::DEFAULT_BREAK_ENDS)
+                                    ->helperText('Slots running into the break are not offered.'),
+
+                                CheckboxList::make('booking_closed_days')
+                                    ->label('Closed days')
+                                    ->options([
+                                        0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday',
+                                        4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday',
+                                    ])
+                                    ->columns(4)
+                                    ->default(MeetingSlots::DEFAULT_CLOSED_DAYS)
+                                    ->helperText('No meetings are offered on these days.')
+                                    ->columnSpanFull(),
+                            ]),
+                    ]),
+
+                    Tabs\Tab::make('Contact')->icon('heroicon-o-phone')->schema([
                                 Section::make('Office')->columns(2)->schema([
                                     Textarea::make('contact_address')->rows(2)->columnSpanFull(),
                                     TextInput::make('contact_email')->email(),

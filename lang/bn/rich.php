@@ -14,15 +14,15 @@ return [
 
     'research_departments' => [
         'English' => 'ইংরেজি',
-        'BBA' => 'বিবিএ',
-        'CSE' => 'সিএসই',
-        'Mechanical Engineering' => 'মেকানিক্যাল ইঞ্জিনিয়ারিং',
-        'Mechanical' => 'মেকানিক্যাল',
+        'BBA' => 'ব্যবসায় প্রশাসন',
+        'CSE' => 'কম্পিউটার বিজ্ঞান ও প্রকৌশল',
+        'Mechanical Engineering' => 'যন্ত্রকৌশল',
+        'Mechanical' => 'যন্ত্রকৌশল',
         'Public Health' => 'জনস্বাস্থ্য',
         'Islamic Studies' => 'ইসলামিক স্টাডিজ',
-        'Civil Engineering' => 'সিভিল ইঞ্জিনিয়ারিং',
-        'Civil' => 'সিভিল',
-        'EEE' => 'ইইই',
+        'Civil Engineering' => 'পুরকৌশল',
+        'Civil' => 'পুরকৌশল',
+        'EEE' => 'তড়িৎ ও ইলেকট্রনিক প্রকৌশল',
     ],
 
     'departments' => [

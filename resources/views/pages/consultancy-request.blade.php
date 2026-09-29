@@ -42,7 +42,7 @@
             <form action="{{ route('consultancy.store') }}" method="POST" enctype="multipart/form-data"
                   class="reveal overflow-hidden rounded-[2rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]"
                   x-data="{
-                      step: {{ $errors->hasAny(['requirement', 'service_category_id']) ? 2 : ($errors->has('document') ? 3 : 1) }},
+                      step: {{ $errors->hasAny(['requirement', 'service_category_id', 'preferred_date', 'preferred_slot']) ? 2 : ($errors->has('document') ? 3 : 1) }},
                       last: 3,
                       chars: {{ mb_strlen((string) old('requirement')) }},
                       file: null,
@@ -54,6 +54,21 @@
                           organization: @js(old('organization', '')),
                       },
                       service: @js(old('area_of_interest', '')),
+                      meetingDate: @js(old('preferred_date', '')),
+                      slot: @js(old('preferred_slot', '')),
+                      closedDays: @js(\App\Support\MeetingSlots::closedDays()),
+                      takenSlots: @js($takenSlots),
+                      /* Slots already given away on the chosen day. */
+                      get taken() {
+                          return this.takenSlots[this.meetingDate] ?? [];
+                      },
+                      /* Thursday and Friday are shut, so a date landing on one
+                         hides the slots and says why. */
+                      get closedDay() {
+                          if (! this.meetingDate) return false;
+                          const [y, m, d] = this.meetingDate.split('-').map(Number);
+                          return this.closedDays.includes(new Date(y, m - 1, d).getDay());
+                      },
                       services: @js($categories->mapWithKeys(fn ($category) => [$category->id => $category->services->pluck('name')])),
                       areaNames: @js($categories->mapWithKeys(fn ($category) => [$category->id => $category->name])),
                       get areaName() { return this.areaNames[this.area] ?? @js(__('site.consultancy.not_sure')) },
@@ -70,7 +85,7 @@
                           this.$refs.top.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       },
                   }"
-                  x-init="$watch('area', () => { service = '' })">
+                  x-init="$watch('area', () => { service = '' }); $watch('meetingDate', () => { if (closedDay || ! meetingDate || taken.includes(slot)) slot = '' })">
 
                 @csrf
 
@@ -199,6 +214,87 @@
                                 <p class="mt-1 text-[13px] text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        {{-- Preferred meeting time: the office keeps half-hour slots,
+                             every day except Thursday and Friday. --}}
+                        <div class="mt-8 rounded-[1.5rem] border border-ink-200 bg-ink-50/60 p-5 sm:p-6">
+                            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                <p class="text-[13px] font-semibold text-ink-700">
+                                    {{ __('site.consultancy.meeting_title') }}
+                                    <span class="font-normal muted">{{ __('site.consultancy.meeting_optional') }}</span>
+                                </p>
+                                <button type="button" x-show="meetingDate || slot" x-cloak
+                                        @click="meetingDate = ''; slot = ''"
+                                        class="text-[12.5px] font-semibold text-brand-700 hover:underline">
+                                    {{ __('site.consultancy.clear_time') }}
+                                </button>
+                            </div>
+                            <p class="mt-1.5 text-[13px] muted">
+                                {{ __('site.consultancy.meeting_note') }}
+                                @if ($break = \App\Support\MeetingSlots::breakWindow())
+                                    <span class="font-medium text-ink-600">
+                                        {{ __('site.consultancy.meeting_break', [
+                                            'from' => \App\Support\Numerals::localize($break[0]),
+                                            'to' => \App\Support\Numerals::localize($break[1]),
+                                        ]) }}
+                                    </span>
+                                @endif
+                            </p>
+
+                            <div class="mt-5 grid gap-5 lg:grid-cols-[minmax(0,15rem)_1fr]">
+                                <div>
+                                    <label for="preferred_date" class="mb-2 block text-[13px] font-semibold text-ink-700">
+                                        {{ __('site.consultancy.meeting_date') }}
+                                    </label>
+                                    <input id="preferred_date" type="date" name="preferred_date" x-model="meetingDate"
+                                           min="{{ now()->toDateString() }}"
+                                           @class([
+                                               'w-full rounded-2xl border bg-white px-4 py-3 text-[15px] text-ink-900 transition focus:outline-none focus:ring-4',
+                                               'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('preferred_date'),
+                                               'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('preferred_date'),
+                                           ])>
+
+                                    <p x-show="meetingDate && closedDay" x-cloak class="mt-2 text-[13px] text-red-600">
+                                        {{ __('site.consultancy.closed_day') }}
+                                    </p>
+                                    @error('preferred_date')
+                                        <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <p class="mb-2 text-[13px] font-semibold text-ink-700">{{ __('site.consultancy.meeting_slot') }}</p>
+
+                                    <p x-show="! meetingDate || closedDay" class="rounded-2xl border border-dashed border-ink-200 bg-white px-4 py-3 text-[13px] muted">
+                                        {{ __('site.consultancy.pick_date_first') }}
+                                    </p>
+
+                                    <div x-show="meetingDate && ! closedDay" x-cloak
+                                         class="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+                                        @foreach ($slots as $value => $label)
+                                            <label :class="taken.includes('{{ $value }}') ? 'cursor-not-allowed' : 'cursor-pointer'"
+                                                   :title="taken.includes('{{ $value }}') ? @js(__('site.consultancy.slot_booked')) : null">
+                                                <input type="radio" name="preferred_slot" value="{{ $value }}" x-model="slot" class="peer sr-only"
+                                                       :disabled="taken.includes('{{ $value }}')"
+                                                       @checked(old('preferred_slot') === $value)>
+                                                <span class="flex items-center justify-center rounded-xl border px-2 py-2 text-center text-[12.5px] font-medium tabular-nums transition
+                                                             peer-checked:border-brand-600 peer-checked:bg-brand-600 peer-checked:text-white
+                                                             peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand-600"
+                                                      :class="taken.includes('{{ $value }}')
+                                                          ? 'border-ink-100 bg-ink-100 text-ink-400 line-through'
+                                                          : 'border-ink-200 bg-white text-ink-700 hover:border-brand-300 hover:text-brand-700'">
+                                                    {{ $label }}
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    @error('preferred_slot')
+                                        <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
                     </fieldset>
 
                     {{-- Step 3 — Documents and review --}}
@@ -254,6 +350,11 @@
                                     <div class="flex gap-3">
                                         <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_requirement') }}</dt>
                                         <dd class="min-w-0 flex-1 font-medium text-ink-900"><span x-text="chars">0</span> {{ __('site.consultancy.summary_characters') }}</dd>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_meeting') }}</dt>
+                                        <dd class="min-w-0 flex-1 font-medium text-ink-900"
+                                            x-text="meetingDate && slot ? `${meetingDate} · ${slot.replace('-', ' – ')}` : @js(__('site.consultancy.summary_no_meeting'))">--</dd>
                                     </div>
                                     <div class="flex gap-3">
                                         <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_attachment') }}</dt>
