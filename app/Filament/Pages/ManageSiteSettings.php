@@ -141,8 +141,7 @@ class ManageSiteSettings extends Page implements HasSchemas
                                     ->disk('public')
                                     ->directory('hero')
                                     ->acceptedFileTypes(['video/mp4', 'video/webm'])
-                                    ->maxSize(20480)
-                                    ->helperText('MP4 or WebM, 16:9, ideally under 5 MB. Plays muted and looped behind the hero. Leave empty to use the bundled clip.'),
+                                    ->helperText('MP4 or WebM, 16:9. Plays muted and looped behind the hero. Leave empty to use the bundled clip. The real ceiling is the server\'s upload_max_filesize, not this form.'),
 
                                 FileUpload::make('hero_poster')
                                     ->label('Hero poster frame')
