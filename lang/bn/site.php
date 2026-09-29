@@ -45,6 +45,8 @@ return [
     ],
 
     'actions' => [
+        'whatsapp' => 'হোয়াটসঅ্যাপে কথা বলুন',
+        'whatsapp_message' => 'হ্যালো :site, আপনাদের সেবা সম্পর্কে জানতে চাই।',
         'collaborate' => 'পরামর্শের জন্য বুকিং দিন',
         'collaborate_with_us' => 'পরামর্শের জন্য বুকিং দিন',
         'submit_idea' => 'আপনার আইডিয়া জমা দিন',

@@ -44,6 +44,8 @@ return [
     ],
 
     'actions' => [
+        'whatsapp' => 'Chat on WhatsApp',
+        'whatsapp_message' => 'Hello :site, I would like to ask about your services.',
         'collaborate' => 'Book a Consultation',
         'collaborate_with_us' => 'Book a Consultation',
         'submit_idea' => 'Submit Your Idea',

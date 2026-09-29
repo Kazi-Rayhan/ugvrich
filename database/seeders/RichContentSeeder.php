@@ -617,6 +617,7 @@ class RichContentSeeder extends Seeder
             'contact_email' => 'rich@ugv.edu.bd',
             'contact_phone' => '+880 000 000000',
             'contact_website' => 'https://ugv.edu.bd',
+            'contact_whatsapp' => '',
             'contact_hours' => 'Sunday – Thursday, 9:00 AM – 5:00 PM',
 
             // When the office takes consultancy meetings; see App\Support\MeetingSlots.

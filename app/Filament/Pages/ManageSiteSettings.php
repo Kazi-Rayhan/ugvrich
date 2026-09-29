@@ -304,6 +304,10 @@ class ManageSiteSettings extends Page implements HasSchemas
                                     Textarea::make('contact_address')->rows(2)->columnSpanFull(),
                                     TextInput::make('contact_email')->email(),
                                     TextInput::make('contact_phone')->tel(),
+                            TextInput::make('contact_whatsapp')
+                                ->label('WhatsApp number')
+                                ->tel()
+                                ->helperText('With the country code, e.g. +880 1712 345678. Leave empty to hide the WhatsApp button.'),
                                     TextInput::make('contact_website')->url(),
                                     TextInput::make('contact_hours')->label('Office hours'),
                                 ]),

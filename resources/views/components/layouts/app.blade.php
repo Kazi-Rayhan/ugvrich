@@ -49,5 +49,6 @@
          that floats over everything should not be the first thing a keyboard
          user meets on every page. --}}
     <x-book-consultation-fab />
+    <x-whatsapp-fab />
 </body>
 </html>
