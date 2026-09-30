@@ -333,6 +333,7 @@ return [
 
     'innovation' => [
         'read_full' => 'Read the full proposal',
+        'back_to_current' => 'All current innovations',
         'back_to_proposals' => 'All proposed innovations',
         'previous' => 'Previous',
         'next' => 'Next',

@@ -30,20 +30,74 @@ class InnovationFramework
         }
 
         $doc['proposed'] = static::slugged($doc['proposed'] ?? []);
+        $doc['current_slugs'] = static::currentSlugs($doc['current'] ?? []);
 
         return $doc;
+    }
+
+    /**
+     * The innovation at an address, in either phase, or null.
+     *
+     * The two phases are shaped differently — a current innovation is a lead
+     * line and a highlights paragraph, a proposed one is the full write-up — so
+     * what comes back says which it is, and the page renders accordingly.
+     *
+     * @return array{phase: string, item: array, index: int}|null
+     */
+    public static function find(string $slug, ?array $doc = null): ?array
+    {
+        $doc ??= static::all();
+
+        foreach ($doc['proposed'] as $i => $item) {
+            if (($item['slug'] ?? null) === $slug) {
+                return ['phase' => Innovation::PROPOSED, 'item' => $item, 'index' => $i];
+            }
+        }
+
+        foreach ($doc['current_slugs'] as $i => $current) {
+            if ($current !== $slug) {
+                continue;
+            }
+
+            [$name, $lead, $highlights] = $doc['current'][$i];
+
+            return [
+                'phase' => Innovation::CURRENT,
+                'index' => $i,
+                'item' => [
+                    'slug' => $slug,
+                    'name' => $name,
+                    'lead' => $lead,
+                    'highlights' => $highlights,
+                ],
+            ];
+        }
+
+        return null;
     }
 
     /** One proposed innovation, or null when the address names nothing. */
     public static function proposal(string $slug): ?array
     {
-        foreach (static::all()['proposed'] as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return $item;
-            }
-        }
+        $found = static::find($slug);
 
-        return null;
+        return $found && $found['phase'] === Innovation::PROPOSED ? $found['item'] : null;
+    }
+
+    /**
+     * The current innovations are read positionally, so their addresses travel
+     * beside them rather than inside them.
+     *
+     * @return array<int, string>
+     */
+    protected static function currentSlugs(array $current): array
+    {
+        $english = config('innovation_framework.current', []);
+
+        return array_map(
+            fn (int $i) => Str::slug($english[$i][0] ?? $current[$i][0]),
+            array_keys($current),
+        );
     }
 
     /**

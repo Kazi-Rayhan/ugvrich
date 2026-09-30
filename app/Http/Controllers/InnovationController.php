@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Innovation;
 use App\Models\InnovationArea;
 use App\Models\Project;
 use App\Support\InnovationFramework;
@@ -42,31 +43,56 @@ class InnovationController extends Controller
     }
 
     /**
-     * One proposed innovation, in full.
+     * One innovation, in full.
      *
-     * The Innovation page lists the six side by side with a paragraph each;
-     * this is where the rest of the write-up lives, and the address a proposal
-     * can be sent to on its own.
+     * The Innovation page gives each one a card with a paragraph on it; this is
+     * where the rest of the write-up lives, and the address a single innovation
+     * can be sent to on its own. Current and proposed innovations are written
+     * up differently, and the view follows whichever this is.
      */
     public function show(string $slug)
     {
         $doc = InnovationFramework::all();
 
-        $proposal = InnovationFramework::proposal($slug);
+        $found = InnovationFramework::find($slug, $doc);
 
-        abort_if($proposal === null, 404);
+        abort_if($found === null, 404);
 
-        $index = array_search($proposal, $doc['proposed'], true);
+        ['phase' => $phase, 'item' => $item, 'index' => $index] = $found;
+
+        $siblings = $phase === Innovation::CURRENT
+            ? $this->currentNeighbours($doc, $index)
+            : [$doc['proposed'][$index - 1] ?? null, $doc['proposed'][$index + 1] ?? null];
 
         return view('pages.innovation.show', [
             'doc' => $doc,
-            'item' => $proposal,
+            'phase' => $phase,
+            'item' => $item,
             'index' => $index,
-            'cover' => $doc['proposed_covers'][$index] ?? null,
+            'cover' => $doc[$phase.'_covers'][$index] ?? null,
             // The two either side, so a reader can walk the set.
-            'previous' => $doc['proposed'][$index - 1] ?? null,
-            'next' => $doc['proposed'][$index + 1] ?? null,
+            'previous' => $siblings[0],
+            'next' => $siblings[1],
         ]);
+    }
+
+    /**
+     * The current innovations are positional arrays, so a neighbour is built
+     * from the name and the address held beside it.
+     *
+     * @return array{0: ?array, 1: ?array}
+     */
+    protected function currentNeighbours(array $doc, int $index): array
+    {
+        $at = function (int $i) use ($doc): ?array {
+            if (! isset($doc['current'][$i])) {
+                return null;
+            }
+
+            return ['name' => $doc['current'][$i][0], 'slug' => $doc['current_slugs'][$i]];
+        };
+
+        return [$at($index - 1), $at($index + 1)];
     }
 
     /** The Innovation Wing proposal, rendered from config/innovation_framework.php. */

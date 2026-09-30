@@ -18,12 +18,23 @@ Alpine.data('siteHeader', () => ({
     side: null,
     closeTimer: null,
 
+    /* The logo rises out of the bar into the strip above it — but that strip
+       only exists from `lg` up, so below that there is nothing to rise into and
+       the logo would hang over the top of the page. The inline sizing is
+       applied only on the wide layout; the narrow one sizes with classes. */
+    wide: false,
+
     // The link the highlight is currently sitting on, so it can be measured
     // again after the bar changes size.
     marked: null,
 
     init() {
         this.onScroll();
+
+        const wide = window.matchMedia('(min-width: 1024px)');
+        this.wide = wide.matches;
+        wide.addEventListener('change', (e) => { this.wide = e.matches; });
+
         this.$nextTick(() => this.remeasure());
         window.addEventListener('resize', () => this.remeasure());
         window.addEventListener('load', () => this.remeasure());

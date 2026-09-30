@@ -334,6 +334,7 @@ return [
 
     'innovation' => [
         'read_full' => 'সম্পূর্ণ প্রস্তাব পড়ুন',
+        'back_to_current' => 'সব বর্তমান উদ্ভাবন',
         'back_to_proposals' => 'সব প্রস্তাবিত উদ্ভাবন',
         'previous' => 'পূর্ববর্তী',
         'next' => 'পরবর্তী',

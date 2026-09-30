@@ -8,10 +8,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Each proposed innovation has a page of its own.
+ * Every innovation has a page of its own, in either phase.
  *
- * The Innovation page lists the six two to a row with the concept only; the
- * rest of the write-up lives on these pages.
+ * The Innovation page gives each a card with one paragraph on it; the rest of
+ * the write-up lives on these pages.
  */
 class InnovationDetailTest extends TestCase
 {
@@ -72,5 +72,46 @@ class InnovationDetailTest extends TestCase
         // shared from the Bangla site opens the same page on the English one.
         $this->get('/innovation/solar-scooty')->assertOk()->assertSee('সোলার স্কুটি');
         $this->get('/en/innovation/solar-scooty')->assertOk()->assertSee('Solar Scooty');
+    }
+
+    public function test_every_current_innovation_has_a_page(): void
+    {
+        $doc = InnovationFramework::all();
+
+        foreach ($doc['current_slugs'] as $i => $slug) {
+            [$name, $lead, $highlights] = $doc['current'][$i];
+
+            $this->get(route('innovation.show', $slug))
+                ->assertOk()
+                ->assertSee($name)
+                ->assertSee($lead);
+        }
+    }
+
+    public function test_the_innovation_page_links_to_each_current_innovation(): void
+    {
+        $this->seed(InnovationRecordSeeder::class);
+
+        $page = $this->get(route('innovation.index'))->assertOk();
+
+        foreach (InnovationFramework::all()['current_slugs'] as $slug) {
+            $page->assertSee(route('innovation.show', $slug), escape: false);
+        }
+    }
+
+    /**
+     * A current innovation has no concept / how / why and no SDG line, so the
+     * page must not reach for them.
+     */
+    public function test_a_current_innovation_page_shows_what_it_has(): void
+    {
+        $this->seed(InnovationRecordSeeder::class);
+
+        $doc = InnovationFramework::all();
+
+        $this->get(route('innovation.show', $doc['current_slugs'][0]))
+            ->assertOk()
+            ->assertSee($doc['headings']['lead_support'])
+            ->assertDontSee($doc['headings']['sdg']);
     }
 }

@@ -1,12 +1,16 @@
-<x-layouts.app :title="$item['name']" :description="$item['concept']">
+<x-layouts.app :title="$item['name']" :description="$item['concept'] ?? $item['highlights']">
 
     @php
         /*
-         | One proposed innovation, in full.
+         | One innovation, in full — in either phase.
          |
-         | The Innovation page shows the six side by side with a paragraph each;
+         | The Innovation page gives each a card with a paragraph on it;
          | everything the document says about one of them is here. Same wording,
          | same sections, same order — only the room is different.
+         |
+         | The two phases are written up differently. A proposed innovation has
+         | the concept / how / why write-up with departments and SDGs beside it;
+         | a current one has the team leading it and where the work stands.
          */
         $label = 'text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-400';
         $rule = 'reveal mb-5 block h-1 w-12 rounded-full bg-brand-600';
@@ -17,30 +21,45 @@
 
         $chips = fn (string $line) => collect(explode(',', $line))->map(fn ($chip) => trim($chip))->filter();
 
+        // The document numbers its own headings; the page reads better without.
+        $unnumbered = fn (string $text) => trim(preg_replace('/^[\d০-৯]+(?:\.[\d০-৯]+)*\.?\s*/u', '', $text));
+        $title = fn (string $key) => $unnumbered($doc['headings'][$key] ?? '');
+
         // One icon per part of the write-up, matching the Innovation page.
         $fieldIcons = ['concept' => 'lightbulb', 'how' => 'cog', 'why' => 'target'];
+
+        $isProposed = $phase === \App\Models\Innovation::PROPOSED;
+
+        /* A current innovation's highlights paragraph carries what it does now
+           and then what comes next, the same split the Innovation page makes. */
+        if (! $isProposed) {
+            $split = preg_split('/\s*'.preg_quote($doc['headings']['next'], '/').'\s*:\s*/u', $item['highlights'], 2);
+            [$now, $upNext] = [$split[0], $split[1] ?? null];
+        }
     @endphp
 
     {{-- ---------------- Hero: the cover, the name, the promise ---------------- --}}
     <section class="relative isolate overflow-hidden bg-navy-700">
-        <x-media-frame :src="$cover" :alt="$item['name']" :seed="$item['name'].' '.$item['tagline']"
+        <x-media-frame :src="$cover" :alt="$item['name']" :seed="$item['name'].' '.($item['tagline'] ?? '')"
                        ratio="aspect-[16/10] sm:aspect-[21/8]" class="opacity-40" />
 
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-700 via-navy-700/80 to-navy-700/40"></div>
 
         <div class="absolute inset-0 flex items-end">
             <div class="container-rich pb-10 sm:pb-14">
-                <a href="{{ route('innovation.index') }}#proposed"
+                <a href="{{ route('innovation.index') }}#{{ $isProposed ? 'proposed' : 'current' }}"
                    class="inline-flex items-center gap-2 text-[13px] font-semibold text-white/70 transition hover:text-white">
                     <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 rotate-180" />
-                    {{ __('site.innovation.back_to_proposals') }}
+                    {{ $isProposed ? __('site.innovation.back_to_proposals') : __('site.innovation.back_to_current') }}
                 </a>
 
                 <p class="mt-5 flex flex-wrap items-center gap-3">
                     <span class="rounded-lg bg-white/15 px-2.5 py-1 font-numeric text-[12px] font-bold tabular-nums text-white backdrop-blur-sm">
                         {{ $num(str_pad($index + 1, 2, '0', STR_PAD_LEFT)) }}
                     </span>
-                    <span class="rounded-full bg-white px-4 py-1.5 text-[13px] font-semibold text-ink-950">{{ $item['tagline'] }}</span>
+                    <span class="rounded-full bg-white px-4 py-1.5 text-[13px] font-semibold text-ink-950">
+                        {{ $isProposed ? $item['tagline'] : $title('current') }}
+                    </span>
                 </p>
 
                 <h1 class="mt-4 font-display text-[30px] font-bold leading-[1.1] !text-white sm:text-[46px]">
@@ -63,38 +82,61 @@
             <div class="grid gap-x-12 gap-y-10 lg:grid-cols-[1.3fr_0.7fr]">
 
                 <div class="space-y-10">
-                    @foreach (['concept', 'how', 'why'] as $field)
+                    @if ($isProposed)
+                        @foreach (['concept', 'how', 'why'] as $field)
+                            <div class="reveal relative ps-10">
+                                <span class="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                                    <x-ui-icon :name="$fieldIcons[$field]" class="h-4 w-4" />
+                                </span>
+
+                                <h2 class="{{ $label }}">{{ $doc['headings'][$field] }}</h2>
+                                <p class="mt-3 text-[15.5px] leading-[1.9] text-ink-700">{{ $item[$field] }}</p>
+                            </div>
+                        @endforeach
+                    @else
                         <div class="reveal relative ps-10">
                             <span class="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                                <x-ui-icon :name="$fieldIcons[$field]" class="h-4 w-4" />
+                                <x-ui-icon name="lightbulb" class="h-4 w-4" />
                             </span>
 
-                            <h2 class="{{ $label }}">{{ $doc['headings'][$field] }}</h2>
-                            <p class="mt-3 text-[15.5px] leading-[1.9] text-ink-700">{{ $item[$field] }}</p>
+                            <h2 class="{{ $label }}">{{ $doc['headings']['key_highlights'] }}</h2>
+                            <p class="mt-3 text-[15.5px] leading-[1.9] text-ink-700">{{ $now }}</p>
                         </div>
-                    @endforeach
+
+                        @if ($upNext)
+                            <div class="reveal rounded-[1.5rem] bg-gradient-to-br from-brand-50 to-white p-7 ring-1 ring-brand-100">
+                                <p class="flex items-center gap-2 {{ $label }}">
+                                    <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 text-brand-600" />
+                                    {{ $doc['headings']['next'] }}
+                                </p>
+                                <p class="mt-3 text-[15px] leading-[1.9] text-brand-900">{{ $upNext }}</p>
+                            </div>
+                        @endif
+                    @endif
                 </div>
 
                 <aside class="reveal space-y-7 self-start rounded-[1.75rem] bg-ink-50/80 p-7 sm:p-8">
                     <div>
                         <p class="flex items-center gap-2 {{ $label }}">
                             <x-ui-icon name="users" class="h-3.5 w-3.5 text-brand-600" />
-                            {{ $doc['headings']['departments'] }}
+                            {{ $isProposed ? $doc['headings']['departments'] : $doc['headings']['lead_support'] }}
                         </p>
-                        <p class="mt-3 text-[14px] leading-[1.85] text-ink-700">{{ $item['departments'] }}</p>
+                        <p class="mt-3 text-[14px] leading-[1.85] text-ink-700">{{ $isProposed ? $item['departments'] : $item['lead'] }}</p>
                     </div>
 
-                    <div class="border-t border-ink-200 pt-6">
-                        <p class="flex items-center gap-2 {{ $label }}">
-                            <x-ui-icon name="globe" class="h-3.5 w-3.5 text-brand-600" />
-                            {{ $doc['headings']['sdg'] }}
-                        </p>
-                        <ul class="mt-3 flex flex-wrap gap-1.5">
-                            @foreach ($chips($item['sdg']) as $chip)
-                                <li class="rounded-lg border border-navy-100 bg-white px-2.5 py-1 text-[12.5px] font-semibold text-navy-700">{{ $chip }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                    @if ($isProposed)
+                        <div class="border-t border-ink-200 pt-6">
+                            <p class="flex items-center gap-2 {{ $label }}">
+                                <x-ui-icon name="globe" class="h-3.5 w-3.5 text-brand-600" />
+                                {{ $doc['headings']['sdg'] }}
+                            </p>
+                            <ul class="mt-3 flex flex-wrap gap-1.5">
+                                @foreach ($chips($item['sdg']) as $chip)
+                                    <li class="rounded-lg border border-navy-100 bg-white px-2.5 py-1 text-[12.5px] font-semibold text-navy-700">{{ $chip }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <div class="border-t border-ink-200 pt-6">
                         <a href="{{ route('contact') }}"

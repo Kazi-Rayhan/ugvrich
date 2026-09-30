@@ -97,8 +97,10 @@
         <div class="header-bar header-ease border-b border-ink-100 bg-white"
              :class="solid ? 'shadow-[0_10px_30px_-26px_rgba(7,20,38,0.6)]' : 'shadow-none'">
 
-            <div class="header-row header-ease flex items-center justify-between gap-5"
-                 :class="solid ? 'h-[72px]' : 'h-[108px]'">
+            {{-- The tall bar is for the wide layout, where the logo rises into
+                 the strip. A phone has no strip and no room to spare. --}}
+            <div class="header-row header-ease flex items-center justify-between gap-3 sm:gap-5"
+                 :class="solid ? 'h-16 lg:h-[72px]' : 'h-[72px] lg:h-[108px]'">
 
                 {{-- Split navigation: half the menu, the logo, then the rest.
                      Each side carries its own sliding highlight, so `side` says
@@ -107,8 +109,8 @@
                     @if ($sideKey === 'right')
                         {{-- The logo spans both rows: it rises into the strip above the
                              bar, which is light enough to read it against. --}}
-                        <x-brand-mark class="header-ease z-10 h-[118px] shrink-0"
-                                      ::style="`height: ${solid ? 60 : 118}px; margin-top: ${solid ? 0 : -37}px`" />
+                        <x-brand-mark class="header-ease z-10 h-12 shrink-0 sm:h-14 lg:h-[118px]"
+                                      ::style="wide ? `height: ${solid ? 60 : 118}px; margin-top: ${solid ? 0 : -37}px` : ''" />
                     @endif
 
                     <nav x-ref="nav-{{ $sideKey }}"
@@ -141,13 +143,23 @@
                 @endforeach
 
                 {{-- On narrow screens the navs are hidden, so this sits opposite the logo. --}}
+                {{-- On narrow screens the two navs are hidden, so this sits
+                     opposite the logo. A plain round icon button on a phone,
+                     where the word costs more room than it earns; the label
+                     comes back as soon as there is space for it. --}}
                 <div class="flex shrink-0 items-center gap-2.5 xl:hidden">
+                    <a href="{{ route('consultancy.create') }}"
+                       class="hidden h-11 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-500 sm:flex">
+                        {{ __('site.actions.collaborate') }}
+                    </a>
+
                     <button type="button" @click="open = true"
-                            class="menu-button flex h-10 items-center gap-2 rounded-full border border-ink-200 bg-white pl-4 pr-3
-                                   text-[13.5px] font-semibold text-ink-800 transition duration-300 hover:border-brand-300 hover:text-brand-700"
+                            class="menu-button flex h-11 w-11 items-center justify-center rounded-full border border-ink-200 bg-white
+                                   text-ink-800 transition duration-300 hover:border-brand-300 hover:text-brand-700
+                                   sm:w-auto sm:gap-2 sm:pl-4 sm:pr-3 sm:text-[13.5px] sm:font-semibold"
                             aria-label="{{ __('site.nav.open_menu') }}">
-                        {{ __('site.nav.menu') }}
-                        <x-ui-icon name="menu" class="h-4.5 w-4.5" />
+                        <span class="hidden sm:inline">{{ __('site.nav.menu') }}</span>
+                        <x-ui-icon name="menu" class="h-5 w-5 sm:h-4.5 sm:w-4.5" />
                     </button>
                 </div>
             </div>
@@ -222,13 +234,14 @@
          class="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-ink-950 text-white xl:hidden"
          role="dialog" aria-modal="true" aria-label="Site menu">
 
-        <div class="container-rich flex h-[100px] shrink-0 items-center justify-between">
-            <x-brand-mark invert class="h-[72px]" />
+        <div class="container-rich flex h-[72px] shrink-0 items-center justify-between sm:h-[100px]">
+            <x-brand-mark invert class="h-12 sm:h-[72px]" />
             <button type="button" @click="open = false"
-                    class="flex h-10 items-center gap-2 rounded-full border border-white/20 pl-4 pr-3 text-[13.5px] font-semibold transition hover:bg-white/10"
+                    class="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 transition hover:bg-white/10
+                           sm:w-auto sm:gap-2 sm:pl-4 sm:pr-3 sm:text-[13.5px] sm:font-semibold"
                     aria-label="{{ __('site.nav.close_menu') }}">
-                {{ __('site.nav.close') }}
-                <x-ui-icon name="x" class="h-4.5 w-4.5" />
+                <span class="hidden sm:inline">{{ __('site.nav.close') }}</span>
+                <x-ui-icon name="x" class="h-5 w-5 sm:h-4.5 sm:w-4.5" />
             </button>
         </div>
 
@@ -245,7 +258,7 @@
                         <button type="button" @click="sub = ! sub" :aria-expanded="sub"
                                 class="flex w-full items-center gap-4 py-4 text-left">
                             <span class="w-6 font-mono text-[12px] text-white/40">{{ sprintf('%02d', $i + 1) }}</span>
-                            <span class="flex-1 font-display text-[26px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                            <span class="flex-1 font-display text-[21px] font-semibold tracking-tight sm:text-[26px]">{{ $link['label'] }}</span>
                             <span class="flex h-8 w-8 items-center justify-center rounded-full border border-white/20">
                                 <x-ui-icon name="plus" class="h-4 w-4 transition-transform duration-300" ::class="sub && 'rotate-45'" />
                             </span>
@@ -262,7 +275,7 @@
                     @else
                         <a href="{{ route($link['route']) }}" class="flex items-center gap-4 py-4">
                             <span class="w-6 font-mono text-[12px] text-white/40">{{ sprintf('%02d', $i + 1) }}</span>
-                            <span class="flex-1 font-display text-[26px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                            <span class="flex-1 font-display text-[21px] font-semibold tracking-tight sm:text-[26px]">{{ $link['label'] }}</span>
                             <x-ui-icon name="arrow-up-right" class="h-5 w-5 text-white/40" />
                         </a>
                     @endisset

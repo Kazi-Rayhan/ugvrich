@@ -213,7 +213,8 @@
                         [$now, $next] = [$split[0], $split[1] ?? null];
                     @endphp
 
-                    <article class="reveal group relative flex h-full flex-col overflow-hidden rounded-[2rem] bg-white ring-1 ring-ink-200/70
+                    <article id="{{ $doc['current_slugs'][$i] }}"
+                             class="reveal group relative flex h-full scroll-mt-28 flex-col overflow-hidden rounded-[2rem] bg-white ring-1 ring-ink-200/70
                                     transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
                                     hover:-translate-y-1.5 hover:ring-brand-300 hover:shadow-[0_40px_80px_-50px_rgba(2,34,81,0.5)]"
                              style="{{ $delay($i, 70) }}">
@@ -239,6 +240,13 @@
                             </p>
 
                             <p class="mt-5 text-[14.5px] leading-[1.8] text-ink-700">{{ $now }}</p>
+
+                            <a href="{{ route('innovation.show', $doc['current_slugs'][$i]) }}"
+                               class="mt-5 inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-700 transition group-hover:gap-3">
+                                <span class="absolute inset-0" aria-hidden="true"></span>
+                                {{ __('site.cards.view_innovation') }}
+                                <x-ui-icon name="arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            </a>
                         </div>
 
                         @if ($next)
