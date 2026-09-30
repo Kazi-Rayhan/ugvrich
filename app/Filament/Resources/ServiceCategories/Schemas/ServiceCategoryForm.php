@@ -65,6 +65,13 @@ class ServiceCategoryForm
                                 ->unique(ignoreRecord: true)
                                 ->helperText('Used in the public URL: /services/{slug}'),
 
+                            Select::make('department')
+                                ->label('Sector')
+                                ->native(false)
+                                ->searchable()
+                                ->options(config('rich.departments'))
+                                ->helperText('The department that runs this service. Shown on the service pages beneath it.'),
+
                             TextInput::make('tagline')
                                 ->maxLength(150)
                                 ->helperText('Short line shown on cards and in the navigation menu.'),

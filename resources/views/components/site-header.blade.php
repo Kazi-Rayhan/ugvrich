@@ -48,7 +48,7 @@
 <header
     x-data="siteHeader()"
     x-init="init()"
-    @scroll.window="onScroll()"
+    @scroll.window.passive="onScroll()"
     @keydown.escape.window="panel = null; open = false"
     class="sticky top-0 z-50 animate-header-in">
 
@@ -166,7 +166,7 @@
 
             {{-- Scroll progress --}}
             <div class="relative h-0.5 w-full" aria-hidden="true">
-                <div class="h-0.5 origin-left bg-brand-600 transition-transform duration-150 ease-out"
+                <div class="header-progress h-0.5 origin-left bg-brand-600 transition-transform duration-150 ease-out"
                      :style="`transform: scaleX(${progress})`"></div>
             </div>
         </div>

@@ -31,6 +31,10 @@ Route::get('/industry-collaboration', [PageController::class, 'industry'])->name
 
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{serviceCategory}', [ServiceController::class, 'show'])->name('services.show');
+// A single service, under the main service it belongs to.
+Route::get('/services/{serviceCategory}/{service}', [ServiceController::class, 'service'])
+    ->scopeBindings()
+    ->name('services.detail');
 
 Route::get('/innovation', [InnovationController::class, 'index'])->name('innovation.index');
 Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('innovation.areas');

@@ -32,21 +32,44 @@
                         <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-700">
                             <x-ui-icon :name="$category->icon ?? 'grid'" class="h-5 w-5" />
                         </span>
-                        <p class="font-display text-[17px] font-bold leading-snug !text-white">{{ $category->name }}</p>
+                        <div class="min-w-0">
+                            <p class="font-display text-[17px] font-bold leading-snug !text-white">{{ $category->name }}</p>
+
+                            {{-- The sector that runs it: the desk a caller reaches. --}}
+                            @if ($category->wing_name)
+                                <p class="mt-1 flex items-center gap-1.5 text-[12.5px] text-white/70">
+                                    <x-ui-icon name="building" class="h-3.5 w-3.5 shrink-0" />
+                                    {{ $category->wing_name }}
+                                </p>
+                            @endif
+                        </div>
                     </div>
 
-                    <ul class="mt-6 grid grid-cols-3 gap-2 border-t border-white/15 pt-6 text-center">
-                        @foreach ([
+                    @php
+                        /* A figure of nought is not a fact worth a tile of its
+                           own — it reads as something missing. Only the counts
+                           that have something behind them are shown, and the row
+                           divides itself between however many that leaves. */
+                        $figures = collect([
                             [$category->services->count(), __('site.services.stat_services')],
                             [$expertCount, trans_choice('site.services.stat_experts', $expertCount)],
                             [$projectCount, trans_choice('site.services.stat_projects', $projectCount)],
-                        ] as [$num, $label])
-                            <li class="rounded-xl bg-white/[0.07] px-2 py-3">
-                                <span class="block font-numeric text-2xl font-bold tabular-nums !text-white">{{ $num }}</span>
-                                <span class="mt-0.5 block text-[11.5px] text-white/70">{{ $label }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
+                        ])->filter(fn ($figure) => $figure[0] > 0)->values();
+
+                        // Written out so Tailwind keeps all three.
+                        $columns = [1 => 'grid-cols-1', 2 => 'grid-cols-2', 3 => 'grid-cols-3'][$figures->count()] ?? 'grid-cols-1';
+                    @endphp
+
+                    @if ($figures->isNotEmpty())
+                        <ul class="mt-6 grid {{ $columns }} gap-2 border-t border-white/15 pt-6 text-center">
+                            @foreach ($figures as [$num, $label])
+                                <li class="rounded-xl bg-white/[0.07] px-2 py-3">
+                                    <span class="block font-numeric text-2xl font-bold tabular-nums !text-white">{{ $num }}</span>
+                                    <span class="mt-0.5 block text-[11.5px] text-white/70">{{ $label }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
 
                     <a href="{{ route('contact') }}?area={{ $category->slug }}"
                        class="group mt-6 flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3.5 text-[14px] font-semibold text-brand-700 transition hover:bg-brand-50">
@@ -74,6 +97,15 @@
                             @if ($service->description)
                                 <p class="relative mt-2 text-[14px] leading-relaxed muted">{{ $service->description }}</p>
                             @endif
+
+                            {{-- Each service has a page of its own; the whole
+                                 card is the link to it. --}}
+                            <a href="{{ route('services.detail', [$category, $service]) }}"
+                               class="relative mt-auto inline-flex items-center gap-1.5 pt-5 text-[13px] font-semibold text-brand-700 transition group-hover:gap-2.5">
+                                <span class="absolute inset-0" aria-hidden="true"></span>
+                                {{ __('site.services.explore_service') }}
+                                <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            </a>
                         </div>
                     </li>
                 @endforeach

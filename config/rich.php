@@ -87,6 +87,23 @@ return [
         'consultancy' => 'Consultancy',
     ],
 
+    /*
+     | The wings as the Consultancy Wing's own planning document names them.
+     | The department key says which sector runs a service; this says what that
+     | sector is called when it is named on the page.
+     */
+    'wings' => [
+        'CSE' => 'CSE Wing',
+        'EEE' => 'EEE Wing',
+        'CE' => 'Civil Engineering Wing',
+        'ME' => 'Mechanical Engineering Wing',
+        'ENG' => 'English Wing',
+        'BUS' => 'Business Administration (BBA) Wing',
+        'PH' => 'Public Health Wing',
+        'IS' => 'Islamic Studies & Humanities Wing',
+        'RICH' => 'UGV RICH',
+    ],
+
     'patent_statuses' => [
         'none' => 'Not applicable',
         'planned' => 'Planned',

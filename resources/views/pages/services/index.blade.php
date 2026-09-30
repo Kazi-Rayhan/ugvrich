@@ -49,49 +49,80 @@
                 </a>
             </div>
 
-            <div class="mt-16 space-y-20 sm:space-y-24">
+            <div class="mt-14 space-y-16 sm:space-y-20">
                 @foreach ($categories as $i => $category)
-                    <div id="{{ $category->slug }}" class="scroll-mt-28">
-                        <div class="flex flex-col gap-6 border-b border-ink-100 pb-7 lg:flex-row lg:items-end lg:justify-between">
-                            <div class="reveal max-w-2xl">
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-                                        <x-ui-icon :name="$category->icon ?? 'grid'" class="h-5 w-5" />
-                                    </span>
-                                    <h2 class="font-display text-[22px] font-bold leading-tight text-ink-950 sm:text-[26px]">{{ $category->name }}</h2>
-                                    <span class="rounded-full bg-ink-100 px-2.5 py-1 text-[12px] font-bold text-ink-600">
-                                        {{ trans_choice('site.services.service_count', $category->services->count(), ['count' => $category->services->count()]) }}
-                                    </span>
-                                </div>
+                    <section id="{{ $category->slug }}" class="reveal scroll-mt-28 overflow-hidden rounded-[2.25rem] border border-ink-100 bg-white shadow-[0_30px_70px_-60px_rgba(2,34,81,0.6)]">
 
-                                @if ($category->description)
-                                    <p class="mt-4 text-[14.5px] leading-relaxed muted">{{ $category->description }}</p>
-                                @endif
-                            </div>
+                        {{-- Cover band: the photograph where the wing has one,
+                             generated blueprint art otherwise, so every section
+                             is distinct before a single image is uploaded. --}}
+                        <header class="relative isolate overflow-hidden">
+                            <x-media-frame :src="$category->image" :alt="$category->name" :seed="$category->name.' '.$category->slug"
+                                           ratio="aspect-[21/9] sm:aspect-[32/9]" class="bg-navy-700" />
 
-                            <a href="{{ route('services.show', $category) }}" class="btn-ghost reveal shrink-0">
-                                {{ __('site.services.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
-                            </a>
-                        </div>
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-700 via-navy-700/80 to-navy-700/35"></div>
 
-                        <div class="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            @foreach ($category->services as $j => $service)
-                                <div class="group reveal flex flex-col rounded-2xl border border-ink-100 bg-white p-6 transition duration-500 hover:-translate-y-1 hover:border-brand-300 hover:shadow-[0_24px_50px_-32px_rgba(2,34,81,0.45)]"
-                                     style="transition-delay: {{ min($j * 45, 300) }}ms">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <h3 class="font-display text-[15.5px] font-semibold leading-snug text-ink-950">{{ $service->name }}</h3>
-                                        <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
-                                            <x-ui-icon name="check" class="h-3.5 w-3.5" stroke="2.4" />
+                            <div class="absolute inset-0 flex items-end">
+                                <div class="w-full px-6 pb-6 sm:px-10 sm:pb-8">
+                                    <div class="flex flex-wrap items-center gap-2.5">
+                                        {{-- The wing that runs it, as the consultancy plan names it --}}
+                                        @if ($category->wing_name)
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-sm">
+                                                <x-ui-icon name="building" class="h-3.5 w-3.5" />
+                                                {{ $category->wing_name }}
+                                            </span>
+                                        @endif
+
+                                        <span class="rounded-full bg-brand-600 px-3 py-1 font-numeric text-[12px] font-bold tabular-nums text-white">
+                                            {{ trans_choice('site.services.service_count', $category->services->count(), ['count' => $category->services->count()]) }}
                                         </span>
                                     </div>
 
-                                    @if ($service->description)
-                                        <p class="mt-3 text-[13.5px] leading-relaxed muted">{{ $service->description }}</p>
-                                    @endif
+                                    <h2 class="mt-3 font-display text-[24px] font-bold leading-[1.15] !text-white sm:text-[34px]">{{ $category->name }}</h2>
                                 </div>
-                            @endforeach
+                            </div>
+                        </header>
+
+                        <div class="px-6 py-8 sm:px-10 sm:py-10">
+                            @if ($category->description)
+                                <p class="max-w-3xl text-[15px] leading-[1.85] text-ink-700">{{ $category->description }}</p>
+                            @endif
+
+                            {{-- The services under it. Each is a page of its own. --}}
+                            <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                @foreach ($category->services as $j => $service)
+                                    <a href="{{ route('services.detail', [$category, $service]) }}"
+                                       class="group relative flex flex-col rounded-2xl border border-ink-100 bg-ink-50/50 p-5 transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-brand-300 hover:bg-white hover:shadow-[0_26px_54px_-40px_rgba(2,34,81,0.55)]"
+                                       style="transition-delay: {{ min($j * 35, 260) }}ms">
+
+                                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand-600 ring-1 ring-ink-100 transition group-hover:bg-brand-600 group-hover:text-white group-hover:ring-brand-600">
+                                            <x-ui-icon :name="$service->icon ?: ($category->icon ?? 'check')" class="h-4.5 w-4.5" />
+                                        </span>
+
+                                        <h3 class="mt-4 font-display text-[15.5px] font-bold leading-snug text-ink-950">{{ $service->name }}</h3>
+
+                                        @if ($service->description)
+                                            <p class="mt-2 text-[13.5px] leading-[1.7] text-ink-600">{{ \Illuminate\Support\Str::limit($service->description, 92) }}</p>
+                                        @endif
+
+                                        <span class="mt-auto inline-flex items-center gap-1.5 pt-4 text-[12.5px] font-semibold text-brand-700 transition group-hover:gap-2.5">
+                                            {{ __('site.services.explore_service') }}
+                                            <x-ui-icon name="arrow-right" class="h-3.5 w-3.5" />
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-ink-100 pt-6">
+                                <a href="{{ route('services.show', $category) }}" class="btn-ghost">
+                                    {{ __('site.services.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
+                                </a>
+                                <a href="{{ route('consultancy.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
+                                    {{ __('site.actions.request_consultancy') }}
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    </section>
                 @endforeach
             </div>
         </div>

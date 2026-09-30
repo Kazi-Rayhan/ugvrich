@@ -18,6 +18,11 @@ Alpine.data('siteHeader', () => ({
     side: null,
     closeTimer: null,
 
+    // Scroll bookkeeping, so the handler itself never measures the page.
+    ticking: false,
+    scrollable: 0,
+    alignQueued: false,
+
     /* The logo rises out of the bar into the strip above it — but that strip
        only exists from `lg` up, so below that there is nothing to rise into and
        the logo would hang over the top of the page. The inline sizing is
@@ -35,9 +40,17 @@ Alpine.data('siteHeader', () => ({
         this.wide = wide.matches;
         wide.addEventListener('change', (e) => { this.wide = e.matches; });
 
+        this.measurePage();
+
         this.$nextTick(() => this.remeasure());
-        window.addEventListener('resize', () => this.remeasure());
-        window.addEventListener('load', () => this.remeasure());
+        window.addEventListener('resize', () => {
+            this.measurePage();
+            this.remeasure();
+        });
+        window.addEventListener('load', () => {
+            this.measurePage();
+            this.remeasure();
+        });
         document.fonts?.ready.then(() => this.remeasure());
 
         /* The first paint measures a menu that is still settling — webfonts land,
@@ -46,7 +59,10 @@ Alpine.data('siteHeader', () => ({
            observed: the strip's own padding is what we set, so observing it too
            would chase its own tail. */
         if ('ResizeObserver' in window) {
-            const watcher = new ResizeObserver(() => this.alignStrip());
+            // queueAlign, not alignStrip: the logo's height is animated, so this
+            // fires on every frame of the transition. Measuring and writing on
+            // each of those frames is what made scrolling stutter.
+            const watcher = new ResizeObserver(() => this.queueAlign());
 
             // The nav box itself is flex-1, so its width never changes — the links
             // inside it are what move, so watch those and the logo beside them.
@@ -69,13 +85,50 @@ Alpine.data('siteHeader', () => ({
         });
     },
 
-    onScroll() {
-        const y = window.scrollY;
-        if (y > 48) this.solid = true;
-        else if (y < 16) this.solid = false;
+    /* How far the page can scroll. Measured on load and on resize, never in
+       the scroll handler: reading scrollHeight forces the browser to lay the
+       page out, and doing that on every scroll event is what buffers. */
+    measurePage() {
+        this.scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    },
 
-        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-        this.progress = scrollable > 0 ? Math.min(y / scrollable, 1) : 0;
+    /* One update per frame, however many scroll events the browser sends.
+       Above ~120Hz a trackpad can fire several per frame, and each one was
+       doing a full measure-and-restyle pass. */
+    onScroll() {
+        if (this.ticking) {
+            return;
+        }
+
+        this.ticking = true;
+
+        requestAnimationFrame(() => {
+            this.ticking = false;
+
+            const y = window.scrollY;
+
+            if (y > 48) this.solid = true;
+            else if (y < 16) this.solid = false;
+
+            this.progress = this.scrollable > 0 ? Math.min(y / this.scrollable, 1) : 0;
+        });
+    },
+
+    /* Collapse a burst of alignment requests into one, at the end of the frame.
+       The strip's padding is read from the menu's position, so measuring while
+       the menu is still moving only produces a value that is wrong again by the
+       next frame. */
+    queueAlign() {
+        if (this.alignQueued) {
+            return;
+        }
+
+        this.alignQueued = true;
+
+        requestAnimationFrame(() => {
+            this.alignQueued = false;
+            this.alignStrip();
+        });
     },
 
     // Slide the highlight to a link and open (or close) its panel. `side` says
@@ -111,7 +164,9 @@ Alpine.data('siteHeader', () => ({
 
         // Below xl the menu is hidden behind the Menu button; nothing to line up with.
         if (! first || ! label || ! first.offsetParent) {
-            this.stripInset = 0;
+            if (this.stripInset !== 0) {
+                this.stripInset = 0;
+            }
 
             return;
         }
@@ -122,7 +177,12 @@ Alpine.data('siteHeader', () => ({
         // Padding moves the label one-for-one, so one pass lands it exactly.
         const inset = this.stripInset + (menuLabelLeft - label.getBoundingClientRect().left);
 
-        this.stripInset = Math.max(0, Math.round(inset));
+        const next = Math.max(0, Math.round(inset));
+
+        // Writing the same number back would restyle the strip for nothing.
+        if (next !== this.stripInset) {
+            this.stripInset = next;
+        }
     },
 
     // Re-measure wherever the highlight is, without moving it elsewhere.

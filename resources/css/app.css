@@ -839,6 +839,28 @@
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* The bar is its own layer. Height is animated here, which the browser cannot
+   put on the compositor, so the least that can be done is to stop the rest of
+   the page from being laid out with it. */
+.header-bar {
+    contain: layout style;
+}
+
+/* The reading-progress line moves by transform alone; promoting it keeps that
+   on the compositor instead of repainting the bar under it on every scroll. */
+.header-progress {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Somebody who has asked for less motion should not be made to sit through the
+   bar resizing on every scroll. */
+@media (prefers-reduced-motion: reduce) {
+    .header-ease {
+        transition-duration: 1ms;
+    }
+}
+
 /* Info strip above the bar. A soft tint, light enough for the logo to rise
    into it — the emblem is dark navy and green, so a dark band would swallow it. */
 .header-strip {

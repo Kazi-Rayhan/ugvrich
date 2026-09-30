@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Services\Schemas;
 use App\Filament\Support\Bilingual;
 use App\Models\Service;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -45,7 +47,30 @@ class ServiceForm
                                 ->options(config('rich.departments'))
                                 ->helperText('Groups the service under a department on the consultancy page.'),
 
-                            Textarea::make('description')->rows(3)->columnSpanFull(),
+                            Textarea::make('description')
+                                ->rows(3)
+                                ->columnSpanFull()
+                                ->helperText('One or two lines. This is the card text on the listing pages.'),
+
+                            Textarea::make('body')
+                                ->label('Full description')
+                                ->rows(8)
+                                ->columnSpanFull()
+                                ->helperText('The service page. Leave a blank line between paragraphs. Empty means the page shows the short description alone.'),
+
+                            TagsInput::make('highlights')
+                                ->label('What the client gets')
+                                ->placeholder('Add a point and press Enter')
+                                ->columnSpanFull()
+                                ->helperText('Listed beside the description on the service page.'),
+
+                            FileUpload::make('image')
+                                ->label('Image (optional)')
+                                ->image()
+                                ->disk('public')
+                                ->directory('services')
+                                ->imageEditor()
+                                ->columnSpanFull(),
 
                             TextInput::make('sort_order')->numeric()->default(0)->required(),
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTranslations;
+use App\Support\Vocabulary;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,18 @@ class ServiceCategory extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /** The sector that runs this service, spelled out. */
+    public function getDepartmentNameAttribute(): ?string
+    {
+        return Vocabulary::label('departments', $this->department);
+    }
+
+    /** The wing, as the consultancy document names it: "CSE Wing". */
+    public function getWingNameAttribute(): ?string
+    {
+        return Vocabulary::label('wings', $this->department);
+    }
 
     public function services(): HasMany
     {

@@ -16,12 +16,16 @@ class Service extends Model
     protected array $translatable = [
         'name',
         'description',
+        'body',
+        'highlights',
     ];
 
     protected $guarded = [];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'highlights' => 'array',
+        'highlights_bn' => 'array',
     ];
 
     public function category(): BelongsTo
@@ -37,5 +41,17 @@ class Service extends Model
     public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true);
+    }
+
+    /** A service is addressed under the main service it belongs to. */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /** True once there is more to read than the card already shows. */
+    public function hasDetail(): bool
+    {
+        return filled($this->body) || filled($this->highlights);
     }
 }

@@ -117,6 +117,7 @@ class RichContentSeeder extends Seeder
         $catalogue = [
             [
                 'name' => 'Engineering & Technical Consultancy',
+                'department' => 'CE',
                 'icon' => 'wrench',
                 'tagline' => 'Design, analysis and site expertise',
                 'description' => 'Technical review, design and supervision services delivered by UGV engineering faculty and practising professionals, from concept through construction.',
@@ -133,6 +134,7 @@ class RichContentSeeder extends Seeder
             ],
             [
                 'name' => 'ICT & Digital Consultancy',
+                'department' => 'CSE',
                 'icon' => 'cpu',
                 'tagline' => 'Software, data and digital transformation',
                 'description' => 'Digital advisory and delivery capability covering applications, data platforms, security posture and emerging technology adoption.',
@@ -147,6 +149,7 @@ class RichContentSeeder extends Seeder
             ],
             [
                 'name' => 'Business & Management Consultancy',
+                'department' => 'BUS',
                 'icon' => 'chart',
                 'tagline' => 'Strategy, finance and organisational capability',
                 'description' => 'Commercial and organisational advisory grounded in business research, financial analysis and management practice.',
@@ -162,6 +165,7 @@ class RichContentSeeder extends Seeder
             ],
             [
                 'name' => 'Education & Research Consultancy',
+                'department' => 'RICH',
                 'icon' => 'academic',
                 'tagline' => 'Curriculum, OBE and institutional quality',
                 'description' => 'Academic quality and capacity services for universities, colleges, training providers and education programmes.',
@@ -177,6 +181,7 @@ class RichContentSeeder extends Seeder
             ],
             [
                 'name' => 'Social Science & Humanities Consultancy',
+                'department' => 'IS',
                 'icon' => 'users',
                 'tagline' => 'Society, policy and community evidence',
                 'description' => 'Social research and policy advisory that brings rigorous qualitative and quantitative evidence to development practice.',
@@ -197,6 +202,8 @@ class RichContentSeeder extends Seeder
                 ['slug' => Str::slug($group['name'])],
                 [
                     'name' => $group['name'],
+                    // The sector that runs it; shown on every service beneath.
+                    'department' => $group['department'] ?? null,
                     'icon' => $group['icon'],
                     'tagline' => $group['tagline'],
                     'description' => $group['description'],

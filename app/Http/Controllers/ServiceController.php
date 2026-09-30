@@ -20,6 +20,29 @@ class ServiceController extends Controller
         ]);
     }
 
+    /**
+     * One service, on a page of its own.
+     *
+     * Scoped to its main service, so /services/ict-digital-consultancy/cybersecurity
+     * reads as the path it is, and a service cannot be reached under a parent it
+     * does not belong to.
+     */
+    public function service(ServiceCategory $serviceCategory, Service $service)
+    {
+        abort_unless($serviceCategory->is_active && $service->is_active, 404);
+
+        $siblings = $serviceCategory->services()->active()->whereKeyNot($service->id)->get();
+
+        return view('pages.services.detail', [
+            'category' => $serviceCategory,
+            'service' => $service,
+            'siblings' => $siblings,
+            'experts' => Expert::with('category')->active()
+                ->where('service_category_id', $serviceCategory->id)
+                ->orderBy('sort_order')->take(3)->get(),
+        ]);
+    }
+
     public function show(ServiceCategory $serviceCategory)
     {
         abort_unless($serviceCategory->is_active, 404);
