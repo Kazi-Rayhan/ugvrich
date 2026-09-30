@@ -225,107 +225,120 @@
         </div>
     </div>
 
-    {{-- Mobile / tablet: an off-canvas panel.
+    {{-- The panel is teleported to the end of <body>.
 
-         It slides in from the edge the menu button sits on and leaves the page
-         showing behind it, so you can see where you are while you choose where
-         to go. A full-screen takeover loses that, and on a phone it reads like
-         a new page rather than a menu.
+         It has to leave the header: the header runs an entrance animation whose
+         keyframes carry a transform, and while that animation is filling the
+         header becomes the containing block for any `fixed` descendant. The
+         panel was therefore being sized and clipped to the header's own box —
+         which is why only its top strip showed. Teleporting keeps this Alpine
+         scope (`open` still drives it) while the element itself sits directly
+         under <body>, where `fixed` means the viewport again. --}}
+    <template x-teleport="body">
+        <div>
+        {{-- Mobile / tablet: an off-canvas panel.
 
-         Logical properties throughout (`end`, `ps`), so the side follows the
-         writing direction rather than being pinned to the right. --}}
+             It slides in from the edge the menu button sits on and leaves the page
+             showing behind it, so you can see where you are while you choose where
+             to go. A full-screen takeover loses that, and on a phone it reads like
+             a new page rather than a menu.
 
-    {{-- Backdrop: dims the page and closes on a tap --}}
-    <div x-show="open" x-cloak
-         @click="open = false"
-         x-transition:enter="transition-opacity duration-300 ease-out"
-         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity duration-200 ease-in"
-         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[55] bg-ink-950/60 backdrop-blur-[2px] xl:hidden"
-         aria-hidden="true"></div>
+             Logical properties throughout (`end`, `ps`), so the side follows the
+             writing direction rather than being pinned to the right. --}}
 
-    <div x-show="open" x-cloak
-         x-transition:enter="transform transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
-         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
-         x-transition:leave="transform transition duration-200 ease-in"
-         x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-         class="fixed inset-y-0 end-0 z-[60] flex w-[88%] max-w-[380px] flex-col overflow-y-auto overscroll-contain
-                bg-ink-950 text-white shadow-[0_0_60px_-12px_rgba(0,0,0,0.8)] xl:hidden"
-         role="dialog" aria-modal="true" aria-label="{{ __('site.nav.menu') }}">
+        {{-- Backdrop: dims the page and closes on a tap --}}
+        <div x-show="open" x-cloak
+             @click="open = false"
+             x-transition:enter="transition-opacity duration-300 ease-out"
+             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity duration-200 ease-in"
+             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[55] bg-ink-950/60 backdrop-blur-[2px] xl:hidden"
+             aria-hidden="true"></div>
 
-        {{-- Head: the mark, and the way out --}}
-        <div class="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-5">
-            <x-brand-mark invert class="h-11" />
-            <button type="button" @click="open = false"
-                    class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 transition hover:bg-white/10"
-                    aria-label="{{ __('site.nav.close_menu') }}">
-                <x-ui-icon name="x" class="h-5 w-5" />
-            </button>
-        </div>
+        <div x-show="open" x-cloak
+             x-transition:enter="transform transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
+             x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+             x-transition:leave="transform transition duration-200 ease-in"
+             x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+             class="fixed inset-y-0 end-0 z-[60] flex w-[88%] max-w-[380px] flex-col overflow-y-auto overscroll-contain
+                    bg-ink-950 text-white shadow-[0_0_60px_-12px_rgba(0,0,0,0.8)] xl:hidden"
+             role="dialog" aria-modal="true" aria-label="{{ __('site.nav.menu') }}">
 
-        <nav class="px-5 pt-2" aria-label="Mobile">
-            @foreach ($links as $i => $link)
-                <div class="border-b border-white/10" @isset($link['panel']) x-data="{ sub: false }" @endisset>
-                    @isset($link['panel'])
-                        <button type="button" @click="sub = ! sub" :aria-expanded="sub"
-                                class="flex w-full items-center gap-3 py-3.5 text-left">
-                            <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
-                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20">
-                                <x-ui-icon name="plus" class="h-3.5 w-3.5 transition-transform duration-300" ::class="sub && 'rotate-45'" />
-                            </span>
-                        </button>
+            {{-- Head: the mark, and the way out --}}
+            <div class="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-5">
+                <x-brand-mark invert class="h-11" />
+                <button type="button" @click="open = false"
+                        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 transition hover:bg-white/10"
+                        aria-label="{{ __('site.nav.close_menu') }}">
+                    <x-ui-icon name="x" class="h-5 w-5" />
+                </button>
+            </div>
 
-                        <div x-show="sub" x-collapse>
-                            <div class="grid gap-0.5 pb-4 ps-1">
-                                @foreach ($link['panel']['children'] as [$childLabel, $childUrl, $childIcon])
-                                    <a href="{{ $childUrl }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] text-white/70 transition hover:bg-white/5 hover:text-white">
-                                        <x-ui-icon :name="$childIcon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $childLabel }}
-                                    </a>
-                                @endforeach
+            <nav class="px-5 pt-2" aria-label="Mobile">
+                @foreach ($links as $i => $link)
+                    <div class="border-b border-white/10" @isset($link['panel']) x-data="{ sub: false }" @endisset>
+                        @isset($link['panel'])
+                            <button type="button" @click="sub = ! sub" :aria-expanded="sub"
+                                    class="flex w-full items-center gap-3 py-3.5 text-left">
+                                <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20">
+                                    <x-ui-icon name="plus" class="h-3.5 w-3.5 transition-transform duration-300" ::class="sub && 'rotate-45'" />
+                                </span>
+                            </button>
+
+                            <div x-show="sub" x-collapse>
+                                <div class="grid gap-0.5 pb-4 ps-1">
+                                    @foreach ($link['panel']['children'] as [$childLabel, $childUrl, $childIcon])
+                                        <a href="{{ $childUrl }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] text-white/70 transition hover:bg-white/5 hover:text-white">
+                                            <x-ui-icon :name="$childIcon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $childLabel }}
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    @else
-                        <a href="{{ route($link['route']) }}"
-                           @class(['flex items-center gap-3 py-3.5', 'text-brand-300' => \App\Support\Navigation::isCurrent(...$link['match'])])>
-                            <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
-                            <x-ui-icon name="arrow-up-right" class="h-4 w-4 shrink-0 text-white/30" />
-                        </a>
-                    @endisset
-                </div>
-            @endforeach
-        </nav>
-
-        <div class="px-5 pt-6">
-            <p class="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/40">{{ __('site.nav.more') }}</p>
-            <div class="mt-2 grid gap-0.5">
-                @foreach ($utility as [$label, $url, $icon, $patterns])
-                    <a href="{{ $url }}" class="flex items-center gap-2.5 rounded-xl py-2.5 text-[14.5px] text-white/70 transition hover:text-white">
-                        <x-ui-icon :name="$icon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $label }}
-                    </a>
+                        @else
+                            <a href="{{ route($link['route']) }}"
+                               @class(['flex items-center gap-3 py-3.5', 'text-brand-300' => \App\Support\Navigation::isCurrent(...$link['match'])])>
+                                <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                                <x-ui-icon name="arrow-up-right" class="h-4 w-4 shrink-0 text-white/30" />
+                            </a>
+                        @endisset
+                    </div>
                 @endforeach
+            </nav>
+
+            <div class="px-5 pt-6">
+                <p class="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/40">{{ __('site.nav.more') }}</p>
+                <div class="mt-2 grid gap-0.5">
+                    @foreach ($utility as [$label, $url, $icon, $patterns])
+                        <a href="{{ $url }}" class="flex items-center gap-2.5 rounded-xl py-2.5 text-[14.5px] text-white/70 transition hover:text-white">
+                            <x-ui-icon :name="$icon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="px-5 pt-6">
+                <x-language-switch invert />
+            </div>
+
+            {{-- Foot: pinned below, however short the menu is --}}
+            <div class="mt-auto border-t border-white/10 px-5 pb-8 pt-6">
+                <a href="{{ route('consultancy.create') }}" class="btn-primary w-full">
+                    {{ __('site.actions.collaborate_with_us') }}
+                    <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                </a>
+
+                <div class="mt-4 text-[13px] text-white/55">
+                    @if ($email)
+                        <a href="mailto:{{ $email }}" class="block transition hover:text-white">{{ $email }}</a>
+                    @endif
+                    @if ($phone)
+                        <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}" class="mt-1 block transition hover:text-white">{{ $phone }}</a>
+                    @endif
+                </div>
             </div>
         </div>
-
-        <div class="px-5 pt-6">
-            <x-language-switch invert />
         </div>
-
-        {{-- Foot: pinned below, however short the menu is --}}
-        <div class="mt-auto border-t border-white/10 px-5 pb-8 pt-6">
-            <a href="{{ route('consultancy.create') }}" class="btn-primary w-full">
-                {{ __('site.actions.collaborate_with_us') }}
-                <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-            </a>
-
-            <div class="mt-4 text-[13px] text-white/55">
-                @if ($email)
-                    <a href="mailto:{{ $email }}" class="block transition hover:text-white">{{ $email }}</a>
-                @endif
-                @if ($phone)
-                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}" class="mt-1 block transition hover:text-white">{{ $phone }}</a>
-                @endif
-            </div>
-        </div>
-    </div>
+    </template>
 </header>
