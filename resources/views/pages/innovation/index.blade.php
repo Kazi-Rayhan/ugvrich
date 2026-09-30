@@ -266,7 +266,7 @@
             {{-- Jump to any of the six, and every SDG they name --}}
             <div class="reveal mt-8 flex flex-wrap items-center gap-2">
                 @foreach ($doc['proposed'] as $item)
-                    <a href="#{{ \Illuminate\Support\Str::slug($item['name']) }}"
+                    <a href="#{{ $item['slug'] }}"
                        class="rounded-full border border-ink-200 bg-white px-4 py-1.5 text-[13px] font-medium text-ink-700 transition duration-300 hover:-translate-y-0.5 hover:border-brand-400 hover:text-brand-700">
                         {{ $item['name'] }}
                     </a>
@@ -282,77 +282,60 @@
                 </div>
             @endif
 
-            <div class="mt-12 space-y-8">
+            {{-- Two to a row: the six read as a set to choose from, and the
+                 full write-up of any one of them is a click away. --}}
+            <div class="mt-12 grid gap-6 lg:grid-cols-2">
                 @foreach ($doc['proposed'] as $i => $item)
-                    <article id="{{ \Illuminate\Support\Str::slug($item['name']) }}"
-                             class="reveal group scroll-mt-28 overflow-hidden rounded-[2.25rem] border border-ink-100 bg-white transition duration-500 hover:border-brand-200 hover:shadow-[0_44px_90px_-60px_rgba(2,34,81,0.55)]"
+                    <article id="{{ $item['slug'] }}"
+                             class="reveal group relative flex h-full scroll-mt-28 flex-col overflow-hidden rounded-[2rem] border border-ink-100 bg-white transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_44px_90px_-60px_rgba(2,34,81,0.55)]"
                              style="{{ $delay($i, 45) }}">
 
-                        {{-- A cover band carries the name, the way a case study opens --}}
+                        {{-- Cover band, as a case study opens --}}
                         <header class="relative isolate overflow-hidden">
                             <x-media-frame :src="$doc['proposed_covers'][$i] ?? null" :alt="$item['name']" :seed="$item['name'].' '.$item['tagline']"
-                                           ratio="aspect-[21/9] sm:aspect-[24/7]" class="bg-ink-100" />
+                                           ratio="aspect-[16/9]" class="bg-ink-100" />
 
-                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/45 to-ink-950/10"></div>
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/40 to-ink-950/5"></div>
 
-                            <span class="pointer-events-none absolute right-5 top-2 select-none font-display text-[5rem] font-bold leading-none text-white/15 sm:text-[7rem]" aria-hidden="true">
+                            <span class="pointer-events-none absolute right-4 top-1 select-none font-numeric text-[4rem] font-bold leading-none text-white/15 tabular-nums" aria-hidden="true">
                                 {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
 
-                            <div class="absolute inset-x-0 bottom-0 flex flex-wrap items-end gap-x-6 gap-y-3 px-7 pb-6 sm:px-10 sm:pb-7">
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="font-display text-[24px] font-bold leading-[1.15] !text-white sm:text-[32px]">
-                                        {{ $item['name'] }}
-                                        @isset($item['native'])
-                                            <span class="font-sans text-[16px] font-medium text-white/60">({{ $item['native'] }})</span>
-                                        @endisset
-                                    </h3>
-                                    @isset($item['subtitle'])
-                                        <p class="mt-2 text-[14.5px] font-semibold text-brand-200">{{ $item['subtitle'] }}</p>
+                            <div class="absolute inset-x-0 bottom-0 px-6 pb-5">
+                                <h3 class="font-display text-[21px] font-bold leading-[1.2] !text-white sm:text-[24px]">
+                                    {{ $item['name'] }}
+                                    @isset($item['native'])
+                                        <span class="font-sans text-[14px] font-medium text-white/60">({{ $item['native'] }})</span>
                                     @endisset
-                                </div>
-
-                                <p class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-ink-950">
-                                    <x-ui-icon name="sparkles" class="h-3.5 w-3.5 text-brand-600" />
-                                    {{ $item['tagline'] }}
-                                </p>
+                                </h3>
+                                @isset($item['subtitle'])
+                                    <p class="mt-1.5 text-[13px] font-semibold text-brand-200">{{ $item['subtitle'] }}</p>
+                                @endisset
                             </div>
                         </header>
 
-                        <div class="grid gap-x-10 gap-y-7 px-7 py-8 sm:px-10 lg:grid-cols-[1.25fr_0.75fr]">
-                            <div class="space-y-7">
-                                @foreach (['concept', 'how', 'why'] as $field)
-                                    <div class="relative ps-8">
-                                        <span class="absolute left-0 top-0.5 flex h-6 w-6 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                                            <x-ui-icon :name="$fieldIcons[$field]" class="h-3.5 w-3.5" />
-                                        </span>
-                                        <p class="{{ $label }}">{{ $doc['headings'][$field] }}</p>
-                                        <p class="mt-2 text-[15px] leading-[1.85] text-ink-700">{{ $item[$field] }}</p>
-                                    </div>
+                        <div class="flex flex-1 flex-col px-6 pb-6 pt-5">
+                            <p class="inline-flex w-fit items-center gap-2 rounded-full bg-brand-50 px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-700">
+                                <x-ui-icon name="sparkles" class="h-3.5 w-3.5" />
+                                {{ $item['tagline'] }}
+                            </p>
+
+                            {{-- The concept only. How it works and why it matters
+                                 are on the innovation's own page. --}}
+                            <p class="mt-4 text-[14.5px] leading-[1.8] text-ink-700">{{ \Illuminate\Support\Str::limit($item['concept'], 190) }}</p>
+
+                            <ul class="mt-5 flex flex-wrap gap-1.5">
+                                @foreach ($chips($item['sdg'])->take(3) as $chip)
+                                    <li class="rounded-lg border border-navy-100 bg-ink-50 px-2.5 py-1 text-[12px] font-semibold text-navy-700">{{ $chip }}</li>
                                 @endforeach
-                            </div>
+                            </ul>
 
-                            <aside class="space-y-6 self-start rounded-[1.5rem] bg-ink-50/80 p-6 sm:p-7">
-                                <div>
-                                    <p class="flex items-center gap-2 {{ $label }}">
-                                        <x-ui-icon name="users" class="h-3.5 w-3.5 text-brand-600" />
-                                        {{ $doc['headings']['departments'] }}
-                                    </p>
-                                    <p class="mt-2 text-[13.5px] leading-[1.8] text-ink-700">{{ $item['departments'] }}</p>
-                                </div>
-
-                                <div class="border-t border-ink-200 pt-5">
-                                    <p class="flex items-center gap-2 {{ $label }}">
-                                        <x-ui-icon name="globe" class="h-3.5 w-3.5 text-brand-600" />
-                                        {{ $doc['headings']['sdg'] }}
-                                    </p>
-                                    <ul class="mt-3 flex flex-wrap gap-1.5">
-                                        @foreach ($chips($item['sdg']) as $chip)
-                                            <li class="rounded-lg border border-navy-100 bg-white px-2.5 py-1 text-[12.5px] font-semibold text-navy-700">{{ $chip }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </aside>
+                            <a href="{{ route('innovation.show', $item['slug']) }}"
+                               class="mt-auto inline-flex items-center gap-2 pt-6 text-[13.5px] font-semibold text-brand-700 transition group-hover:gap-3">
+                                <span class="absolute inset-0" aria-hidden="true"></span>
+                                {{ __('site.innovation.read_full') }}
+                                <x-ui-icon name="arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            </a>
                         </div>
                     </article>
                 @endforeach

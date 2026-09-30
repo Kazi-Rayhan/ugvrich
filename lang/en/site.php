@@ -332,6 +332,12 @@ return [
     ],
 
     'innovation' => [
+        'read_full' => 'Read the full proposal',
+        'back_to_proposals' => 'All proposed innovations',
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'partner_cta' => 'Partner on this innovation',
+        'partner_note' => 'Departments, funders and industry partners are welcome to join a project at any stage.',
         'section' => 'Section :number',
         'areas_title' => 'Innovation Areas & Projects',
         'areas_lead' => 'The eight departmental innovation areas, and the projects running in each.',

@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Innovation;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Throwable;
 
 /** The Innovation Wing proposal, in the language of the page. */
@@ -28,7 +29,41 @@ class InnovationFramework
             $doc = static::apply($doc, $phase, $records);
         }
 
+        $doc['proposed'] = static::slugged($doc['proposed'] ?? []);
+
         return $doc;
+    }
+
+    /** One proposed innovation, or null when the address names nothing. */
+    public static function proposal(string $slug): ?array
+    {
+        foreach (static::all()['proposed'] as $item) {
+            if (($item['slug'] ?? null) === $slug) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Each proposed innovation gets an address of its own.
+     *
+     * Built from the English name in every language, so /innovation/solar-scooty
+     * and /en/innovation/solar-scooty are the same page and a link shared from
+     * one reads the same in the other. Slugging the Bangla name would give a
+     * different address per language for the same innovation.
+     */
+    protected static function slugged(array $proposed): array
+    {
+        $english = config('innovation_framework.proposed', []);
+
+        foreach ($proposed as $i => $item) {
+            $proposed[$i]['slug'] = $item['slug']
+                ?? Str::slug($english[$i]['name'] ?? $item['name']);
+        }
+
+        return $proposed;
     }
 
     /**
@@ -82,6 +117,7 @@ class InnovationFramework
 
         return [
             ...$optional,
+            'slug' => Str::slug($record->getRawOriginal('name')),
             'name' => $record->name,
             'tagline' => (string) $record->tagline,
             'concept' => (string) $record->concept,

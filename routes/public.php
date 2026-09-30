@@ -35,6 +35,8 @@ Route::get('/services/{serviceCategory}', [ServiceController::class, 'show'])->n
 Route::get('/innovation', [InnovationController::class, 'index'])->name('innovation.index');
 Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('innovation.areas');
 Route::redirect('/innovation/plan', '/innovation')->name('innovation.plan');
+// Last of the three: a bare segment would otherwise swallow `areas` and `plan`.
+Route::get('/innovation/{slug}', [InnovationController::class, 'show'])->name('innovation.show');
 
 Route::get('/startup', [PageController::class, 'startup'])->name('startup');
 Route::get('/submit-idea', [IdeaSubmissionController::class, 'create'])->name('ideas.create');

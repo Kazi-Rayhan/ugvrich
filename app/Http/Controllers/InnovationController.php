@@ -41,6 +41,34 @@ class InnovationController extends Controller
         ]);
     }
 
+    /**
+     * One proposed innovation, in full.
+     *
+     * The Innovation page lists the six side by side with a paragraph each;
+     * this is where the rest of the write-up lives, and the address a proposal
+     * can be sent to on its own.
+     */
+    public function show(string $slug)
+    {
+        $doc = InnovationFramework::all();
+
+        $proposal = InnovationFramework::proposal($slug);
+
+        abort_if($proposal === null, 404);
+
+        $index = array_search($proposal, $doc['proposed'], true);
+
+        return view('pages.innovation.show', [
+            'doc' => $doc,
+            'item' => $proposal,
+            'index' => $index,
+            'cover' => $doc['proposed_covers'][$index] ?? null,
+            // The two either side, so a reader can walk the set.
+            'previous' => $doc['proposed'][$index - 1] ?? null,
+            'next' => $doc['proposed'][$index + 1] ?? null,
+        ]);
+    }
+
     /** The Innovation Wing proposal, rendered from config/innovation_framework.php. */
     public function plan()
     {

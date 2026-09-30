@@ -24,7 +24,15 @@ class InnovationRecordTest extends TestCase
         $doc = InnovationFramework::all();
 
         $this->assertSame(config('innovation_framework.current'), $doc['current']);
-        $this->assertSame(config('innovation_framework.proposed'), $doc['proposed']);
+
+        // The proposals carry one thing the document does not: the slug of the
+        // page each one has. Every word beside it is still the document's.
+        $withoutSlugs = array_map(
+            fn (array $item) => array_diff_key($item, ['slug' => null]),
+            $doc['proposed'],
+        );
+
+        $this->assertSame(config('innovation_framework.proposed'), $withoutSlugs);
     }
 
     public function test_the_seeder_loads_the_proposal_into_the_admin(): void
