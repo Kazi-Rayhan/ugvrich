@@ -223,17 +223,17 @@
                             <x-media-frame :src="$doc['current_covers'][$i] ?? null" :alt="$innovation" :seed="$innovation"
                                            ratio="aspect-[16/10]" class="bg-ink-100" />
 
-                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/75 via-ink-950/15 to-transparent"></div>
-
-                            <span class="absolute left-6 top-5 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 font-numeric text-[13px] font-bold tabular-nums text-ink-950 backdrop-blur-sm">
+                            <span class="absolute left-6 top-5 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 font-numeric text-[13px] font-bold tabular-nums text-ink-950 shadow-sm backdrop-blur-sm">
                                 {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
-
-                            <h3 class="absolute inset-x-6 bottom-5 font-display text-[19px] font-bold leading-snug !text-white">{{ $innovation }}</h3>
                         </div>
 
+                        {{-- The name sits below the photograph, not over it: the
+                             image is left as it is, with nothing darkening it. --}}
                         <div class="px-7 pb-6 pt-6">
-                            <p class="inline-flex items-start gap-2 rounded-full bg-ink-50 px-3.5 py-1.5 text-[12.5px] font-medium text-ink-600">
+                            <h3 class="font-display text-[19px] font-bold leading-snug text-ink-950">{{ $innovation }}</h3>
+
+                            <p class="mt-4 inline-flex items-start gap-2 rounded-full bg-ink-50 px-3.5 py-1.5 text-[12.5px] font-medium text-ink-600">
                                 <x-ui-icon name="users" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
                                 {{ $lead }}
                             </p>
@@ -295,27 +295,26 @@
                             <x-media-frame :src="$doc['proposed_covers'][$i] ?? null" :alt="$item['name']" :seed="$item['name'].' '.$item['tagline']"
                                            ratio="aspect-[16/9]" class="bg-ink-100" />
 
-                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/40 to-ink-950/5"></div>
-
-                            <span class="pointer-events-none absolute right-4 top-1 select-none font-numeric text-[4rem] font-bold leading-none text-white/15 tabular-nums" aria-hidden="true">
+                            <span class="absolute left-5 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 font-numeric text-[12.5px] font-bold tabular-nums text-ink-950 shadow-sm backdrop-blur-sm">
                                 {{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}
                             </span>
-
-                            <div class="absolute inset-x-0 bottom-0 px-6 pb-5">
-                                <h3 class="font-display text-[21px] font-bold leading-[1.2] !text-white sm:text-[24px]">
-                                    {{ $item['name'] }}
-                                    @isset($item['native'])
-                                        <span class="font-sans text-[14px] font-medium text-white/60">({{ $item['native'] }})</span>
-                                    @endisset
-                                </h3>
-                                @isset($item['subtitle'])
-                                    <p class="mt-1.5 text-[13px] font-semibold text-brand-200">{{ $item['subtitle'] }}</p>
-                                @endisset
-                            </div>
                         </header>
 
+                        {{-- Name, tagline and the rest sit below the photograph
+                             rather than over it, so nothing darkens the image. --}}
                         <div class="flex flex-1 flex-col px-6 pb-6 pt-5">
-                            <p class="inline-flex w-fit items-center gap-2 rounded-full bg-brand-50 px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-700">
+                            <h3 class="font-display text-[21px] font-bold leading-[1.2] text-ink-950 sm:text-[23px]">
+                                {{ $item['name'] }}
+                                @isset($item['native'])
+                                    <span class="font-sans text-[14px] font-medium text-ink-400">({{ $item['native'] }})</span>
+                                @endisset
+                            </h3>
+
+                            @isset($item['subtitle'])
+                                <p class="mt-1.5 text-[13px] font-semibold text-brand-700">{{ $item['subtitle'] }}</p>
+                            @endisset
+
+                            <p class="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-brand-50 px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-700">
                                 <x-ui-icon name="sparkles" class="h-3.5 w-3.5" />
                                 {{ $item['tagline'] }}
                             </p>
