@@ -49,7 +49,7 @@
     x-data="siteHeader()"
     x-init="init()"
     @scroll.window="onScroll()"
-    @keydown.escape.window="panel = null"
+    @keydown.escape.window="panel = null; open = false"
     class="sticky top-0 z-50 animate-header-in">
 
     <div class="relative" @mouseleave="leave()">
@@ -225,81 +225,100 @@
         </div>
     </div>
 
-    {{-- Mobile / tablet: full-screen menu --}}
-    <div x-show="open" x-cloak
-         x-transition:enter="transition duration-400 ease-out"
-         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition duration-200 ease-in"
-         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-ink-950 text-white xl:hidden"
-         role="dialog" aria-modal="true" aria-label="Site menu">
+    {{-- Mobile / tablet: an off-canvas panel.
 
-        <div class="container-rich flex h-[72px] shrink-0 items-center justify-between sm:h-[100px]">
-            <x-brand-mark invert class="h-12 sm:h-[72px]" />
+         It slides in from the edge the menu button sits on and leaves the page
+         showing behind it, so you can see where you are while you choose where
+         to go. A full-screen takeover loses that, and on a phone it reads like
+         a new page rather than a menu.
+
+         Logical properties throughout (`end`, `ps`), so the side follows the
+         writing direction rather than being pinned to the right. --}}
+
+    {{-- Backdrop: dims the page and closes on a tap --}}
+    <div x-show="open" x-cloak
+         @click="open = false"
+         x-transition:enter="transition-opacity duration-300 ease-out"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity duration-200 ease-in"
+         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[55] bg-ink-950/60 backdrop-blur-[2px] xl:hidden"
+         aria-hidden="true"></div>
+
+    <div x-show="open" x-cloak
+         x-transition:enter="transform transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)]"
+         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+         x-transition:leave="transform transition duration-200 ease-in"
+         x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+         class="fixed inset-y-0 end-0 z-[60] flex w-[88%] max-w-[380px] flex-col overflow-y-auto overscroll-contain
+                bg-ink-950 text-white shadow-[0_0_60px_-12px_rgba(0,0,0,0.8)] xl:hidden"
+         role="dialog" aria-modal="true" aria-label="{{ __('site.nav.menu') }}">
+
+        {{-- Head: the mark, and the way out --}}
+        <div class="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-5">
+            <x-brand-mark invert class="h-11" />
             <button type="button" @click="open = false"
-                    class="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 transition hover:bg-white/10
-                           sm:w-auto sm:gap-2 sm:pl-4 sm:pr-3 sm:text-[13.5px] sm:font-semibold"
+                    class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 transition hover:bg-white/10"
                     aria-label="{{ __('site.nav.close_menu') }}">
-                <span class="hidden sm:inline">{{ __('site.nav.close') }}</span>
-                <x-ui-icon name="x" class="h-5 w-5 sm:h-4.5 sm:w-4.5" />
+                <x-ui-icon name="x" class="h-5 w-5" />
             </button>
         </div>
 
-        <nav class="container-rich mt-4 flex flex-col" aria-label="Mobile">
+        <nav class="px-5 pt-2" aria-label="Mobile">
             @foreach ($links as $i => $link)
-                <div x-show="open"
-                     x-transition:enter="transition duration-500 ease-out"
-                     x-transition:enter-start="opacity-0 translate-y-4"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     style="transition-delay: {{ 80 + $i * 50 }}ms"
-                     class="border-b border-white/10"
-                     @isset($link['panel']) x-data="{ sub: false }" @endisset>
+                <div class="border-b border-white/10" @isset($link['panel']) x-data="{ sub: false }" @endisset>
                     @isset($link['panel'])
                         <button type="button" @click="sub = ! sub" :aria-expanded="sub"
-                                class="flex w-full items-center gap-4 py-4 text-left">
-                            <span class="w-6 font-mono text-[12px] text-white/40">{{ sprintf('%02d', $i + 1) }}</span>
-                            <span class="flex-1 font-display text-[21px] font-semibold tracking-tight sm:text-[26px]">{{ $link['label'] }}</span>
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full border border-white/20">
-                                <x-ui-icon name="plus" class="h-4 w-4 transition-transform duration-300" ::class="sub && 'rotate-45'" />
+                                class="flex w-full items-center gap-3 py-3.5 text-left">
+                            <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20">
+                                <x-ui-icon name="plus" class="h-3.5 w-3.5 transition-transform duration-300" ::class="sub && 'rotate-45'" />
                             </span>
                         </button>
+
                         <div x-show="sub" x-collapse>
-                            <div class="grid gap-1 pb-5 pl-10 sm:grid-cols-2">
+                            <div class="grid gap-0.5 pb-4 ps-1">
                                 @foreach ($link['panel']['children'] as [$childLabel, $childUrl, $childIcon])
-                                    <a href="{{ $childUrl }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[15px] text-white/75 transition hover:bg-white/5 hover:text-white">
+                                    <a href="{{ $childUrl }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] text-white/70 transition hover:bg-white/5 hover:text-white">
                                         <x-ui-icon :name="$childIcon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $childLabel }}
                                     </a>
                                 @endforeach
                             </div>
                         </div>
                     @else
-                        <a href="{{ route($link['route']) }}" class="flex items-center gap-4 py-4">
-                            <span class="w-6 font-mono text-[12px] text-white/40">{{ sprintf('%02d', $i + 1) }}</span>
-                            <span class="flex-1 font-display text-[21px] font-semibold tracking-tight sm:text-[26px]">{{ $link['label'] }}</span>
-                            <x-ui-icon name="arrow-up-right" class="h-5 w-5 text-white/40" />
+                        <a href="{{ route($link['route']) }}"
+                           @class(['flex items-center gap-3 py-3.5', 'text-brand-300' => \App\Support\Navigation::isCurrent(...$link['match'])])>
+                            <span class="flex-1 font-display text-[17px] font-semibold tracking-tight">{{ $link['label'] }}</span>
+                            <x-ui-icon name="arrow-up-right" class="h-4 w-4 shrink-0 text-white/30" />
                         </a>
                     @endisset
                 </div>
             @endforeach
         </nav>
 
-        <div class="container-rich mt-8">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">{{ __('site.nav.more') }}</p>
-            <div class="mt-3 grid gap-1 sm:grid-cols-2">
+        <div class="px-5 pt-6">
+            <p class="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/40">{{ __('site.nav.more') }}</p>
+            <div class="mt-2 grid gap-0.5">
                 @foreach ($utility as [$label, $url, $icon, $patterns])
-                    <a href="{{ $url }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[15px] text-white/75 transition hover:bg-white/5 hover:text-white">
+                    <a href="{{ $url }}" class="flex items-center gap-2.5 rounded-xl py-2.5 text-[14.5px] text-white/70 transition hover:text-white">
                         <x-ui-icon :name="$icon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $label }}
                     </a>
                 @endforeach
             </div>
         </div>
 
-        <div class="container-rich mt-8">
+        <div class="px-5 pt-6">
             <x-language-switch invert />
         </div>
 
-        <div class="container-rich mt-auto grid gap-6 pb-10 pt-12 sm:grid-cols-2 sm:items-end">
-            <div class="text-sm text-white/60">
+        {{-- Foot: pinned below, however short the menu is --}}
+        <div class="mt-auto border-t border-white/10 px-5 pb-8 pt-6">
+            <a href="{{ route('consultancy.create') }}" class="btn-primary w-full">
+                {{ __('site.actions.collaborate_with_us') }}
+                <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+            </a>
+
+            <div class="mt-4 text-[13px] text-white/55">
                 @if ($email)
                     <a href="mailto:{{ $email }}" class="block transition hover:text-white">{{ $email }}</a>
                 @endif
@@ -307,10 +326,6 @@
                     <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}" class="mt-1 block transition hover:text-white">{{ $phone }}</a>
                 @endif
             </div>
-            <a href="{{ route('consultancy.create') }}" class="btn-primary w-full sm:w-auto sm:justify-self-end">
-                {{ __('site.actions.collaborate_with_us') }}
-                <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-            </a>
         </div>
     </div>
 </header>
