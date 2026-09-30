@@ -36,10 +36,10 @@
                             <p class="font-display text-[17px] font-bold leading-snug !text-white">{{ $category->name }}</p>
 
                             {{-- The sector that runs it: the desk a caller reaches. --}}
-                            @if ($category->wing_name)
+                            @if ($category->sector_name)
                                 <p class="mt-1 flex items-center gap-1.5 text-[12.5px] text-white/70">
                                     <x-ui-icon name="building" class="h-3.5 w-3.5 shrink-0" />
-                                    {{ $category->wing_name }}
+                                    {{ $category->sector_name }}
                                 </p>
                             @endif
                         </div>

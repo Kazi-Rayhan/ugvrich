@@ -76,7 +76,7 @@ class ConsultancyWingSeeder extends Seeder
     {
         return [
             [
-                'name' => 'Smart ICT Service',
+                'name' => 'Smart ICT Services',
                 'department' => 'CSE',
                 'icon' => 'cpu',
                 'tagline' => 'Software, platforms and digital infrastructure',
@@ -298,7 +298,7 @@ class ConsultancyWingSeeder extends Seeder
             ],
 
             [
-                'name' => 'Smart Infrastructure Service',
+                'name' => 'Smart Infrastructure Services',
                 'department' => 'CE',
                 'icon' => 'building',
                 'tagline' => 'Design, structure, environment and construction',
@@ -401,7 +401,7 @@ class ConsultancyWingSeeder extends Seeder
             ],
 
             [
-                'name' => 'Smart Mechanical & Automobile Service',
+                'name' => 'Smart Mechanical & Automobile Services',
                 'department' => 'ME',
                 'icon' => 'cog',
                 'tagline' => 'CAD, modelling and simulation',
@@ -435,44 +435,6 @@ class ConsultancyWingSeeder extends Seeder
                             'SolidWorks Simulation: static stress, thermal and fatigue analysis',
                             'Motion analysis and interference detection',
                             'Basic CFD and flow simulation',
-                        ],
-                    ],
-                ],
-            ],
-
-            [
-                'name' => 'Language Services',
-                'department' => 'ENG',
-                'icon' => 'academic',
-                'tagline' => 'Teaching support and online learning',
-                'description' => 'Support for English language teachers and structured online learning for school students, from lesson planning and assessment to live classes and progress monitoring.',
-                'services' => [
-                    [
-                        'name' => "Online English Teachers' Support",
-                        'icon' => 'users',
-                        'summary' => 'Language teaching, methodology, lesson planning, assessment and classroom management support.',
-                        'body' => "English language teaching, vocabulary development, grammar, pronunciation, speaking and communication skills, academic and professional writing, lesson planning, classroom management, assessment techniques and modern teaching methodologies.",
-                        'scope' => [
-                            'Vocabulary, grammar and pronunciation',
-                            'Speaking and communication skills',
-                            'Academic and professional writing',
-                            'Lesson planning and classroom management',
-                            'Assessment techniques',
-                            'Modern teaching methodologies',
-                        ],
-                    ],
-                    [
-                        'name' => 'Online School',
-                        'icon' => 'academic',
-                        'summary' => 'Live and recorded classes, subject courses, digital materials and progress monitoring for school students.',
-                        'body' => "Online learning support for school students through live and recorded classes, subject-based courses, digital learning materials, assignments, assessments, interactive activities and student progress monitoring.",
-                        'scope' => [
-                            'Live and recorded classes',
-                            'Subject-based courses',
-                            'Digital learning materials',
-                            'Assignments and assessments',
-                            'Interactive activities',
-                            'Student progress monitoring',
                         ],
                     ],
                 ],
@@ -513,6 +475,43 @@ class ConsultancyWingSeeder extends Seeder
                             'Investor readiness and pitch preparation',
                             'Three- and six-month incubation retainer with desk and mentorship',
                             'Women Entrepreneur Fast-Track',
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Language Services',
+                'department' => 'ENG',
+                'icon' => 'academic',
+                'tagline' => 'Teaching support and online learning',
+                'description' => 'Support for English language teachers and structured online learning for school students, from lesson planning and assessment to live classes and progress monitoring.',
+                'services' => [
+                    [
+                        'name' => "Online English Teachers' Support",
+                        'icon' => 'users',
+                        'summary' => 'Language teaching, methodology, lesson planning, assessment and classroom management support.',
+                        'body' => "English language teaching, vocabulary development, grammar, pronunciation, speaking and communication skills, academic and professional writing, lesson planning, classroom management, assessment techniques and modern teaching methodologies.",
+                        'scope' => [
+                            'Vocabulary, grammar and pronunciation',
+                            'Speaking and communication skills',
+                            'Academic and professional writing',
+                            'Lesson planning and classroom management',
+                            'Assessment techniques',
+                            'Modern teaching methodologies',
+                        ],
+                    ],
+                    [
+                        'name' => 'Online School',
+                        'icon' => 'academic',
+                        'summary' => 'Live and recorded classes, subject courses, digital materials and progress monitoring for school students.',
+                        'body' => "Online learning support for school students through live and recorded classes, subject-based courses, digital learning materials, assignments, assessments, interactive activities and student progress monitoring.",
+                        'scope' => [
+                            'Live and recorded classes',
+                            'Subject-based courses',
+                            'Digital learning materials',
+                            'Assignments and assessments',
+                            'Interactive activities',
+                            'Student progress monitoring',
                         ],
                     ],
                 ],

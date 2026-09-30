@@ -66,10 +66,10 @@
                                 <div class="w-full px-6 pb-6 sm:px-10 sm:pb-8">
                                     <div class="flex flex-wrap items-center gap-2.5">
                                         {{-- The wing that runs it, as the consultancy plan names it --}}
-                                        @if ($category->wing_name)
+                                        @if ($category->sector_name)
                                             <span class="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-sm">
                                                 <x-ui-icon name="building" class="h-3.5 w-3.5" />
-                                                {{ $category->wing_name }}
+                                                {{ $category->sector_name }}
                                             </span>
                                         @endif
 

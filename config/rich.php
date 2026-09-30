@@ -88,19 +88,20 @@ return [
     ],
 
     /*
-     | The wings as the Consultancy Wing's own planning document names them.
-     | The department key says which sector runs a service; this says what that
-     | sector is called when it is named on the page.
+     | The sectors, exactly as the Board of Trustees meeting minutes write them
+     | in the "Sector" column: some by code, some spelled out. The department
+     | key says which sector runs a service; this says what that sector is
+     | called when it is named on a page.
      */
-    'wings' => [
-        'CSE' => 'CSE Wing',
-        'EEE' => 'EEE Wing',
-        'CE' => 'Civil Engineering Wing',
-        'ME' => 'Mechanical Engineering Wing',
-        'ENG' => 'English Wing',
-        'BUS' => 'Business Administration (BBA) Wing',
-        'PH' => 'Public Health Wing',
-        'IS' => 'Islamic Studies & Humanities Wing',
+    'sectors' => [
+        'CSE' => 'CSE',
+        'EEE' => 'EEE',
+        'CE' => 'Civil Engineering',
+        'ME' => 'Mechanical Engineering',
+        'BUS' => 'BBA',
+        'ENG' => 'English',
+        'PH' => 'Public Health',
+        'IS' => 'Islamic Studies & Humanities',
         'RICH' => 'UGV RICH',
     ],
 

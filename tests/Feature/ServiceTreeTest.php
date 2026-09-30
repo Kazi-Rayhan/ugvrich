@@ -87,7 +87,7 @@ class ServiceTreeTest extends TestCase
 
             $this->get(route('services.show', $category))
                 ->assertOk()
-                ->assertSee($category->wing_name);
+                ->assertSee($category->sector_name);
         }
     }
 

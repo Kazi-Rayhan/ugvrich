@@ -32,10 +32,10 @@
 
             <div class="mt-6 grid gap-10 lg:grid-cols-[1.4fr_0.6fr] lg:items-end">
                 <div>
-                    @if ($category->wing_name)
+                    @if ($category->sector_name)
                         <span class="eyebrow-invert">
                             <x-ui-icon name="building" class="h-3.5 w-3.5" />
-                            {{ $category->wing_name }}
+                            {{ $category->sector_name }}
                         </span>
                     @endif
 

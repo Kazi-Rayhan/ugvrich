@@ -377,7 +377,7 @@ return [
         'included' => "What you get",
         'more_in' => 'More in :category',
         'who_leads' => 'Who leads this work',
-        'sector' => 'Run by',
+        'sector' => 'Sector',
         'explore_service' => 'Explore this service',
         'cta_title' => 'Need :service?',
         'cta_body' => 'Tell us the problem and the timeline. A faculty lead from the responsible department will scope it with you before anything is committed.',

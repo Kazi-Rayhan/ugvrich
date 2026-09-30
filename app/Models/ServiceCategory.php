@@ -31,10 +31,10 @@ class ServiceCategory extends Model
         return Vocabulary::label('departments', $this->department);
     }
 
-    /** The wing, as the consultancy document names it: "CSE Wing". */
-    public function getWingNameAttribute(): ?string
+    /** The sector, as the Board minutes name it: "CSE", "Civil Engineering". */
+    public function getSectorNameAttribute(): ?string
     {
-        return Vocabulary::label('wings', $this->department);
+        return Vocabulary::label('sectors', $this->department);
     }
 
     public function services(): HasMany
