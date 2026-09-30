@@ -94,8 +94,15 @@
 
                             {{-- The image holds the top-right corner across two rows --}}
                             <div class="reveal lg:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1">
-                                <x-media-frame :src="$category->image" :alt="$category->name" :seed="$category->name.' '.$category->slug"
-                                               ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
+                                @if ($category->image)
+                                    <x-media-frame :src="$category->image" :alt="$category->name"
+                                                   ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
+                                @else
+                                    {{-- No photograph yet: the sector's own drawn poster. --}}
+                                    <div class="aspect-[16/11] h-full overflow-hidden rounded-[1.5rem]">
+                                        <x-service-poster :sector="$category->department" :seed="$category->slug" class="h-full w-full object-cover" />
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- The sub-services, numbered, filling every cell the image leaves --}}
