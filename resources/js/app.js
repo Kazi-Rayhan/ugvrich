@@ -11,7 +11,6 @@ Alpine.plugin(intersect);
 Alpine.data('siteHeader', () => ({
     open: false,
     panel: null,
-    solid: false,
     progress: 0,
     ind: { left: 0, width: 0 },
     stripInset: 0,
@@ -23,11 +22,6 @@ Alpine.data('siteHeader', () => ({
     scrollable: 0,
     alignQueued: false,
 
-    /* The logo rises out of the bar into the strip above it — but that strip
-       only exists from `lg` up, so below that there is nothing to rise into and
-       the logo would hang over the top of the page. The inline sizing is
-       applied only on the wide layout; the narrow one sizes with classes. */
-    wide: false,
 
     // The link the highlight is currently sitting on, so it can be measured
     // again after the bar changes size.
@@ -36,9 +30,6 @@ Alpine.data('siteHeader', () => ({
     init() {
         this.onScroll();
 
-        const wide = window.matchMedia('(min-width: 1024px)');
-        this.wide = wide.matches;
-        wide.addEventListener('change', (e) => { this.wide = e.matches; });
 
         this.measurePage();
 
@@ -71,13 +62,6 @@ Alpine.data('siteHeader', () => ({
             if (logo) watcher.observe(logo);
         }
 
-        /* Shrinking the bar resizes the logo, which shifts every link along
-           with it. Measure once now and once the 320ms transition has run,
-           or the highlight is left behind where the link used to be. */
-        this.$watch('solid', () => {
-            this.remeasure();
-            setTimeout(() => this.remeasure(), 340);
-        });
 
         // Lock the page behind the mobile menu.
         this.$watch('open', (isOpen) => {
@@ -92,9 +76,9 @@ Alpine.data('siteHeader', () => ({
         this.scrollable = document.documentElement.scrollHeight - window.innerHeight;
     },
 
-    /* One update per frame, however many scroll events the browser sends.
-       Above ~120Hz a trackpad can fire several per frame, and each one was
-       doing a full measure-and-restyle pass. */
+    /* The bar no longer changes size as the page scrolls, so all this does
+       is move the reading-progress line — one update per frame, however many
+       scroll events the browser sends. */
     onScroll() {
         if (this.ticking) {
             return;
@@ -105,12 +89,9 @@ Alpine.data('siteHeader', () => ({
         requestAnimationFrame(() => {
             this.ticking = false;
 
-            const y = window.scrollY;
-
-            if (y > 48) this.solid = true;
-            else if (y < 16) this.solid = false;
-
-            this.progress = this.scrollable > 0 ? Math.min(y / this.scrollable, 1) : 0;
+            this.progress = this.scrollable > 0
+                ? Math.min(window.scrollY / this.scrollable, 1)
+                : 0;
         });
     },
 

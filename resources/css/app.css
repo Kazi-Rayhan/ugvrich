@@ -66,7 +66,6 @@
     --animate-marquee: marquee 46s linear infinite;
     --animate-marquee-reverse: marquee-reverse 46s linear infinite;
     --animate-float: float 7s ease-in-out infinite;
-    --animate-header-in: header-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     --animate-nav-in: nav-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -105,11 +104,6 @@
 @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
-}
-
-@keyframes header-in {
-    from { opacity: 0; transform: translateY(-100%); }
-    to { opacity: 1; transform: none; }
 }
 
 @keyframes nav-in {
@@ -831,14 +825,6 @@
 .area-tab.is-on .area-tab-dept { @apply bg-white text-brand-700; }
 .area-tab.is-on .area-tab-count { @apply bg-white/20 text-white; }
 
-/* Everything that resizes as the header shrinks moves on one curve, so the
-   bar, the info strip and the logo settle together instead of racing. */
-.header-ease {
-    transition-property: height, max-height, opacity, box-shadow, transform;
-    transition-duration: 320ms;
-    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* The bar is its own layer. Height is animated here, which the browser cannot
    put on the compositor, so the least that can be done is to stop the rest of
    the page from being laid out with it. */
@@ -853,13 +839,6 @@
     backface-visibility: hidden;
 }
 
-/* Somebody who has asked for less motion should not be made to sit through the
-   bar resizing on every scroll. */
-@media (prefers-reduced-motion: reduce) {
-    .header-ease {
-        transition-duration: 1ms;
-    }
-}
 
 /* Info strip above the bar. A soft tint, light enough for the logo to rise
    into it — the emblem is dark navy and green, so a dark band would swallow it. */

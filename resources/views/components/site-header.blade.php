@@ -50,15 +50,14 @@
     x-init="init()"
     @scroll.window.passive="onScroll()"
     @keydown.escape.window="panel = null; open = false"
-    class="sticky top-0 z-50 animate-header-in">
+    class="sticky top-0 z-50">
 
     <div class="relative" @mouseleave="leave()">
 
         <div class="header-accent h-[3px]" aria-hidden="true"></div>
 
         {{-- Info strip: folds away once the page scrolls --}}
-        <div class="header-strip header-ease hidden overflow-hidden lg:block"
-             :class="solid ? 'max-h-0 opacity-0' : 'max-h-10 opacity-100'">
+        <div class="header-strip hidden overflow-hidden lg:block">
             {{-- Same row width as the bar below, so the strip's first and last
                  items sit above the first and last items of the menu. --}}
             <div class="header-row flex h-9 items-center justify-between gap-6 text-[12.5px]">
@@ -94,13 +93,13 @@
         </div>
 
         {{-- Main bar --}}
-        <div class="header-bar header-ease border-b border-ink-100 bg-white"
-             :class="solid ? 'shadow-[0_10px_30px_-26px_rgba(7,20,38,0.6)]' : 'shadow-none'">
+        <div class="header-bar border-b border-ink-100 bg-white shadow-[0_10px_30px_-26px_rgba(7,20,38,0.35)]">
 
-            {{-- The tall bar is for the wide layout, where the logo rises into
-                 the strip. A phone has no strip and no room to spare. --}}
-            <div class="header-row header-ease flex items-center justify-between gap-3 sm:gap-5"
-                 :class="solid ? 'h-16 lg:h-[72px]' : 'h-[72px] lg:h-[108px]'">
+            {{-- One height, always. The bar used to shrink as the page
+                 scrolled, which meant animating the height of the bar and of
+                 the logo inside it on every frame — layout work the browser
+                 cannot put on the compositor, and the cause of the stutter. --}}
+            <div class="header-row flex items-center justify-between gap-3 sm:gap-5 h-[72px] lg:h-[88px]">
 
                 {{-- Split navigation: half the menu, the logo, then the rest.
                      Each side carries its own sliding highlight, so `side` says
@@ -109,8 +108,7 @@
                     @if ($sideKey === 'right')
                         {{-- The logo spans both rows: it rises into the strip above the
                              bar, which is light enough to read it against. --}}
-                        <x-brand-mark class="header-ease z-10 h-12 shrink-0 sm:h-14 lg:h-[118px]"
-                                      ::style="wide ? `height: ${solid ? 60 : 118}px; margin-top: ${solid ? 0 : -37}px` : ''" />
+                        <x-brand-mark class="z-10 h-12 shrink-0 sm:h-14 lg:h-[76px]" />
                     @endif
 
                     <nav x-ref="nav-{{ $sideKey }}"
