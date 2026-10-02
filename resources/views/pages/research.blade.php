@@ -508,8 +508,11 @@
             {{-- The hub in the middle, everything else around it. A ring on wide
                  screens; a plain list on a phone, where a ring is unreadable. --}}
             <div class="reveal mt-14">
-                <div class="relative mx-auto hidden aspect-square w-full max-w-[560px] lg:block">
-                    <span class="absolute inset-[18%] rounded-full border border-dashed border-white/20" aria-hidden="true"></span>
+                <div class="relative mx-auto hidden aspect-square w-full max-w-[620px] lg:block">
+                    {{-- The ring is drawn at exactly the radius the nodes sit
+                         on, so the mark reads as the centre they share. --}}
+                    <span class="absolute inset-[12%] rounded-full border border-dashed border-white/20" aria-hidden="true"></span>
+                    <span class="absolute inset-[12%] rounded-full bg-brand-500/[0.04]" aria-hidden="true"></span>
 
                     {{-- The mark itself at the centre, not its initials. The
                          emblem is dark navy and green on transparency, so it
@@ -523,8 +526,9 @@
                         @php
                             $count = count(__('research_hub.ecosystem.nodes'));
                             $angle = ($i / $count) * 2 * M_PI - M_PI / 2;
-                            $x = 50 + 41 * cos($angle);
-                            $y = 50 + 41 * sin($angle);
+                            // Same 38% as the ring above (50% - 12% inset).
+                            $x = 50 + 38 * cos($angle);
+                            $y = 50 + 38 * sin($angle);
                         @endphp
                         <span class="absolute flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full border border-white/20 bg-white/[0.08] px-4 py-2 text-[12.5px] font-semibold text-white/90 backdrop-blur-sm"
                               style="left: {{ round($x, 2) }}%; top: {{ round($y, 2) }}%">
