@@ -244,6 +244,26 @@ class RolePermissionSeeder extends Seeder
         return count($permissionIds);
     }
 
+    /**
+     * Link legacy admin accounts to the admin role without replacing roles
+     * that have already been explicitly assigned through the role manager.
+     */
+    public function assignLegacyAdminUsers(): int
+    {
+        $adminRoleId = Role::query()
+            ->where('name', Role::ADMIN)
+            ->value('id');
+
+        if ($adminRoleId === null) {
+            return 0;
+        }
+
+        return User::query()
+            ->where('role', User::ADMIN)
+            ->whereNull('role_id')
+            ->update(['role_id' => $adminRoleId]);
+    }
+
     /** @param  array<int, string>  $permissions */
     protected function role(string $name, string $display, string $description, array $permissions, string $group = Role::DASHBOARD): void
     {

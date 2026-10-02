@@ -38,4 +38,27 @@ class PermissionSyncCommandsTest extends TestCase
         );
         $this->assertSame('Administrator', $admin->display_name);
     }
+
+    public function test_admin_permissions_sync_links_legacy_admin_accounts_missing_a_primary_role(): void
+    {
+        $legacyAdmin = User::factory()->create(['role' => User::ADMIN]);
+        $legacyAdmin->forceFill(['role_id' => null])->save();
+
+        $assignedAdmin = Role::create([
+            'name' => 'assigned_admin_staff',
+            'display_name' => 'Assigned Admin Staff',
+            'group' => Role::DASHBOARD,
+        ]);
+        $adminWithExplicitRole = User::factory()->create([
+            'role' => User::ADMIN,
+            'role_id' => $assignedAdmin->id,
+        ]);
+
+        $this->artisan('roles:sync-admin-permissions')->assertSuccessful();
+
+        $adminRole = Role::query()->where('name', Role::ADMIN)->firstOrFail();
+        $this->assertSame($adminRole->id, $legacyAdmin->fresh()->role_id);
+        $this->assertContains('view_any_project', $legacyAdmin->fresh()->permissionNames()->all());
+        $this->assertSame($assignedAdmin->id, $adminWithExplicitRole->fresh()->role_id);
+    }
 }

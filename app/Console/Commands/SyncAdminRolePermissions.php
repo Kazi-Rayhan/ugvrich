@@ -13,9 +13,12 @@ class SyncAdminRolePermissions extends Command
 
     public function handle(RolePermissionSeeder $seeder): int
     {
+        $defined = $seeder->syncPermissions();
         $count = $seeder->syncAdminRolePermissions();
+        $users = $seeder->assignLegacyAdminUsers();
 
-        $this->info("Synced all {$count} permissions to the admin role.");
+        $this->info("Synced {$defined} application permissions and assigned all {$count} permissions to the admin role.");
+        $this->info("Linked {$users} legacy admin accounts to the admin role.");
 
         return self::SUCCESS;
     }
