@@ -53,9 +53,9 @@ class ServiceController extends Controller
             'category' => $serviceCategory,
             'siblings' => ServiceCategory::active()->with('services')->whereKeyNot($serviceCategory->id)->orderBy('sort_order')->get(),
             'experts' => Expert::with('category')->active()->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
-            'projects' => Project::with('category')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
+            'projects' => Project::public()->with('category')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
             'expertCount' => Expert::active()->where('service_category_id', $serviceCategory->id)->count(),
-            'projectCount' => Project::where('service_category_id', $serviceCategory->id)->count(),
+            'projectCount' => Project::public()->where('service_category_id', $serviceCategory->id)->count(),
         ]);
     }
 }

@@ -112,6 +112,7 @@ class ProjectsTable
                 TernaryFilter::make('is_featured')->label('Featured on homepage'),
             ])
             ->recordActions([
+                \App\Filament\Support\ResearchReviewActions::setProjectStatus(),
                 EditAction::make(),
             ])
             ->toolbarActions([

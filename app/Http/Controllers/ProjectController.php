@@ -15,7 +15,7 @@ class ProjectController extends Controller
             ? $request->string('type')->toString()
             : null;
 
-        $projects = Project::with(['category', 'innovationArea'])
+        $projects = Project::public()->with(['category', 'innovationArea'])
             ->ofType($type)
             ->when($request->string('area')->toString(), function ($q, $slug) {
                 $q->whereHas('category', fn ($c) => $c->where('slug', $slug));
@@ -25,7 +25,7 @@ class ProjectController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        $typeCounts = Project::selectRaw('type, count(*) as total')->groupBy('type')->pluck('total', 'type');
+        $typeCounts = Project::public()->selectRaw('type, count(*) as total')->groupBy('type')->pluck('total', 'type');
 
         return view('pages.projects.index', compact('projects', 'categories', 'type', 'typeCounts'));
     }
@@ -36,7 +36,7 @@ class ProjectController extends Controller
 
         return view('pages.projects.show', [
             'project' => $project,
-            'related' => Project::with(['category', 'innovationArea'])
+            'related' => Project::public()->with(['category', 'innovationArea'])
                 ->whereKeyNot($project->id)
                 ->where('type', $project->type)
                 ->orderByDesc('is_featured')

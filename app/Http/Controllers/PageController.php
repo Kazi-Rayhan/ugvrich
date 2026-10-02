@@ -70,11 +70,11 @@ class PageController extends Controller
         $publications = Publication::query();
 
         return [
-            'research_projects' => Project::where('type', 'research')->count(),
+            'research_projects' => Project::public()->where('type', 'research')->count(),
             'publications' => Publication::count(),
             'conference_papers' => (clone $publications)->where('kind', 'conference')->count(),
             'external_grants' => (clone $publications)->where('kind', 'funded-project')->count(),
-            'patents' => Project::whereNotNull('patent_status')->where('patent_status', '!=', 'none')->count(),
+            'patents' => Project::public()->whereNotNull('patent_status')->where('patent_status', '!=', 'none')->count(),
             'industry' => Partner::count(),
 
             // No source for these yet; the page says so rather than guessing.
@@ -111,7 +111,7 @@ class PageController extends Controller
 
     public function patents()
     {
-        $projects = Project::with('innovationArea')
+        $projects = Project::public()->with('innovationArea')
             ->where(fn ($q) => $q->where('patent_status', '!=', 'none')
                 ->orWhere('commercialization_status', '!=', 'none'))
             ->orderByDesc('is_featured')

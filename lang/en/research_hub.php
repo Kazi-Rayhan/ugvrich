@@ -42,6 +42,11 @@ return [
     ],
 
     'lifecycle' => [
+        'phases' => [
+            'Shaping the question',
+            'Doing the research',
+            'Publishing and impact',
+        ],
         'eyebrow' => 'The research lifecycle',
         'title' => 'From an idea to its impact',
         'lead' => 'RICH is envisioned to support a researcher across the whole of this journey, rather than at one point in it. Each stage below is a place where the hub could help.',
@@ -221,6 +226,14 @@ return [
         'lead' => 'Have a research idea? Looking for collaboration, support, or opportunities? RICH is designed to bring ideas, people and research opportunities together.',
         'primary' => 'Explore research',
         'secondary' => 'Connect & collaborate',
+    ],
+
+    'portal' => [
+        'sign_in' => 'Researcher sign in',
+        'dashboard' => 'Go to my dashboard',
+        'join' => 'Join RICH as a researcher',
+        'lead' => 'Register for the Researcher Portal to submit research ideas, develop them into proposals, and follow where they have got to.',
+        'cta' => 'Register or sign in',
     ],
 
     'send' => [

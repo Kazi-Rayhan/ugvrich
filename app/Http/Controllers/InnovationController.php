@@ -28,7 +28,7 @@ class InnovationController extends Controller
 
         $area = $areas->firstWhere('slug', $request->string('area')->toString());
 
-        $projects = Project::with('innovationArea')
+        $projects = Project::public()->with('innovationArea')
             ->where('type', 'innovation')
             ->when($area, fn ($q) => $q->where('innovation_area_id', $area->id))
             ->orderByDesc('is_featured')

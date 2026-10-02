@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // insecure and writes http:// links into a page the browser loaded
         // over https, which the browser then blocks as mixed content.
         $middleware->trustProxies(at: '*');
+
+        // The framework sends unauthenticated visitors to a route called
+        // `login`, which this application does not have: the Researcher Portal
+        // has its own, and Filament keeps a separate one for staff.
+        $middleware->redirectGuestsTo(fn () => route('researcher.login'));
     })
     ->booted(function (): void {
         // https on every generated link, asset and form action.

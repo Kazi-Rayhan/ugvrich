@@ -84,13 +84,24 @@
             {{-- The first action on the page is the one a researcher came to
                  take: send in a proposal. The other two lead into the page. --}}
             <div class="reveal mt-10 flex flex-wrap gap-3">
-                <a href="{{ route('research.proposal') }}" class="btn-lead group">
-                    <span class="relative">{{ __('research_hub.forms.proposal.title') }}</span>
-                    <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
-                </a>
-                <a href="{{ route('research.support') }}" class="btn-invert px-7 py-4 text-[15px]">
-                    {{ __('research_hub.support.cta') }}
-                </a>
+                {{-- Two doors into the portal: one for people who have not
+                     been here before, one for people who have. The sign-in
+                     link was missing entirely before. --}}
+                @auth
+                    <a href="{{ route('researcher.dashboard') }}" class="btn-lead group">
+                        <span class="relative">{{ __('research_hub.portal.dashboard') }}</span>
+                        <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                @else
+                    <a href="{{ route('researcher.register') }}" class="btn-lead group">
+                        <span class="relative">{{ __('research_hub.portal.join') }}</span>
+                        <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                    <a href="{{ route('researcher.login') }}" class="btn-invert px-7 py-4 text-[15px]">
+                        {{ __('research_hub.portal.sign_in') }}
+                    </a>
+                @endauth
+
                 <a href="#areas" class="inline-flex items-center gap-2 px-2 py-3 text-[14px] font-semibold text-white/70 transition hover:text-white">
                     {{ __('research_hub.hero.secondary') }}
                     <x-ui-icon name="arrow-right" class="h-4 w-4" />
@@ -142,49 +153,60 @@
             <h2 class="{{ $h2 }}">{{ __('research_hub.lifecycle.title') }}</h2>
             <p class="{{ $lead }}">{{ __('research_hub.lifecycle.lead') }}</p>
 
-            {{-- The journey as a path, not a grid of cards.
+            {{-- The journey, grouped.
 
-                 Eleven identical tiles read as a list of features; a single
-                 column with a line running through it reads as a sequence, which
-                 is what this is. The last stage is the one the whole thing is
-                 for, so it is the one picked out in gold. --}}
-            <ol class="relative mt-14 max-w-4xl">
-                <span class="pointer-events-none absolute bottom-10 left-[27px] top-6 w-px bg-gradient-to-b from-brand-200 via-ink-200 to-gold-300 sm:left-[35px]" aria-hidden="true"></span>
+                 Eleven equal steps is a list; three phases with the steps
+                 inside them is a shape somebody can hold in their head. The
+                 grouping is editorial, not a second workflow — the eleven
+                 stages are unchanged underneath. --}}
+            @php
+                /* 1–5 settle the question, 6–8 do the work, 9–11 publish it.
+                   Split here rather than in the language file so a translator
+                   never has to keep two lists in step. */
+                $phases = [
+                    ['from' => 0, 'to' => 4],
+                    ['from' => 5, 'to' => 7],
+                    ['from' => 8, 'to' => 10],
+                ];
+                $stages = __('research_hub.lifecycle.stages');
+                $phaseNames = __('research_hub.lifecycle.phases');
+            @endphp
 
-                @foreach (__('research_hub.lifecycle.stages') as $i => [$stage, $what])
-                    @php
-                        $last = $loop->last;
-                        $first = $loop->first;
-                    @endphp
-
-                    <li class="reveal group relative flex gap-5 pb-9 last:pb-0 sm:gap-7" style="{{ $delay($i, 40) }}">
-                        {{-- The marker on the line --}}
-                        <span @class([
-                            'relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-400 sm:h-[70px] sm:w-[70px]',
-                            'border-gold-300 bg-gold-100' => $last,
-                            'border-brand-200 bg-brand-50' => $first,
-                            'border-ink-200 bg-white group-hover:border-brand-300' => ! $first && ! $last,
-                        ])>
-                            <span @class([
-                                'font-display text-[22px] font-bold tabular-nums sm:text-[28px]',
-                                'numeral-outline-gold' => $last,
-                                'text-brand-700' => $first,
-                                'numeral-outline' => ! $first && ! $last,
-                            ])>{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
-                        </span>
-
-                        <div class="min-w-0 pt-2.5 sm:pt-4">
-                            <h3 @class([
-                                'font-display text-[19px] font-bold leading-tight tracking-tight sm:text-[23px]',
-                                'text-gold-700' => $last,
-                                'text-ink-950' => ! $last,
-                            ])>{{ $stage }}</h3>
-
-                            <p class="mt-2 max-w-xl text-[14.5px] leading-[1.85] text-ink-600">{{ $what }}</p>
+            <div class="mt-14 space-y-12">
+                @foreach ($phases as $p => $phase)
+                    <div class="reveal" style="{{ $delay($p, 90) }}">
+                        {{-- The phase heading, set quietly against a rule --}}
+                        <div class="flex items-center gap-4">
+                            <span class="font-numeric text-[12px] font-bold tabular-nums text-gold-500">
+                                {{ $num(str_pad($p + 1, 2, '0', STR_PAD_LEFT)) }}
+                            </span>
+                            <h3 class="font-display text-[15px] font-bold tracking-tight text-ink-950">{{ $phaseNames[$p] ?? '' }}</h3>
+                            <span class="h-px flex-1 bg-ink-200" aria-hidden="true"></span>
                         </div>
-                    </li>
+
+                        <ol class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            @for ($i = $phase['from']; $i <= $phase['to']; $i++)
+                                @continue(! isset($stages[$i]))
+                                @php [$stage, $what] = $stages[$i]; @endphp
+
+                                <li class="group relative rounded-2xl border border-ink-100 bg-white p-5 transition duration-400 hover:-translate-y-1 hover:border-brand-300 hover:shadow-[0_22px_46px_-38px_rgba(2,34,81,0.5)]">
+                                    <div class="flex items-baseline gap-2.5">
+                                        <span @class([
+                                            'font-numeric text-[12.5px] font-bold tabular-nums',
+                                            'text-gold-600' => $i === count($stages) - 1,
+                                            'text-brand-500' => $i !== count($stages) - 1,
+                                        ])>{{ $num(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
+
+                                        <h4 class="font-display text-[15.5px] font-bold leading-snug text-ink-950">{{ $stage }}</h4>
+                                    </div>
+
+                                    <p class="mt-2 text-[13.5px] leading-[1.8] text-ink-600">{{ $what }}</p>
+                                </li>
+                            @endfor
+                        </ol>
+                    </div>
                 @endforeach
-            </ol>
+            </div>
 
             <a href="{{ route('research.framework') }}#process"
                class="reveal mt-8 inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-700 transition-all hover:gap-3">
@@ -323,146 +345,6 @@
         </section>
     @endif
 
-    {{-- ---------------- 6. Collaboration vision ---------------- --}}
-    <section class="bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.collaboration.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.collaboration.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.collaboration.lead') }}</p>
-
-            <div class="mt-12 grid gap-x-12 gap-y-10 lg:grid-cols-[0.95fr_1.05fr]">
-                {{-- What a request would carry --}}
-                <div>
-                    <p class="{{ $label }}">{{ __('research_hub.collaboration.criteria_title') }}</p>
-
-                    <ul class="mt-5 space-y-2.5">
-                        @foreach (__('research_hub.collaboration.criteria') as $i => [$name, $what])
-                            <li class="reveal flex items-start gap-3.5 rounded-2xl border border-ink-100 bg-ink-50/60 p-4" style="{{ $delay($i, 40) }}">
-                                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 ring-1 ring-ink-100">
-                                    <x-ui-icon name="check" class="h-3.5 w-3.5" stroke="2.4" />
-                                </span>
-                                <span>
-                                    <span class="block text-[14px] font-bold text-ink-950">{{ $name }}</span>
-                                    <span class="mt-0.5 block text-[13px] leading-relaxed text-ink-600">{{ $what }}</span>
-                                </span>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-
-                <div class="space-y-6">
-                    {{-- Real examples, from the framework --}}
-                    @if (! empty($framework['matching']))
-                        <div class="reveal rounded-[1.75rem] border border-ink-100 bg-white p-7">
-                            <p class="{{ $label }}">{{ __('research_hub.collaboration.examples_title') }}</p>
-                            <p class="mt-2 text-[13px] leading-relaxed text-ink-500">{{ __('research_hub.collaboration.examples_lead') }}</p>
-
-                            <div class="mt-6 space-y-5">
-                                @foreach ($framework['matching'] as [$problem, $who])
-                                    <div class="border-s-2 border-brand-200 ps-4">
-                                        <p class="font-display text-[15px] font-bold text-ink-950">{{ $problem }}</p>
-                                        <p class="mt-1.5 text-[13.5px] leading-[1.8] text-ink-600">{{ $who }}</p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Post an idea --}}
-                    <div class="reveal relative overflow-hidden rounded-[1.75rem] bg-navy-700 p-7 text-white">
-                        <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-brand-600/30 blur-2xl" aria-hidden="true"></div>
-
-                        <div class="flex items-center justify-between gap-4">
-                            <p class="font-display text-[17px] font-bold !text-white">{{ __('research_hub.collaboration.post_title') }}</p>
-                            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/80">
-                                <span class="h-1.5 w-1.5 rounded-full bg-amber-300"></span>
-                                {{ __('research_hub.future.status.planned') }}
-                            </span>
-                        </div>
-
-                        <p class="mt-3 text-[14px] leading-[1.8] text-white/70">{{ __('research_hub.collaboration.post_lead') }}</p>
-
-                        <div class="mt-6 rounded-2xl border border-white/15 bg-white/[0.07] p-5">
-                            <p class="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-brand-300">{{ __('research_hub.collaboration.post_example_label') }}</p>
-                            <p class="mt-2 font-display text-[16px] font-bold leading-snug !text-white">“{{ __('research_hub.collaboration.post_example') }}”</p>
-                            <p class="mt-3 inline-flex items-center gap-2 text-[12.5px] text-white/60">
-                                <x-ui-icon name="users" class="h-3.5 w-3.5" />
-                                {{ __('research_hub.collaboration.post_interest') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- ---------------- 7. Research support ---------------- --}}
-    <section class="border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.support.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.support.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.support.lead') }}</p>
-
-            <div class="mt-11 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                @foreach (__('research_hub.support.items') as $i => $item)
-                    <div class="reveal group flex items-center gap-3 rounded-2xl border border-ink-100 bg-white px-5 py-4 transition duration-300 hover:border-brand-300"
-                         style="{{ $delay($i, 25) }}">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
-                            <x-ui-icon name="check" class="h-4 w-4" stroke="2.4" />
-                        </span>
-                        <span class="text-[14px] font-semibold text-ink-800">{{ $item }}</span>
-                    </div>
-                @endforeach
-            </div>
-
-            {{-- The framework's own before / during / after help --}}
-            @if (! empty($framework['help_desk']))
-                <div class="mt-10 grid gap-4 lg:grid-cols-3">
-                    @foreach ($framework['help_desk'] as $i => [$when, $what])
-                        <div class="reveal rounded-[1.5rem] border border-ink-100 bg-white p-6" style="{{ $delay($i, 60) }}">
-                            <p class="font-display text-[15px] font-bold text-brand-700">{{ $when }}</p>
-                            <p class="mt-2.5 text-[13.5px] leading-[1.8] text-ink-600">{{ $what }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-            <div class="reveal mt-10">
-                <a href="{{ route('research.support') }}" class="btn-primary">
-                    {{ __('research_hub.support.cta') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
-                </a>
-            </div>
-        </div>
-    </section>
-
-    {{-- ---------------- 8. Research impact ----------------
-         Real counts only. A null is shown as "coming soon" rather than a zero
-         dressed up as a figure. --}}
-    <section class="bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.impact.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.impact.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.impact.lead') }}</p>
-
-            <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                @foreach (__('research_hub.impact.metrics') as $key => $name)
-                    @php $value = $impact[$key] ?? null; @endphp
-
-                    <div class="reveal flex flex-col rounded-2xl border border-ink-100 bg-white p-5 text-center transition duration-400 hover:-translate-y-1 hover:border-brand-300"
-                         style="{{ $delay($loop->index, 30) }}">
-                        @if ($value === null)
-                            <span class="font-display text-[15px] font-bold leading-none text-ink-300">{{ __('research_hub.impact.soon') }}</span>
-                        @else
-                            <span class="font-numeric text-[34px] font-bold leading-none tabular-nums text-ink-950">{{ $num($value) }}</span>
-                        @endif
-
-                        <span class="mt-3 text-[12.5px] font-semibold leading-snug text-ink-600">{{ $name }}</span>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
     {{-- ---------------- 9. SDG research vision ---------------- --}}
     @if ($sdgCounts->isNotEmpty())
         <section class="border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
@@ -556,119 +438,6 @@
         </div>
     </section>
 
-    {{-- ---------------- 11. The future of RICH ---------------- --}}
-    <section class="bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.future.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.future.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.future.lead') }}</p>
-
-            @php
-                /* Grouped by state rather than listed flat: thirteen identical
-                   rows say nothing about order, and the order is the point of a
-                   roadmap. */
-                $grouped = collect($modules)
-                    ->map(fn ($module, $i) => ['name' => $module, 'state' => ($moduleStatus[$i][0] ?? 'planned')])
-                    ->groupBy('state');
-
-                $columns = [
-                    'soon' => ['bg-sky-400', 'border-sky-200', 'bg-sky-50/60'],
-                    'planned' => ['bg-gold-400', 'border-gold-200', 'bg-gold-100/50'],
-                    'live' => ['bg-brand-500', 'border-brand-200', 'bg-brand-50'],
-                ];
-            @endphp
-
-            <div class="mt-12 grid gap-5 lg:grid-cols-3">
-                @foreach ($columns as $state => [$dot, $border, $tint])
-                    @continue(! isset($grouped[$state]))
-
-                    <div class="reveal rounded-[1.75rem] border {{ $border }} {{ $tint }} p-6 sm:p-7" style="{{ $delay($loop->index, 80) }}">
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-ink-600">
-                                <span class="h-2 w-2 rounded-full {{ $dot }}"></span>
-                                {{ __('research_hub.future.status.'.$state) }}
-                            </p>
-                            <span class="font-numeric text-[13px] font-bold tabular-nums text-ink-400">{{ $num($grouped[$state]->count()) }}</span>
-                        </div>
-
-                        <ul class="mt-5 space-y-2.5">
-                            @foreach ($grouped[$state] as $module)
-                                <li class="flex items-start gap-2.5 text-[14px] font-medium leading-snug text-ink-800">
-                                    <span class="mt-[7px] h-1 w-1 shrink-0 rounded-full {{ $dot }}"></span>
-                                    {{ $module['name'] }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    {{-- ---------------- Send something in ----------------
-         The two things on this page that are not a concept: a researcher can
-         actually submit these today, and a person reads them. Kept apart from
-         the planned modules above so the difference is obvious. --}}
-    <section id="send" class="scroll-mt-24 border-t border-ink-100 bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.send.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.send.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.send.lead') }}</p>
-
-            <div class="mt-12 grid gap-5 lg:grid-cols-2">
-                @foreach ([
-                    ['research.support', 'heart', 'research_hub.forms.support.title', 'research_hub.forms.support.lead', 'research_hub.forms.support.submit'],
-                    ['research.proposal', 'document', 'research_hub.forms.proposal.title', 'research_hub.forms.proposal.lead', 'research_hub.forms.proposal.submit'],
-                ] as $i => [$route, $icon, $cardTitle, $cardLead, $action])
-                    <a href="{{ route($route) }}"
-                       @class([
-                           'reveal group relative flex flex-col overflow-hidden rounded-[1.75rem] p-7 transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 sm:p-9',
-                           // The proposal is the page's main invitation, so its
-                           // card is the dark one and the support card sits beside it.
-                           'bg-navy-700 text-white shadow-[0_30px_70px_-46px_rgba(2,34,81,0.9)] hover:shadow-[0_40px_84px_-44px_rgba(2,34,81,0.95)]' => $route === 'research.proposal',
-                           'border border-ink-100 bg-white hover:border-brand-300 hover:shadow-[0_34px_70px_-50px_rgba(2,34,81,0.55)]' => $route !== 'research.proposal',
-                       ])
-                       style="{{ $delay($i, 70) }}">
-                        <span @class([
-                            'pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full transition duration-500 group-hover:scale-125',
-                            'bg-brand-600/25 blur-xl' => $route === 'research.proposal',
-                            'bg-brand-50' => $route !== 'research.proposal',
-                        ]) aria-hidden="true"></span>
-
-                        <span @class([
-                            'relative flex h-13 w-13 items-center justify-center rounded-2xl p-3.5',
-                            'bg-brand-500 text-white' => $route === 'research.proposal',
-                            'bg-brand-600 text-white' => $route !== 'research.proposal',
-                        ])>
-                            <x-ui-icon :name="$icon" class="h-6 w-6" />
-                        </span>
-
-                        <h3 @class([
-                            'relative mt-6 font-display text-[21px] font-bold leading-snug sm:text-[25px]',
-                            '!text-white' => $route === 'research.proposal',
-                            'text-ink-950' => $route !== 'research.proposal',
-                        ])>{{ __($cardTitle) }}</h3>
-
-                        <p @class([
-                            'relative mt-3.5 text-[14.5px] leading-[1.85]',
-                            'text-white/70' => $route === 'research.proposal',
-                            'text-ink-600' => $route !== 'research.proposal',
-                        ])>{{ __($cardLead) }}</p>
-
-                        <span @class([
-                            'relative mt-auto inline-flex items-center gap-2 pt-7 text-[14px] font-bold transition-all group-hover:gap-3',
-                            'text-brand-300' => $route === 'research.proposal',
-                            'text-brand-700' => $route !== 'research.proposal',
-                        ])>
-                            {{ __($action) }}
-                            <x-ui-icon name="arrow-right" class="h-4 w-4" />
-                        </span>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
     {{-- ---------------- 12. Final call ---------------- --}}
     <section class="border-t border-ink-100 bg-ink-50 py-16 sm:py-20">
         <div class="container-rich">
@@ -679,11 +448,18 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3 lg:justify-end">
-                    <a href="{{ route('research.proposal') }}" class="btn-lead group">
-                        <span class="relative">{{ __('research_hub.forms.proposal.title') }}</span>
-                        <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
-                    </a>
-                    <a href="{{ route('research.support') }}" class="btn-invert">{{ __('research_hub.support.cta') }}</a>
+                    @auth
+                        <a href="{{ route('researcher.dashboard') }}" class="btn-lead group">
+                            <span class="relative">{{ __('research_hub.portal.dashboard') }}</span>
+                            <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                        </a>
+                    @else
+                        <a href="{{ route('researcher.register') }}" class="btn-lead group">
+                            <span class="relative">{{ __('research_hub.portal.join') }}</span>
+                            <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                        </a>
+                        <a href="{{ route('researcher.login') }}" class="btn-invert">{{ __('research_hub.portal.sign_in') }}</a>
+                    @endauth
                 </div>
             </div>
         </div>

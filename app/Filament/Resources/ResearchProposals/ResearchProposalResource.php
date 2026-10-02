@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ResearchProposals;
 
 use App\Filament\Resources\ResearchProposals\Pages\EditResearchProposal;
 use App\Filament\Resources\ResearchProposals\Pages\ListResearchProposals;
+use App\Filament\Support\ResearchReviewActions;
 use App\Models\ResearchProposal;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
@@ -43,9 +44,12 @@ class ResearchProposalResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $new = static::getModel()::where('status', 'new')->count();
+        $waiting = static::getModel()::whereIn('status', [
+            ResearchProposal::SUBMITTED,
+            ResearchProposal::UNDER_REVIEW,
+        ])->count();
 
-        return $new > 0 ? (string) $new : null;
+        return $waiting > 0 ? (string) $waiting : null;
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -55,8 +59,14 @@ class ResearchProposalResource extends Resource
 
     public static function canCreate(): bool
     {
-        // These arrive from the public site; nobody writes one in here.
+        // These arrive from the public site or the portal; nobody writes one here.
         return false;
+    }
+
+    /** A draft belongs to the researcher alone until they send it. */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('status', '!=', ResearchProposal::DRAFT);
     }
 
     public static function form(Schema $schema): Schema
@@ -126,6 +136,19 @@ class ResearchProposalResource extends Resource
                         ->label('Funding needed')
                         ->disabled()
                         ->dehydrated(false),
+
+                    /* What the researcher asked for. The decision itself is a
+                       record of its own under Funding Decisions. */
+                    TextInput::make('funding_type')
+                        ->label('Funding asked for')
+                        ->formatStateUsing(fn (?string $state) => $state ? (ResearchProposal::fundingTypes()[$state] ?? $state) : '—')
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('funding_organization')
+                        ->label('Funder named')
+                        ->placeholder('—')
+                        ->disabled()
+                        ->dehydrated(false),
                     TextInput::make('title')
                         ->label('Proposal title')
                         ->columnSpanFull()
@@ -182,16 +205,34 @@ class ResearchProposalResource extends Resource
                     ->toggleable()
                     ->color('gray'),
 
+                // Portal proposals have an owner; public-form ones do not.
+                TextColumn::make('user.name')
+                    ->label('Researcher')
+                    ->placeholder('Public form')
+                    ->toggleable()
+                    ->description(fn (ResearchProposal $record) => $record->idea?->title),
+
+                TextColumn::make('assignedReviewer.name')
+                    ->label('Reviewer')
+                    ->placeholder('—')
+                    ->toggleable(),
+
+                TextColumn::make('reviews_count')
+                    ->counts('reviews')
+                    ->label('Reviews')
+                    ->alignCenter()
+                    ->toggleable(),
+
 
                 TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => ResearchProposal::statuses()[$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
-                        'new' => 'warning',
-                        'under_review' => 'info',
-                        'shortlisted' => 'primary',
-                        'accepted' => 'success',
-                        'declined' => 'danger',
+                        ResearchProposal::SUBMITTED => 'warning',
+                        ResearchProposal::UNDER_REVIEW => 'info',
+                        ResearchProposal::REVISION => 'warning',
+                        ResearchProposal::APPROVED => 'success',
+                        ResearchProposal::REJECTED => 'danger',
                         default => 'gray',
                     }),
             ])
@@ -201,7 +242,11 @@ class ResearchProposalResource extends Resource
                     ->options(fn () => ResearchProposal::query()->distinct()->pluck('department', 'department')->filter()->all()),
 
             ])
-            ->recordActions([EditAction::make(), DeleteAction::make()]);
+            ->recordActions([
+                ...ResearchReviewActions::forProposals(),
+                EditAction::make(),
+                DeleteAction::make(),
+            ]);
     }
 
     public static function getPages(): array

@@ -7,6 +7,7 @@ use App\Support\Vocabulary;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
@@ -73,6 +74,49 @@ class Project extends Model
     public function innovationArea(): BelongsTo
     {
         return $this->belongsTo(InnovationArea::class);
+    }
+
+    /* ---------------------------------------- research management ---- */
+
+    /** The approved proposal this project was created from, if any. */
+    public function researchProposal(): BelongsTo
+    {
+        return $this->belongsTo(ResearchProposal::class, 'research_proposal_id');
+    }
+
+    /** The researcher whose portal this project appears in. */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function updates(): HasMany
+    {
+        return $this->hasMany(ProjectUpdate::class)->latest();
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProjectDocument::class)->latest();
+    }
+
+    /** Projects the public site may show. */
+    public function scopePublic(Builder $query): Builder
+    {
+        return $query->where('visibility', 'public');
+    }
+
+    /** The lifecycle a research project moves through. */
+    public static function researchStatuses(): array
+    {
+        return [
+            'approved' => 'Approved',
+            'planning' => 'Planning',
+            'ongoing' => 'Ongoing',
+            'on_hold' => 'On hold',
+            'completed' => 'Completed',
+            'closed' => 'Closed',
+        ];
     }
 
     public function scopeFeatured(Builder $q): Builder

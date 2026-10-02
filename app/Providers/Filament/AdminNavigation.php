@@ -15,6 +15,13 @@ use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Resources\Innovations\InnovationResource;
 use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
 use App\Filament\Resources\Partners\PartnerResource;
+use App\Filament\Resources\FundingOpportunities\FundingOpportunityResource;
+use App\Filament\Resources\ResearchFundings\ResearchFundingResource;
+use App\Models\ResearchFunding;
+use App\Filament\Resources\ResearchManuscripts\ResearchManuscriptResource;
+use App\Models\ResearchManuscript;
+use App\Filament\Resources\ResearchIdeas\ResearchIdeaResource;
+use App\Models\ResearchIdea;
 use App\Filament\Resources\ResearchProposals\ResearchProposalResource;
 use App\Filament\Resources\ResearchSupports\ResearchSupportResource;
 use App\Models\ResearchProposal;
@@ -115,10 +122,17 @@ class AdminNavigation
                         ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Research Ideas', null, ResearchIdeaResource::class)
+                        ->badge(fn () => ($n = ResearchIdea::whereIn('status', ['submitted', 'under_review'])->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Manuscripts', null, ResearchManuscriptResource::class)
+                        ->badge(fn () => ($n = ResearchManuscript::whereIn('status', ['submitted', 'internal_review'])->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Research Support', null, ResearchSupportResource::class)
                         ->badge(fn () => ($n = ResearchSupport::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Research Proposals', null, ResearchProposalResource::class)
-                        ->badge(fn () => ($n = ResearchProposal::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                        ->badge(fn () => ($n = ResearchProposal::whereIn('status', ['submitted', 'under_review'])->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Funding Decisions', null, ResearchFundingResource::class)
+                        ->badge(fn () => ($n = ResearchFunding::where('status', 'pending')->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Funding Opportunities', null, FundingOpportunityResource::class),
                     $this->resource('Subscribers', null, SubscriberResource::class),
                 ]),
         ]);

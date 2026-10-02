@@ -125,7 +125,10 @@ class ResearchRequestController extends Controller
             $data['document'] = $request->file('document')->store('research-proposals', 'public');
         }
 
-        $proposal = ResearchProposal::create($data);
+        // Explicit rather than relying on the column default, so a proposal
+        // from the public form carries the same status vocabulary as one
+        // written in the portal.
+        $proposal = ResearchProposal::create([...$data, 'status' => ResearchProposal::SUBMITTED, 'submitted_at' => now()]);
 
         return redirect()->route('research.thanks')->with('research_request', [
             'kind' => 'proposal',
