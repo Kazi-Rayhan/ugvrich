@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\PolicyHelper;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -159,7 +160,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function allowedTo(string $action, string|object $model): bool
     {
-        return $this->isAdmin() || $this->hasPermission(permission($action, $model));
+        return $this->isAdmin() || $this->hasPermission(PolicyHelper::name($action, $model));
     }
 
     /** Forget what was worked out, after roles have been changed. */
