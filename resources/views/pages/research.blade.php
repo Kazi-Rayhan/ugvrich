@@ -511,8 +511,12 @@
                 <div class="relative mx-auto hidden aspect-square w-full max-w-[560px] lg:block">
                     <span class="absolute inset-[18%] rounded-full border border-dashed border-white/20" aria-hidden="true"></span>
 
-                    <div class="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-600 shadow-[0_0_60px_-10px_rgba(65,132,63,0.8)]">
-                        <span class="font-display text-[19px] font-bold !text-white">{{ __('research_hub.ecosystem.centre') }}</span>
+                    {{-- The mark itself at the centre, not its initials. The
+                         emblem is dark navy and green on transparency, so it
+                         sits on a white disc to be legible against the navy. --}}
+                    <div class="absolute left-1/2 top-1/2 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white p-5 shadow-[0_0_70px_-6px_rgba(65,132,63,0.55)] ring-1 ring-white/40">
+                        <img src="{{ asset('media/logo-mark.png') }}" alt="{{ $site->name() }}"
+                             width="256" height="249" class="h-full w-full object-contain">
                     </div>
 
                     @foreach (__('research_hub.ecosystem.nodes') as $i => $node)
@@ -530,8 +534,12 @@
                 </div>
 
                 <div class="grid gap-2.5 sm:grid-cols-2 lg:hidden">
-                    <div class="flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-4 font-display text-[16px] font-bold !text-white sm:col-span-2">
-                        {{ __('research_hub.ecosystem.centre') }}
+                    <div class="flex items-center justify-center gap-3.5 rounded-2xl bg-white/[0.08] px-5 py-5 ring-1 ring-white/15 sm:col-span-2">
+                        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white p-2">
+                            <img src="{{ asset('media/logo-mark.png') }}" alt="{{ $site->name() }}"
+                                 width="256" height="249" class="h-full w-full object-contain">
+                        </span>
+                        <span class="font-display text-[17px] font-bold !text-white">{{ __('research_hub.ecosystem.centre') }}</span>
                     </div>
                     @foreach (__('research_hub.ecosystem.nodes') as $node)
                         <div class="flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[14px] font-semibold text-white/85">
