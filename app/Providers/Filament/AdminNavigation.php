@@ -15,6 +15,10 @@ use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Resources\Innovations\InnovationResource;
 use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
 use App\Filament\Resources\Partners\PartnerResource;
+use App\Filament\Resources\ResearchProposals\ResearchProposalResource;
+use App\Filament\Resources\ResearchSupports\ResearchSupportResource;
+use App\Models\ResearchProposal;
+use App\Models\ResearchSupport;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Publications\PublicationResource;
@@ -111,6 +115,10 @@ class AdminNavigation
                         ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Research Support', null, ResearchSupportResource::class)
+                        ->badge(fn () => ($n = ResearchSupport::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Research Proposals', null, ResearchProposalResource::class)
+                        ->badge(fn () => ($n = ResearchProposal::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Subscribers', null, SubscriberResource::class),
                 ]),
         ]);

@@ -24,6 +24,14 @@
 
     {{-- ---------------- Cover ---------------- --}}
     <section class="relative isolate overflow-hidden bg-navy-700">
+        {{-- The hub page is where a reader arrives from; keep the way back. --}}
+        <div class="container-rich pt-8">
+            <a href="{{ route('research') }}" class="inline-flex items-center gap-2 text-[13px] text-white/60 transition hover:text-white">
+                <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 rotate-180" />
+                {{ __('research_hub.framework.back') }}
+            </a>
+        </div>
+
         <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.18]" aria-hidden="true"></div>
         <div class="pointer-events-none absolute -right-40 -top-40 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[120px]" aria-hidden="true"></div>
         <div class="pointer-events-none absolute -bottom-40 -left-32 -z-10 h-[26rem] w-[26rem] rounded-full border border-white/10" aria-hidden="true"></div>

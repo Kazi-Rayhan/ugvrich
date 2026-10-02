@@ -6,6 +6,8 @@ use App\Models\CoreArea;
 use App\Models\Expert;
 use App\Models\Facility;
 use App\Models\Partner;
+use App\Models\StudentTeam;
+use App\Support\ResearchFramework;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\ServiceCategory;
@@ -31,28 +33,56 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * The Research hub: what RICH is, and what it is being built to become.
+     *
+     * A vision page, not a research management system. Everything factual on it
+     * comes from one of two places — the Research Wing's own framework document,
+     * or a count taken from this database. Nothing is invented: where there is
+     * nothing to count, the page says "coming soon" instead of showing a number.
+     */
     public function research()
     {
-        // Research areas are read off the faculty's own expertise tags, so the
-        // list stays true to who actually works here.
-        $researchAreas = Expert::active()
-            ->get(['expertise'])
-            ->flatMap(fn ($expert) => $expert->expertise ?? [])
-            ->map(fn ($tag) => trim($tag))
-            ->filter()
-            ->countBy()
-            ->sortDesc();
-
         return view('pages.research', [
-            'researchAreas' => $researchAreas,
-            'researchers' => Expert::active()->with('category')->orderByDesc('is_featured')->orderBy('sort_order')->get(),
-            'ongoing' => Project::with(['category', 'innovationArea'])
-                ->where('type', 'research')
-                ->where('status', '!=', 'completed')
-                ->orderByDesc('is_featured')
-                ->orderBy('sort_order')
-                ->get(),
+            'framework' => ResearchFramework::all(),
+            'impact' => $this->researchImpact(),
         ]);
+    }
+
+    /** The full framework document, which the hub page links out to. */
+    public function researchFramework()
+    {
+        return view('pages.research-framework', [
+            'f' => ResearchFramework::all(),
+        ]);
+    }
+
+    /**
+     * What the site can honestly count today.
+     *
+     * A null means there is no source for that figure yet, and the page shows
+     * it as "coming soon". A zero is a real answer and is shown as a zero.
+     *
+     * @return array<string, int|null>
+     */
+    protected function researchImpact(): array
+    {
+        $publications = Publication::query();
+
+        return [
+            'research_projects' => Project::where('type', 'research')->count(),
+            'publications' => Publication::count(),
+            'conference_papers' => (clone $publications)->where('kind', 'conference')->count(),
+            'external_grants' => (clone $publications)->where('kind', 'funded-project')->count(),
+            'patents' => Project::whereNotNull('patent_status')->where('patent_status', '!=', 'none')->count(),
+            'industry' => Partner::count(),
+
+            // No source for these yet; the page says so rather than guessing.
+            'quartile' => null,
+            'funding' => null,
+            'international' => null,
+            'student_researchers' => StudentTeam::count() ?: null,
+        ];
     }
 
     public function contact()
