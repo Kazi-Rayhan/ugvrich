@@ -46,24 +46,6 @@
 
         $goals = __('research_hub.sdg.goals');
 
-        /* The future modules, with an honest status against each. A module is
-           only "available" where the site genuinely has that page today. */
-        $modules = __('research_hub.future.modules');
-        $moduleStatus = [
-            0 => ['planned', null],
-            1 => ['planned', null],
-            2 => ['planned', null],
-            3 => ['planned', null],
-            4 => ['planned', null],
-            5 => ['planned', null],
-            6 => ['planned', null],
-            7 => ['soon', null],
-            8 => ['soon', null],
-            9 => ['planned', null],
-            10 => ['planned', null],
-            11 => ['planned', null],
-            12 => ['planned', null],
-        ];
     @endphp
 
     {{-- ---------------- 1. Hero ---------------- --}}
@@ -97,7 +79,7 @@
                         <span class="relative">{{ __('research_hub.portal.join') }}</span>
                         <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
                     </a>
-                    <a href="{{ route('researcher.login') }}" class="btn-invert px-7 py-4 text-[15px]">
+                    <a href="{{ route('login') }}" class="btn-invert px-7 py-4 text-[15px]">
                         {{ __('research_hub.portal.sign_in') }}
                     </a>
                 @endauth
@@ -216,68 +198,7 @@
         </div>
     </section>
 
-    {{-- ---------------- 4. What RICH could offer ---------------- --}}
-    <section class="bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.offer.eyebrow') }}</p>
-            <h2 class="{{ $h2 }}">{{ __('research_hub.offer.title') }}</h2>
-            <p class="{{ $lead }}">{{ __('research_hub.offer.lead') }}</p>
-
-            {{-- Eight equal tiles is a spreadsheet. The first two carry the
-                 ones a researcher reaches for first and are given the room to
-                 say so; the rest sit beneath them at an ordinary size. --}}
-            <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                @foreach (__('research_hub.offer.cards') as $i => [$name, $what, $icon])
-                    @php $feature = $i < 2; @endphp
-
-                    <article @class([
-                                 'reveal group relative flex h-full flex-col overflow-hidden rounded-[1.5rem] p-6 transition duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5',
-                                 'sm:col-span-1 lg:col-span-2 lg:p-8' => $feature,
-                                 'border border-ink-100 bg-white hover:border-brand-300 hover:shadow-[0_30px_64px_-46px_rgba(2,34,81,0.55)]' => ! $feature,
-                                 'bg-ink-950 text-white shadow-[0_28px_64px_-44px_rgba(7,20,38,0.9)]' => $feature,
-                             ])
-                             style="{{ $delay($i, 45) }}">
-
-                        @if ($feature)
-                            <span class="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-brand-600/25 blur-3xl transition duration-700 group-hover:bg-gold-400/25" aria-hidden="true"></span>
-                            <span class="pointer-events-none absolute inset-0 text-white grid-overlay opacity-[0.07]" aria-hidden="true"></span>
-                        @endif
-
-                        <span @class([
-                            'relative flex items-center justify-center rounded-2xl transition duration-300',
-                            'h-14 w-14 bg-white/10 text-gold-300 ring-1 ring-white/15' => $feature,
-                            'h-12 w-12 bg-brand-50 text-brand-600 group-hover:bg-brand-600 group-hover:text-white' => ! $feature,
-                        ])>
-                            <x-ui-icon :name="$icon" class="{{ $feature ? 'h-6 w-6' : 'h-5 w-5' }}" />
-                        </span>
-
-                        <h3 @class([
-                            'relative font-display font-bold leading-snug',
-                            'mt-6 text-[21px] !text-white sm:text-[24px]' => $feature,
-                            'mt-5 text-[16px] text-ink-950' => ! $feature,
-                        ])>{{ $name }}</h3>
-
-                        <p @class([
-                            'relative leading-[1.8]',
-                            'mt-3 max-w-md text-[14.5px] text-white/65' => $feature,
-                            'mt-2.5 text-[13.5px] text-ink-600' => ! $feature,
-                        ])>{{ $what }}</p>
-
-                        <span @class([
-                            'relative mt-auto inline-flex w-fit items-center gap-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.14em]',
-                            'text-white/45' => $feature,
-                            'text-ink-400' => ! $feature,
-                        ])>
-                            <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
-                            {{ __('research_hub.future.status.planned') }}
-                        </span>
-                    </article>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    {{-- ---------------- 5. Research areas ----------------
+    {{-- ---------------- 4. Research areas ----------------
          Real data: the priority fields the framework names for each department.
          The department switch is presentational — nothing is queried. --}}
     @if ($byDepartment->isNotEmpty())
@@ -345,7 +266,27 @@
         </section>
     @endif
 
-    {{-- ---------------- 9. SDG research vision ---------------- --}}
+    {{-- ---------------- 5. Research support ---------------- --}}
+    <section class="border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
+        <div class="container-rich">
+            <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.support.eyebrow') }}</p>
+            <h2 class="{{ $h2 }}">{{ __('research_hub.support.title') }}</h2>
+            <p class="{{ $lead }}">{{ __('research_hub.support.lead') }}</p>
+
+            <div class="mt-10 flex flex-wrap gap-2.5">
+                @foreach (__('research_hub.support.items') as $item)
+                    <span class="rounded-full border border-ink-200 bg-white px-3 py-2 text-[12.5px] font-semibold text-ink-700">{{ $item }}</span>
+                @endforeach
+            </div>
+
+            <a href="{{ route('research.support') }}" class="reveal mt-8 inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-700">
+                {{ __('research_hub.support.cta') }}
+                <x-ui-icon name="arrow-right" class="h-3.5 w-3.5" />
+            </a>
+        </div>
+    </section>
+
+    {{-- ---------------- 6. SDG research vision ---------------- --}}
     @if ($sdgCounts->isNotEmpty())
         <section class="border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
             <div class="container-rich">
@@ -374,7 +315,7 @@
         </section>
     @endif
 
-    {{-- ---------------- 10. The ecosystem ---------------- --}}
+    {{-- ---------------- 7. The ecosystem ---------------- --}}
     <section class="relative isolate overflow-hidden bg-navy-700 py-20 text-white sm:py-24">
         <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.12]" aria-hidden="true"></div>
 
@@ -438,7 +379,7 @@
         </div>
     </section>
 
-    {{-- ---------------- 12. Final call ---------------- --}}
+    {{-- ---------------- 8. Final call ---------------- --}}
     <section class="border-t border-ink-100 bg-ink-50 py-16 sm:py-20">
         <div class="container-rich">
             <div class="reveal grid gap-8 rounded-[2rem] bg-navy-700 px-7 py-11 text-white sm:px-12 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
@@ -458,7 +399,7 @@
                             <span class="relative">{{ __('research_hub.portal.join') }}</span>
                             <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
                         </a>
-                        <a href="{{ route('researcher.login') }}" class="btn-invert">{{ __('research_hub.portal.sign_in') }}</a>
+                        <a href="{{ route('login') }}" class="btn-invert">{{ __('research_hub.portal.sign_in') }}</a>
                     @endauth
                 </div>
             </div>

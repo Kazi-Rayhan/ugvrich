@@ -15,12 +15,12 @@ class ResearcherProfilePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearcherProfile::class);
     }
 
     public function view(User $user, ResearcherProfile $profile): bool
     {
-        return $user->isAdmin() || $user->id === $profile->user_id;
+        return $user->allowedTo('view', ResearcherProfile::class) || $user->id === $profile->user_id;
     }
 
     public function create(User $user): bool

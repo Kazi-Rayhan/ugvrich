@@ -16,7 +16,7 @@ class ProjectPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', Project::class);
     }
 
     public function view(?User $user, Project $project): bool
@@ -25,17 +25,17 @@ class ProjectPolicy
             return true;
         }
 
-        return $user !== null && ($user->isAdmin() || $user->id === $project->user_id);
+        return $user !== null && ($user->allowedTo('view', Project::class) || $user->id === $project->user_id);
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('create', Project::class);
     }
 
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('update', Project::class);
     }
 
     /** Progress reported by the researcher running it. */
@@ -47,16 +47,16 @@ class ProjectPolicy
     /** The official status, which is RICH's to set. */
     public function setStatus(User $user, Project $project): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('setStatus', Project::class);
     }
 
     public function delete(User $user, Project $project): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', Project::class);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', Project::class);
     }
 }

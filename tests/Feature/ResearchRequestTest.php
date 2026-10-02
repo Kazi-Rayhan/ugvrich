@@ -108,6 +108,18 @@ class ResearchRequestTest extends TestCase
         foreach (ResearchTaxonomy::departments() as $department) {
             $page->assertSee($department, escape: false);
         }
+
+        $page->assertSee(__('research_hub.forms.proposal.researcher_information'))
+            ->assertSee(__('research_hub.forms.proposal.research_team'))
+            ->assertSee(__('research_hub.forms.proposal.category'))
+            ->assertSee(__('research_hub.forms.proposal.background'))
+            ->assertSee(__('research_hub.forms.proposal.funding_required'))
+            ->assertSee('x-show="fundingRequired === \'1\'"', escape: false)
+            ->assertSee(__('research_hub.forms.proposal.estimated_budget'))
+            ->assertSee(__('research_hub.forms.proposal.ethical_information'))
+            ->assertDontSee('name="summary"', escape: false)
+            ->assertDontSee('name="document"', escape: false)
+            ->assertDontSee('name="role"', escape: false);
     }
 
     public function test_a_proposal_is_recorded(): void
@@ -120,8 +132,33 @@ class ResearchRequestTest extends TestCase
             'department' => $department,
             'research_field' => $field,
             'research_area' => $area,
+            'research_type' => 'collaborative',
+            'researcher_type' => 'professor',
+            'designation' => 'Lecturer',
+            'institution' => 'University of Example',
             'title' => 'Teacher feedback practices in first-year writing',
-            'summary' => 'A mixed-methods study of how written feedback is given and received across two semesters of first-year writing.',
+            'background' => 'Written feedback is central to first-year writing courses, but practices vary widely.',
+            'research_gap' => 'Few local studies compare student and faculty feedback priorities.',
+            'expected_outcome' => 'A tested model for improving feedback practices.',
+            'innovation_novelty' => 'The study combines classroom data with student interviews.',
+            'sdgs' => ['SDG 4'],
+            'co_researchers' => [
+                ['name' => 'Ayesha Rahman', 'designation' => 'Research Assistant', 'department' => 'CSE'],
+                ['name' => '', 'designation' => '', 'department' => ''],
+            ],
+            'external_collaborator' => 'Example Institute',
+            'external_department' => 'Education',
+            'external_institution' => 'Example Institute',
+            'funding_required' => '1',
+            'budget' => '125000',
+            'budget_breakdown' => 'Travel: 50,000; materials: 75,000',
+            'funding_source' => 'University seed grant',
+            'external_funding_applied' => '0',
+            'human_participants' => '1',
+            'sensitive_data' => '0',
+            'ethical_approval_required' => '1',
+            'informed_consent_required' => '1',
+            'ai_used' => '0',
         ])->assertRedirect(route('research.thanks'));
 
         $proposal = ResearchProposal::firstOrFail();
@@ -129,6 +166,77 @@ class ResearchRequestTest extends TestCase
         $this->assertSame($department, $proposal->department);
         $this->assertSame($field, $proposal->research_field);
         $this->assertSame('new', $proposal->status);
+        $this->assertSame('collaborative', $proposal->research_type);
+        $this->assertSame('professor', $proposal->researcher_type);
+        $this->assertSame('Lecturer', $proposal->designation);
+        $this->assertNull($proposal->researcher_department);
+        $this->assertSame('Written feedback is central to first-year writing courses, but practices vary widely.', $proposal->background);
+        $this->assertSame($proposal->background, $proposal->summary);
+        $this->assertSame(['SDG 4'], $proposal->sdgs);
+        $this->assertSame([[
+            'name' => 'Ayesha Rahman',
+            'designation' => 'Research Assistant',
+            'department' => 'CSE',
+        ]], $proposal->co_researchers);
+        $this->assertTrue($proposal->funding_required);
+        $this->assertTrue($proposal->ethical_approval_required);
+        $this->assertFalse($proposal->ai_used);
+    }
+
+    public function test_student_public_proposal_saves_department_and_omits_designation(): void
+    {
+        [$department, $field] = $this->somewhereInTheFramework();
+
+        $this->post(route('research.proposal.store'), [
+            'name' => 'Nusrat Jahan',
+            'email' => 'nusrat@example.edu',
+            'department' => $department,
+            'research_field' => $field,
+            'research_type' => 'individual',
+            'researcher_type' => 'student',
+            'researcher_department' => 'Economics',
+            'designation' => 'Should be omitted',
+            'title' => 'Student research proposal',
+        ])->assertRedirect(route('research.thanks'));
+
+        $proposal = ResearchProposal::firstOrFail();
+
+        $this->assertSame('student', $proposal->researcher_type);
+        $this->assertSame('Economics', $proposal->researcher_department);
+        $this->assertNull($proposal->designation);
+    }
+
+    public function test_non_collaborative_public_proposals_do_not_save_team_details(): void
+    {
+        [$department, $field] = $this->somewhereInTheFramework();
+
+        $this->post(route('research.proposal.store'), [
+            'name' => 'Rafiul Karim',
+            'email' => 'rafiul@example.edu',
+            'department' => $department,
+            'research_field' => $field,
+            'research_type' => 'individual',
+            'researcher_type' => 'other',
+            'researcher_type_other' => 'Independent consultant',
+            'designation' => 'Researcher',
+            'title' => 'An individual research proposal',
+            'principal_investigator' => 'Should be omitted',
+            'co_researchers' => [
+                ['name' => 'Should be omitted', 'designation' => 'Assistant Professor', 'department' => 'Education'],
+            ],
+            'external_collaborator' => 'Should be omitted',
+            'external_department' => 'Should be omitted',
+            'external_institution' => 'Should be omitted',
+        ])->assertRedirect(route('research.thanks'));
+
+        $proposal = ResearchProposal::firstOrFail();
+
+        $this->assertNull($proposal->principal_investigator);
+        $this->assertSame('Independent consultant', $proposal->researcher_type_other);
+        $this->assertSame([], $proposal->co_researchers);
+        $this->assertNull($proposal->external_collaborator);
+        $this->assertNull($proposal->external_department);
+        $this->assertNull($proposal->external_institution);
     }
 
     /**
@@ -147,8 +255,10 @@ class ResearchRequestTest extends TestCase
             'email' => 'rafiul@example.edu',
             'department' => $tree[0]['department'],
             'research_field' => $tree[1]['fields'][0]['name'],   // belongs to another department
+            'research_type' => 'individual',
+            'researcher_type' => 'student',
+            'researcher_department' => 'Economics',
             'title' => 'A proposal',
-            'summary' => 'A summary that is comfortably longer than the minimum length required by the form.',
         ])->assertSessionHasErrors('research_field');
 
         $this->assertSame(0, ResearchProposal::count());
@@ -159,8 +269,8 @@ class ResearchRequestTest extends TestCase
         $this->post(route('research.proposal.store'), [
             'name' => 'Rafiul Karim',
             'email' => 'rafiul@example.edu',
+            'research_type' => 'individual',
             'title' => 'A proposal',
-            'summary' => 'A summary that is comfortably longer than the minimum length required by the form.',
         ])->assertSessionHasErrors(['department', 'research_field']);
     }
 

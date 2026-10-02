@@ -19,7 +19,7 @@ class EnsureResearcher
         $user = $request->user();
 
         if (! $user) {
-            return redirect()->guest(route('researcher.login'));
+            return response()->view('researcher.auth.login');
         }
 
         if (! $user->isResearcher()) {

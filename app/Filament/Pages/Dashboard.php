@@ -37,50 +37,82 @@ class Dashboard extends BaseDashboard
     /** @return array<string, mixed> */
     public function getData(): array
     {
-        $projects = Project::query()->get(['id', 'title', 'slug', 'type', 'status', 'stage', 'patent_status', 'commercialization_status', 'progress', 'department']);
-        $ideas = IdeaSubmission::query()->get(['id', 'stage', 'status']);
+        $user = auth()->user();
+        $canView = fn (string $model): bool => $user !== null && $user->can('viewAny', $model);
+        $canViewProjects = $canView(Project::class);
+        $canViewIdeas = $canView(IdeaSubmission::class);
+        $canViewPublications = $canView(Publication::class);
+        $canViewEvents = $canView(Post::class);
+        $canViewRequests = $canView(ConsultancyRequest::class);
+
+        $projects = $canViewProjects
+            ? Project::query()->get(['id', 'title', 'slug', 'type', 'status', 'stage', 'patent_status', 'commercialization_status', 'progress', 'department'])
+            : collect();
+        $ideas = $canViewIdeas ? IdeaSubmission::query()->get(['id', 'stage', 'status']) : collect();
 
         $url = fn (string $resource, array $filters = []) => $resource::getUrl('index', $filters ? ['filters' => $filters] : []);
 
-        $kpis = [
-            ['Active Projects', $projects->where('status', 'ongoing')->count(), 'briefcase', 'green',
-                $url(ProjectResource::class, ['status' => ['value' => 'ongoing']])],
-            ['New Ideas', $ideas->where('status', 'new')->count(), 'light-bulb', 'amber',
-                $url(IdeaSubmissionResource::class, ['status' => ['value' => 'new']])],
-            ['Prototypes', $projects->where('stage', 'prototype')->count(), 'cog', 'blue',
-                $url(ProjectResource::class, ['stage' => ['value' => 'prototype']])],
-            ['Patent / IP', $projects->where('patent_status', '!=', 'none')->count(), 'key', 'violet',
-                $url(ProjectResource::class, ['ip' => ['value' => 'protected']])],
-            ['Startups', $projects->whereIn('commercialization_status', ['incubating', 'startup', 'market'])->count()
-                + $ideas->whereIn('stage', ['startup', 'market'])->count(), 'rocket', 'navy',
-                $url(ProjectResource::class, ['commercialization_status' => ['value' => 'startup']])],
-            ['Publications', Publication::where('is_active', true)->where('kind', '!=', 'funded-project')->count(), 'document-text', 'slate',
-                $url(PublicationResource::class)],
-        ];
+        $kpis = [];
+
+        if ($canViewProjects) {
+            $kpis[] = ['Active Projects', $projects->where('status', 'ongoing')->count(), 'briefcase', 'green',
+                $url(ProjectResource::class, ['status' => ['value' => 'ongoing']])];
+            $kpis[] = ['Prototypes', $projects->where('stage', 'prototype')->count(), 'cog', 'blue',
+                $url(ProjectResource::class, ['stage' => ['value' => 'prototype']])];
+            $kpis[] = ['Patent / IP', $projects->where('patent_status', '!=', 'none')->count(), 'key', 'violet',
+                $url(ProjectResource::class, ['ip' => ['value' => 'protected']])];
+        }
+
+        if ($canViewIdeas) {
+            $kpis[] = ['New Ideas', $ideas->where('status', 'new')->count(), 'light-bulb', 'amber',
+                $url(IdeaSubmissionResource::class, ['status' => ['value' => 'new']])];
+        }
+
+        if ($canViewProjects || $canViewIdeas) {
+            $startupCount = $canViewProjects
+                ? $projects->whereIn('commercialization_status', ['incubating', 'startup', 'market'])->count()
+                : 0;
+            $startupCount += $canViewIdeas ? $ideas->whereIn('stage', ['startup', 'market'])->count() : 0;
+            $startupResource = $canViewProjects ? ProjectResource::class : IdeaSubmissionResource::class;
+            $kpis[] = ['Startups', $startupCount, 'rocket', 'navy', $url($startupResource)];
+        }
+
+        if ($canViewPublications) {
+            $kpis[] = ['Publications', Publication::where('is_active', true)->where('kind', '!=', 'funded-project')->count(), 'document-text', 'slate',
+                $url(PublicationResource::class)];
+        }
 
         // The pipeline as the management team talks about it. Submitted ideas
         // feed the first two stages; projects carry the rest.
         $at = fn (string ...$stages) => $projects->whereIn('stage', $stages)->count();
-        $pipeline = [
-            ['Ideas', $ideas->where('stage', 'idea')->count() + $at('idea'), 'Submitted and waiting for review'],
-            ['Evaluation', $ideas->where('stage', 'evaluation')->count() + $at('selected'), 'Reviewed for originality and feasibility'],
+        $pipeline = ($canViewProjects || $canViewIdeas) ? [
+            ['Ideas', ($canViewIdeas ? $ideas->where('stage', 'idea')->count() : 0) + $at('idea'), 'Submitted and waiting for review'],
+            ['Evaluation', ($canViewIdeas ? $ideas->where('stage', 'evaluation')->count() : 0) + $at('selected'), 'Reviewed for originality and feasibility'],
             ['Research', $at('research'), 'Studying the problem and the approach'],
-            ['Prototype', $at('prototype') + $ideas->where('stage', 'prototype')->count(), 'A working model being built'],
+            ['Prototype', $at('prototype') + ($canViewIdeas ? $ideas->where('stage', 'prototype')->count() : 0), 'A working model being built'],
             ['Testing', $at('testing'), 'Proving it in real conditions'],
             ['Patent / IP', $at('patent'), 'Protection being filed'],
             ['Commercialization', $at('incubation', 'commercialization'), 'Preparing for market'],
-            ['Startup', $projects->where('commercialization_status', 'startup')->count() + $ideas->where('stage', 'startup')->count(), 'A venture has been formed'],
-        ];
+            ['Startup', ($canViewProjects ? $projects->where('commercialization_status', 'startup')->count() : 0)
+                + ($canViewIdeas ? $ideas->where('stage', 'startup')->count() : 0), 'A venture has been formed'],
+        ] : [];
 
         return [
             'kpis' => $kpis,
             'pipeline' => $pipeline,
-            'pipelineMax' => max(1, max(array_column($pipeline, 1))),
+            'pipelineMax' => $pipeline ? max(1, max(array_column($pipeline, 1))) : 1,
             'projects' => $projects->where('type', 'innovation')->sortBy(fn ($p) => $p->title)->values(),
-            'events' => Post::published()->events()->where('event_at', '>=', now()->startOfDay())->orderBy('event_at')->take(4)->get(),
-            'publications' => Publication::where('is_active', true)->where('kind', '!=', 'funded-project')->orderByDesc('year')->take(4)->get(),
-            'funding' => Publication::where('is_active', true)->where('kind', 'funded-project')->orderByDesc('year')->take(4)->get(),
-            'requests' => ConsultancyRequest::with('category')->latest()->take(5)->get(),
+            'events' => $canViewEvents ? Post::published()->events()->where('event_at', '>=', now()->startOfDay())->orderBy('event_at')->take(4)->get() : collect(),
+            'publications' => $canViewPublications ? Publication::where('is_active', true)->where('kind', '!=', 'funded-project')->orderByDesc('year')->take(4)->get() : collect(),
+            'funding' => $canViewPublications ? Publication::where('is_active', true)->where('kind', 'funded-project')->orderByDesc('year')->take(4)->get() : collect(),
+            'requests' => $canViewRequests ? ConsultancyRequest::with('category')->latest()->take(5)->get() : collect(),
+            'access' => [
+                'projects' => $canViewProjects,
+                'pipeline' => $canViewProjects || $canViewIdeas,
+                'events' => $canViewEvents,
+                'publications' => $canViewPublications,
+                'requests' => $canViewRequests,
+            ],
             'links' => [
                 'projects' => $url(ProjectResource::class, ['type' => ['value' => 'innovation']]),
                 'events' => $url(PostResource::class, ['type' => ['value' => 'event']]),

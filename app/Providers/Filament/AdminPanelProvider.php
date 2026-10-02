@@ -46,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
             // A filter box above it: the menu is long enough that typing beats
             // remembering which group an entry lives in.
             ->renderHook(PanelsRenderHook::SIDEBAR_NAV_START, fn () => view('filament.sidebar-search'))
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('components.impersonation-return'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([])

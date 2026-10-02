@@ -16,12 +16,12 @@ class ResearchSupportPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearchSupport::class);
     }
 
     public function view(User $user, ResearchSupport $support): bool
     {
-        return $user->isAdmin() || ($support->user_id !== null && $user->id === $support->user_id);
+        return $user->allowedTo('view', ResearchSupport::class) || ($support->user_id !== null && $user->id === $support->user_id);
     }
 
     public function create(User $user): bool
@@ -32,16 +32,16 @@ class ResearchSupportPolicy
     /** Staff answer them; the researcher does not edit a sent request. */
     public function update(User $user, ResearchSupport $support): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('update', ResearchSupport::class);
     }
 
     public function delete(User $user, ResearchSupport $support): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', ResearchSupport::class);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', ResearchSupport::class);
     }
 }

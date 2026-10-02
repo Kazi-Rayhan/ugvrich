@@ -1,5 +1,5 @@
 <x-researcher-auth :title="__('researcher.auth.login_title')" :lead="__('researcher.auth.login_lead')">
-    <form method="POST" action="{{ route('researcher.login.store') }}" class="mt-8 space-y-5">
+    <form method="POST" action="{{ route('login.store') }}" class="mt-8 space-y-5">
         @csrf
 
         <div>

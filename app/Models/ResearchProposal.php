@@ -24,12 +24,23 @@ class ResearchProposal extends Model
 
     protected $casts = [
         'sdgs' => 'array',
+        'co_researchers' => 'array',
+        'funding_required' => 'boolean',
+        'external_funding_applied' => 'boolean',
+        'human_participants' => 'boolean',
+        'sensitive_data' => 'boolean',
+        'ethical_approval_required' => 'boolean',
+        'informed_consent_required' => 'boolean',
+        'ai_used' => 'boolean',
         'reviewed_at' => 'datetime',
         'submitted_at' => 'datetime',
         'decided_at' => 'datetime',
     ];
 
     public const DRAFT = 'draft';
+
+    /** Public-form submissions are still recorded as "new" in the intake list. */
+    public const NEW = 'new';
 
     public const SUBMITTED = 'submitted';
 
@@ -54,6 +65,7 @@ class ResearchProposal extends Model
     {
         return [
             self::DRAFT => 'Draft',
+            self::NEW => 'New',
             self::SUBMITTED => 'Submitted',
             self::UNDER_REVIEW => 'Under review',
             self::REVISION => 'Revision required',
@@ -65,7 +77,7 @@ class ResearchProposal extends Model
     /** The order the rail on the researcher's page counts out. */
     public static function flow(): array
     {
-        return [self::DRAFT, self::SUBMITTED, self::UNDER_REVIEW, self::APPROVED];
+        return [self::DRAFT, self::NEW, self::SUBMITTED, self::UNDER_REVIEW, self::APPROVED];
     }
 
     public function user(): BelongsTo
@@ -113,7 +125,7 @@ class ResearchProposal extends Model
 
     public function scopeNew(Builder $query): Builder
     {
-        return $query->where('status', self::SUBMITTED);
+        return $query->whereIn('status', [self::NEW, self::SUBMITTED]);
     }
 
     /**
@@ -144,6 +156,27 @@ class ResearchProposal extends Model
             'internal' => 'Internal (UGV / RICH) funding',
             'external' => 'External funder',
             'both' => 'Both internal and external',
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function researchTypes(): array
+    {
+        return [
+            'individual' => 'Individual Research',
+            'collaborative' => 'Collaborative Research',
+            'professional_student' => 'Professional or Student Research',
+            'interdisciplinary' => 'Interdisciplinary Research',
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function researcherTypes(): array
+    {
+        return [
+            'student' => 'Student',
+            'professor' => 'Professor',
+            'other' => 'Other',
         ];
     }
 

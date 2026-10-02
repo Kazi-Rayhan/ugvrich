@@ -4,16 +4,17 @@ namespace App\Http\Controllers\Researcher;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\RoleRedirector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * Registration and sign-in for researchers.
+ * Researcher registration and shared account sign-in.
  *
  * Built on the framework's own `web` guard and the existing `users` table —
- * no second authentication system, and no package. Filament keeps its own
- * login at /admin/login for staff; this is the public one.
+ * no second authentication system, and no package. The shared public sign-in
+ * sends researchers to the portal and other accounts to the admin dashboard.
  *
  * Registration asks for an account and nothing more. The academic record is
  * filled in afterwards, from the dashboard, where there is room for it and
@@ -73,12 +74,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        // Staff who sign in here belong in the panel, not the portal.
-        if (Auth::user()->isAdmin()) {
-            return redirect('/admin');
-        }
-
-        return redirect()->intended(route('researcher.dashboard'));
+        return redirect(RoleRedirector::pathFor(Auth::user()));
     }
 
     public function logout(Request $request)

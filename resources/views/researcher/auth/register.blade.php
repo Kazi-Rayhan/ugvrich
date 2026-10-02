@@ -33,7 +33,7 @@
 
         <p class="pt-1 text-center text-[13.5px] text-ink-500">
             {{ __('researcher.auth.have_account') }}
-            <a href="{{ route('researcher.login') }}" class="font-semibold text-brand-700 hover:text-brand-600">{{ __('researcher.auth.login') }}</a>
+            <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:text-brand-600">{{ __('researcher.auth.login') }}</a>
         </p>
     </form>
 </x-researcher-auth>

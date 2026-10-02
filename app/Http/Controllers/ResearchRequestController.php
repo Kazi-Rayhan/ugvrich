@@ -85,29 +85,77 @@ class ResearchRequestController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email:rfc', 'max:180'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'role' => ['nullable', 'string', 'max:80'],
+            'institution' => ['nullable', 'string', 'max:200'],
 
             'department' => ['required', Rule::in($tree->pluck('department')->all())],
             'research_field' => ['required', 'string', 'max:200'],
             'research_area' => ['nullable', 'string', 'max:200'],
+            'research_type' => ['required', Rule::in(array_keys(ResearchProposal::researchTypes()))],
+            'researcher_type' => ['required', Rule::in(array_keys(ResearchProposal::researcherTypes()))],
+            'researcher_type_other' => ['required_if:researcher_type,other', 'nullable', 'string', 'max:160'],
+            'researcher_department' => ['required_if:researcher_type,student', 'nullable', 'string', 'max:160'],
+            'designation' => ['required_if:researcher_type,professor,other', 'nullable', 'string', 'max:160'],
 
             'title' => ['required', 'string', 'max:220'],
-            'summary' => ['required', 'string', 'min:40', 'max:5000'],
-            'objectives' => ['nullable', 'string', 'max:3000'],
-            'methodology' => ['nullable', 'string', 'max:3000'],
-            'duration' => ['nullable', 'string', 'max:80'],
-            'collaborators_needed' => ['nullable', 'string', 'max:120'],
-            'funding_needed' => ['nullable', 'string', 'max:120'],
+            'background' => ['nullable', 'string', 'max:6000'],
+            'objectives' => ['nullable', 'string', 'max:4000'],
+            'methodology' => ['nullable', 'string', 'max:6000'],
+            'research_gap' => ['nullable', 'string', 'max:4000'],
+            'research_questions' => ['nullable', 'string', 'max:4000'],
+            'timeline' => ['nullable', 'string', 'max:4000'],
+            'expected_outcome' => ['nullable', 'string', 'max:4000'],
+            'expected_impact' => ['nullable', 'string', 'max:4000'],
+            'innovation_novelty' => ['nullable', 'string', 'max:4000'],
             'sdgs' => ['nullable', 'array'],
-            'sdgs.*' => ['string', 'max:60'],
-            'document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,zip'],
+            'sdgs.*' => ['string', Rule::in(array_map(fn ($number) => 'SDG '.$number, array_keys(__('research_hub.sdg.goals'))))],
+            'principal_investigator' => ['nullable', 'string', 'max:160'],
+            'co_researchers' => ['nullable', 'array', 'max:30'],
+            'co_researchers.*.name' => ['nullable', 'string', 'max:160'],
+            'co_researchers.*.designation' => ['nullable', 'string', 'max:160'],
+            'co_researchers.*.department' => ['nullable', 'string', 'max:160'],
+            'external_collaborator' => ['nullable', 'string', 'max:200'],
+            'external_department' => ['nullable', 'string', 'max:160'],
+            'external_institution' => ['nullable', 'string', 'max:200'],
+            'funding_required' => ['nullable', 'boolean'],
+            'budget' => ['nullable', 'string', 'max:120'],
+            'budget_breakdown' => ['nullable', 'string', 'max:4000'],
+            'funding_source' => ['nullable', 'string', 'max:500'],
+            'external_funding_applied' => ['nullable', 'boolean'],
+            'human_participants' => ['nullable', 'boolean'],
+            'sensitive_data' => ['nullable', 'boolean'],
+            'ethical_approval_required' => ['nullable', 'boolean'],
+            'informed_consent_required' => ['nullable', 'boolean'],
+            'ai_used' => ['nullable', 'boolean'],
             'website' => ['nullable', 'size:0'],   // honeypot
         ], [
-            'summary.min' => __('research_hub.forms.errors.summary'),
             'website.size' => __('research_hub.forms.errors.rejected'),
         ]);
 
         unset($data['website']);
+        $data['summary'] = $data['background'] ?? '';
+        if ($data['researcher_type'] === 'student') {
+            $data['designation'] = null;
+        } else {
+            $data['researcher_department'] = null;
+        }
+        if ($data['researcher_type'] !== 'other') {
+            $data['researcher_type_other'] = null;
+        }
+        $data['sdgs'] = array_values(array_unique($data['sdgs'] ?? []));
+        $data['co_researchers'] = collect($data['co_researchers'] ?? [])
+            ->map(fn (array $researcher) => array_filter($researcher, fn ($value) => filled($value)))
+            ->filter()
+            ->values()
+            ->all();
+        if ($data['research_type'] !== 'collaborative') {
+            $data['principal_investigator'] = null;
+            $data['co_researchers'] = [];
+        }
+        if (! in_array($data['research_type'], ['collaborative', 'interdisciplinary'], true)) {
+            $data['external_collaborator'] = null;
+            $data['external_department'] = null;
+            $data['external_institution'] = null;
+        }
 
         /* The field has to belong to the department that was chosen. Both are
            select boxes, but the second is filled in the browser, so the pairing
@@ -121,14 +169,9 @@ class ResearchRequestController extends Controller
                 ->withErrors(['research_field' => __('research_hub.forms.errors.field_mismatch')]);
         }
 
-        if ($request->hasFile('document')) {
-            $data['document'] = $request->file('document')->store('research-proposals', 'public');
-        }
-
-        // Explicit rather than relying on the column default, so a proposal
-        // from the public form carries the same status vocabulary as one
-        // written in the portal.
-        $proposal = ResearchProposal::create([...$data, 'status' => ResearchProposal::SUBMITTED, 'submitted_at' => now()]);
+        // Public proposals are intake items first, so they use the same
+        // "new" status the support requests do until a person reads them.
+        $proposal = ResearchProposal::create([...$data, 'status' => ResearchProposal::NEW, 'submitted_at' => now()]);
 
         return redirect()->route('research.thanks')->with('research_request', [
             'kind' => 'proposal',

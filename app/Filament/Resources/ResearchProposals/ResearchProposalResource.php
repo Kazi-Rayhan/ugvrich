@@ -108,10 +108,6 @@ class ResearchProposalResource extends Resource
                         ->label('Phone')
                         ->disabled()
                         ->dehydrated(false),
-                    TextInput::make('role')
-                        ->label('Role')
-                        ->disabled()
-                        ->dehydrated(false),
                     TextInput::make('department')
                         ->label('Department')
                         ->disabled()
@@ -124,39 +120,14 @@ class ResearchProposalResource extends Resource
                         ->label('Research area')
                         ->disabled()
                         ->dehydrated(false),
-                    TextInput::make('duration')
-                        ->label('Duration')
-                        ->disabled()
-                        ->dehydrated(false),
-                    TextInput::make('collaborators_needed')
-                        ->label('Collaborators needed')
-                        ->disabled()
-                        ->dehydrated(false),
-                    TextInput::make('funding_needed')
-                        ->label('Funding needed')
-                        ->disabled()
-                        ->dehydrated(false),
-
-                    /* What the researcher asked for. The decision itself is a
-                       record of its own under Funding Decisions. */
-                    TextInput::make('funding_type')
-                        ->label('Funding asked for')
-                        ->formatStateUsing(fn (?string $state) => $state ? (ResearchProposal::fundingTypes()[$state] ?? $state) : '—')
-                        ->disabled()
-                        ->dehydrated(false),
-                    TextInput::make('funding_organization')
-                        ->label('Funder named')
-                        ->placeholder('—')
-                        ->disabled()
-                        ->dehydrated(false),
                     TextInput::make('title')
                         ->label('Proposal title')
                         ->columnSpanFull()
                         ->disabled()
                         ->dehydrated(false),
-                    Textarea::make('summary')
-                        ->label('Summary')
-                        ->rows(6)
+                    Textarea::make('background')
+                        ->label('Research background / problem statement')
+                        ->rows(5)
                         ->columnSpanFull()
                         ->disabled()
                         ->dehydrated(false),
@@ -166,10 +137,113 @@ class ResearchProposalResource extends Resource
                         ->columnSpanFull()
                         ->disabled()
                         ->dehydrated(false),
+                    Textarea::make('research_gap')
+                        ->label('Research gap')
+                        ->rows(4)
+                        ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
+                    Textarea::make('research_questions')
+                        ->label('Research questions / hypotheses')
+                        ->rows(4)
+                        ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
                     Textarea::make('methodology')
                         ->label('Methodology')
                         ->rows(4)
                         ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
+                    Textarea::make('expected_outcome')
+                        ->label('Expected outcomes')
+                        ->rows(4)
+                        ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
+                    Textarea::make('expected_impact')
+                        ->label('Potential impact')
+                        ->rows(4)
+                        ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
+                    Textarea::make('timeline')
+                        ->label('Timeline')
+                        ->rows(3)
+                        ->columnSpanFull()
+                        ->disabled()
+                        ->dehydrated(false),
+                ]),
+
+            Section::make('Researcher and team')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('designation')->disabled()->dehydrated(false),
+                    TextInput::make('institution')->disabled()->dehydrated(false),
+                    TextInput::make('researcher_department')->disabled()->dehydrated(false),
+                    TextInput::make('researcher_type')
+                        ->formatStateUsing(fn (?string $state) => $state ? (ResearchProposal::researcherTypes()[$state] ?? $state) : '—')
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('researcher_type_other')->disabled()->dehydrated(false),
+                    TextInput::make('research_type')
+                        ->formatStateUsing(fn (?string $state) => $state ? (ResearchProposal::researchTypes()[$state] ?? $state) : '—')
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('principal_investigator')->label('Principal investigator')->disabled()->dehydrated(false),
+                    Textarea::make('co_researchers')
+                        ->formatStateUsing(fn (?array $state) => collect($state ?? [])
+                            ->map(fn (array $researcher) => implode(' · ', array_filter([
+                                $researcher['name'] ?? null,
+                                $researcher['designation'] ?? null,
+                                $researcher['department'] ?? null,
+                            ])))
+                            ->implode("\n"))
+                        ->rows(4)
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('external_collaborator')->disabled()->dehydrated(false),
+                    TextInput::make('external_department')->disabled()->dehydrated(false),
+                    TextInput::make('external_institution')->disabled()->dehydrated(false),
+                ]),
+
+            Section::make('Funding and ethics')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('funding_required')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('budget')->disabled()->dehydrated(false),
+                    Textarea::make('budget_breakdown')->rows(3)->disabled()->dehydrated(false),
+                    TextInput::make('funding_source')->disabled()->dehydrated(false),
+                    TextInput::make('external_funding_applied')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('sdgs')
+                        ->formatStateUsing(fn (?array $state) => implode(', ', $state ?? []))
+                        ->disabled()
+                        ->dehydrated(false),
+                    Textarea::make('innovation_novelty')->rows(3)->disabled()->dehydrated(false),
+                    TextInput::make('human_participants')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('sensitive_data')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('ethical_approval_required')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('informed_consent_required')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
+                        ->disabled()
+                        ->dehydrated(false),
+                    TextInput::make('ai_used')
+                        ->formatStateUsing(fn ($state) => is_null($state) ? '—' : ($state ? 'Yes' : 'No'))
                         ->disabled()
                         ->dehydrated(false),
                 ]),

@@ -23,6 +23,8 @@ return [
         'about' => 'About RICH',
         'startup' => 'Startup & Incubation',
         'news' => 'News & Events',
+        'login' => 'Login',
+        'dashboard' => 'Dashboard',
         'contact' => 'Contact',
         'publications' => 'Publications',
         'patents' => 'Patents & IP',

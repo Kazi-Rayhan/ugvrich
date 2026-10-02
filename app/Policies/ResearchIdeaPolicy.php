@@ -15,13 +15,13 @@ class ResearchIdeaPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearchIdea::class);
     }
 
     /** Staff read everything; a researcher reads their own and nobody else's. */
     public function view(User $user, ResearchIdea $idea): bool
     {
-        return $user->isAdmin() || $user->id === $idea->user_id;
+        return $user->allowedTo('view', ResearchIdea::class) || $user->id === $idea->user_id;
     }
 
     /** These are written in the portal, never in the admin. */
@@ -53,6 +53,6 @@ class ResearchIdeaPolicy
     /** Assigning a reviewer, starting a review, recording a decision. */
     public function review(User $user, ResearchIdea $idea): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('review', ResearchIdea::class);
     }
 }

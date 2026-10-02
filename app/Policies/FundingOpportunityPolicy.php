@@ -14,31 +14,31 @@ class FundingOpportunityPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', FundingOpportunity::class);
     }
 
     public function view(User $user, FundingOpportunity $opportunity): bool
     {
-        return $user->isAdmin() || (bool) $opportunity->is_active;
+        return $user->allowedTo('view', FundingOpportunity::class) || (bool) $opportunity->is_active;
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('create', FundingOpportunity::class);
     }
 
     public function update(User $user, FundingOpportunity $opportunity): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('update', FundingOpportunity::class);
     }
 
     public function delete(User $user, FundingOpportunity $opportunity): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', FundingOpportunity::class);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', FundingOpportunity::class);
     }
 }

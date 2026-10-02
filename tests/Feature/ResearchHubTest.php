@@ -9,12 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * The Research hub: a vision page, not a research management system.
- *
- * What is worth holding down here is the honesty of it — that the figures come
- * from the database rather than from the page, that a figure with no source
- * says so instead of showing a number, and that the sections built from the
- * framework document survive in both languages.
+ * The Research hub explains the research framework and available pathways in
+ * both site languages.
  */
 class ResearchHubTest extends TestCase
 {
@@ -41,17 +37,29 @@ class ResearchHubTest extends TestCase
         foreach ([
             'research_hub.about.title',
             'research_hub.lifecycle.title',
-            'research_hub.offer.title',
             'research_hub.areas.title',
-            'research_hub.collaboration.title',
             'research_hub.support.title',
-            'research_hub.impact.title',
             'research_hub.sdg.title',
             'research_hub.ecosystem.title',
-            'research_hub.future.title',
             'research_hub.cta.title',
         ] as $key) {
             $page->assertSee(__($key, [], 'en'), escape: false);
+        }
+    }
+
+    public function test_unwanted_planned_and_counting_sections_are_not_rendered(): void
+    {
+        $page = $this->get(route('en.research'))->assertOk();
+
+        foreach ([
+            'research_hub.send.title',
+            'research_hub.impact.title',
+            'research_hub.future.title',
+            'research_hub.offer.title',
+            'research_hub.collaboration.title',
+        ] as $key) {
+            $page->assertDontSee(__($key, [], 'en'), escape: false);
+            $page->assertDontSee(__($key, [], 'bn'), escape: false);
         }
     }
 
@@ -81,26 +89,6 @@ class ResearchHubTest extends TestCase
         }
     }
 
-    /** Counts are taken from the database, not written into the page. */
-    public function test_the_impact_figures_are_the_real_counts(): void
-    {
-        $projects = \App\Models\Project::where('type', 'research')->count();
-
-        $this->assertGreaterThan(0, $projects, 'the seeder should create research projects');
-
-        $this->get(route('en.research'))
-            ->assertOk()
-            ->assertSeeInOrder([(string) $projects, __('research_hub.impact.metrics.research_projects', [], 'en')], escape: false);
-    }
-
-    /** A figure with no source says so, rather than showing a nought. */
-    public function test_a_figure_with_no_source_says_coming_soon(): void
-    {
-        $this->get(route('en.research'))
-            ->assertOk()
-            ->assertSee(__('research_hub.impact.soon', [], 'en'));
-    }
-
     /** The planning document keeps a page of its own, linked from the hub. */
     public function test_the_framework_document_is_still_reachable(): void
     {
@@ -112,11 +100,4 @@ class ResearchHubTest extends TestCase
         $this->get(route('en.research.framework'))->assertOk();
     }
 
-    /** Nothing on the page claims a capability that is not built. */
-    public function test_future_capabilities_are_labelled_as_such(): void
-    {
-        $this->get(route('en.research'))
-            ->assertOk()
-            ->assertSee(__('research_hub.future.status.planned', [], 'en'));
-    }
 }

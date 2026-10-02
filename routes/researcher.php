@@ -33,14 +33,14 @@ Route::prefix('researcher')->name('researcher.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.store');
-        Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+        Route::get('/login', fn () => redirect()->route('login'))->name('login');
         Route::post('/login', [AuthController::class, 'login'])->name('login.store');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
     // ------------------------------------------------------- the portal
-    Route::middleware(['auth', EnsureResearcher::class])->group(function () {
+    Route::middleware(EnsureResearcher::class)->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -17,6 +18,26 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            if ($user->role !== User::ADMIN || $user->role_id !== null) {
+                return;
+            }
+
+            $admin = Role::firstOrCreate(
+                ['name' => Role::ADMIN],
+                [
+                    'display_name' => 'Administrator',
+                    'group' => Role::DASHBOARD,
+                    'description' => 'Full access to the dashboard.',
+                ],
+            );
+
+            $user->forceFill(['role_id' => $admin->id])->save();
+        });
+    }
+
     /**
      * Define the model's default state.
      *
@@ -27,6 +48,7 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'role' => User::ADMIN,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

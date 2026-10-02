@@ -13,6 +13,8 @@ use Filament\Support\Icons\Heroicon;
 /** Read-only breakdowns across the hub: by department, by type, over time. */
 class ReportsAnalytics extends Page
 {
+    public const ACCESS_PERMISSION = 'view_reports_analytics';
+
     protected string $view = 'filament.pages.reports-analytics';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
@@ -22,6 +24,13 @@ class ReportsAnalytics extends Page
     protected static ?string $title = 'Reports & Analytics';
 
     protected static ?string $slug = 'reports';
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->isAdmin() || $user->hasPermission(self::ACCESS_PERMISSION));
+    }
 
     /** @return array<string, mixed> */
     public function getData(): array

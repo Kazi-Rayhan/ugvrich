@@ -26,6 +26,8 @@ use Filament\Support\Icons\Heroicon;
 
 class ManageSiteSettings extends Page implements HasSchemas
 {
+    public const ACCESS_PERMISSION = 'manage_site_settings';
+
     use InteractsWithSchemas;
 
     protected string $view = 'filament.pages.manage-site-settings';
@@ -55,6 +57,13 @@ class ManageSiteSettings extends Page implements HasSchemas
     protected const STRUCTURED_KEYS = ['why_choose', 'process_steps', 'booking_closed_days'];
 
     public ?array $data = [];
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->isAdmin() || $user->hasPermission(self::ACCESS_PERMISSION));
+    }
 
     public function mount(): void
     {

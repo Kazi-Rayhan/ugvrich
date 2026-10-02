@@ -36,6 +36,8 @@ use App\Filament\Resources\Stats\StatResource;
 use App\Filament\Resources\StudentTeams\StudentTeamResource;
 use App\Filament\Resources\Subscribers\SubscriberResource;
 use App\Filament\Resources\Testimonials\TestimonialResource;
+use App\Filament\Resources\Permissions\PermissionResource;
+use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
@@ -84,6 +86,7 @@ class AdminNavigation
                 NavigationItem::make('Reports & Analytics')
                     ->icon(Heroicon::OutlinedChartBar)
                     ->url(fn () => ReportsAnalytics::getUrl())
+                    ->visible(fn () => ReportsAnalytics::canAccess())
                     ->isActiveWhen(fn () => request()->routeIs(ReportsAnalytics::getRouteName())),
             ]),
 
@@ -103,12 +106,14 @@ class AdminNavigation
                     $this->resource('Homepage Figures', null, StatResource::class),
                 ]),
 
-            NavigationGroup::make()->items([
-                $this->resource('Users & Permissions', Heroicon::OutlinedShieldCheck, UserResource::class),
-
+            NavigationGroup::make('Users & Permissions')->items([
+                $this->resource('Users', Heroicon::OutlinedUsers, UserResource::class),
+                $this->resource('Roles', Heroicon::OutlinedShieldCheck, RoleResource::class),
+                $this->resource('Permissions', Heroicon::OutlinedKey, PermissionResource::class),
                 NavigationItem::make('Settings')
                     ->icon(Heroicon::OutlinedCog8Tooth)
                     ->url(fn () => ManageSiteSettings::getUrl())
+                    ->visible(fn () => ManageSiteSettings::canAccess())
                     ->isActiveWhen(fn () => request()->routeIs(ManageSiteSettings::getRouteName())
                         || request()->routeIs(SettingResource::getRouteBaseName().'.*')),
             ]),
@@ -144,6 +149,7 @@ class AdminNavigation
         return NavigationItem::make($label)
             ->icon($icon)
             ->url(fn () => $resource::getUrl('index'))
+            ->visible(fn () => $resource::canViewAny())
             ->isActiveWhen(fn () => request()->routeIs($resource::getRouteBaseName().'.*'));
     }
 
@@ -157,6 +163,7 @@ class AdminNavigation
         return NavigationItem::make($label)
             ->icon($icon)
             ->url(fn () => $resource::getUrl('index', $value === null ? [] : ['filters' => [$filter => ['value' => $value]]]))
+            ->visible(fn () => $resource::canViewAny())
             ->isActiveWhen(fn () => request()->routeIs($resource::getRouteBaseName().'.*')
                 && request()->input("filters.{$filter}.value") === $value);
     }

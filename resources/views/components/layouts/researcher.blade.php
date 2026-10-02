@@ -186,11 +186,13 @@
        without depending on another page having defined these first. */
 
     // Department -> research field -> research area, off the framework's tree.
-    window.ideaForm = (tree, department, field, area) => ({
+    window.ideaForm = (tree, department, field, area, researchType, researcherType) => ({
         tree,
         department: department || '',
         field: field || '',
         area: area || '',
+        researchType: researchType || '',
+        researcherType: researcherType || '',
 
         get row() { return this.tree.find((r) => r.department === this.department) || null },
         get fields() { return this.row ? this.row.fields : [] },
@@ -216,23 +218,33 @@
        The form is whole and ordinary underneath: every field is in the page and
        posts together, so the server sees exactly what it saw before and nothing
        is lost if JavaScript never runs — the steps simply all show at once. */
-    window.stepForm = (total, start, names) => ({
+    window.stepForm = (total, start, names, conditionalTeam = false, researchType = '') => ({
         total,
         names: names || [],
         step: start || 0,
         seen: start || 0,
+        conditionalTeam,
+        teamVisible: ! conditionalTeam || researchType !== 'individual',
 
         get name() { return this.names[this.step] || '' },
 
-        get first() { return this.step === 0 },
-        get last() { return this.step === this.total - 1 },
-        get progress() { return Math.round(((this.step + 1) / this.total) * 100) },
+        get visibleSteps() {
+            return Array.from({ length: this.total }, (_, i) => i)
+                .filter((i) => ! this.conditionalTeam || this.teamVisible || i !== 1)
+        },
+
+        get first() { return this.step === this.visibleSteps[0] },
+        get last() { return this.step === this.visibleSteps[this.visibleSteps.length - 1] },
+        get progress() {
+            return Math.round(((this.visibleSteps.indexOf(this.step) + 1) / this.visibleSteps.length) * 100)
+        },
 
         panel(i) { return this.$el.querySelector('[data-step="' + i + '"]') },
 
         /* Moving on is allowed once the browser is happy with the step being
            left. Moving back never asks for anything. */
         go(i) {
+            if (! this.visibleSteps.includes(i)) return
             if (i > this.step && ! this.ready()) return
 
             this.step = Math.max(0, Math.min(i, this.total - 1))
@@ -241,8 +253,25 @@
             this.$nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
         },
 
-        next() { this.go(this.step + 1) },
-        back() { this.go(this.step - 1) },
+        next() {
+            const index = this.visibleSteps.indexOf(this.step)
+            this.go(this.visibleSteps[index + 1])
+        },
+        back() {
+            const index = this.visibleSteps.indexOf(this.step)
+            this.go(this.visibleSteps[index - 1])
+        },
+
+        updateResearchType(type) {
+            if (! this.conditionalTeam) return
+
+            this.teamVisible = type !== 'individual'
+
+            if (! this.teamVisible && this.step === 1) {
+                this.step = 2
+                this.seen = Math.max(this.seen, this.step)
+            }
+        },
 
         ready() {
             const panel = this.panel(this.step)
@@ -302,6 +331,8 @@
         remove(i) { this.tags.splice(i, 1) },
     })
 </script>
+
+<x-impersonation-return />
 
 </body>
 </html>

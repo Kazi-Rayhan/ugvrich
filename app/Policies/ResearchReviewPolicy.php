@@ -15,17 +15,17 @@ class ResearchReviewPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearchReview::class);
     }
 
     public function view(User $user, ResearchReview $review): bool
     {
-        return $user->isAdmin() || $user->id === $review->reviewable?->user_id;
+        return $user->allowedTo('view', ResearchReview::class) || $user->id === $review->reviewable?->user_id;
     }
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('create', ResearchReview::class);
     }
 
     public function update(User $user, ResearchReview $review): bool

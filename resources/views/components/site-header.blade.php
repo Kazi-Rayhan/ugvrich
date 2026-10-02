@@ -9,7 +9,6 @@
     // strip above the bar, so every section is reachable without a dropdown.
     $links = [
         ['key' => 'home', 'label' => __('site.nav.home'), 'route' => 'home', 'match' => ['home']],
-        ['key' => 'projects', 'label' => __('site.nav.projects'), 'route' => 'projects.index', 'match' => ['projects.*']],
         ['key' => 'research', 'label' => __('site.nav.research'), 'route' => 'research', 'match' => ['research']],
         ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*']],
         ['key' => 'consultancy', 'label' => __('site.nav.consultancy'), 'route' => 'services.index', 'match' => ['services.*', 'consultancy.*'], 'panel' => [
@@ -34,6 +33,7 @@
 
     // The rest of the sections, in the strip above the bar.
     $utility = [
+        [__('site.nav.projects'), route('projects.index'), 'document', ['projects.*']],
         // [__('site.nav.publications'), route('publications'), 'document', ['publications']],   // hidden from the strip on request
         [__('site.nav.patents'), route('patents'), 'key', ['patents']],
         [__('site.nav.industry'), route('industry'), 'handshake', ['industry']],
@@ -57,7 +57,7 @@
         <div class="header-accent h-[3px]" aria-hidden="true"></div>
 
         {{-- Info strip: folds away once the page scrolls --}}
-        <div class="header-strip hidden overflow-hidden lg:block">
+        <div class="header-strip relative z-20 hidden overflow-visible lg:block">
             {{-- Same row width as the bar below, so the strip's first and last
                  items sit above the first and last items of the menu. --}}
             <div class="header-row flex h-9 items-center justify-between gap-6 text-[12.5px]">
@@ -88,6 +88,7 @@
                         {{ __('site.actions.collaborate') }}
                         <x-ui-icon name="arrow-up-right" class="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-45" />
                     </a>
+                    <x-account-menu />
                 </div>
             </div>
         </div>
@@ -118,7 +119,7 @@
                         @foreach ($sideLinks as $i => $link)
                             @php $active = \App\Support\Navigation::isCurrent(...$link['match']); @endphp
 
-                            <a href="{{ route($link['route']) }}"
+                            <a href="{{ $link['url'] ?? route($link['route']) }}"
                                class="nav-item animate-nav-in"
                                style="animation-delay: {{ 120 + $i * 40 }}ms"
                                data-active="{{ $active ? 'true' : 'false' }}"
@@ -146,6 +147,8 @@
                      where the word costs more room than it earns; the label
                      comes back as soon as there is space for it. --}}
                 <div class="flex shrink-0 items-center gap-2.5 xl:hidden">
+                    <x-account-menu />
+
                     <a href="{{ route('consultancy.create') }}"
                        class="hidden h-11 items-center gap-1.5 rounded-full bg-brand-600 px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-500 sm:flex">
                         {{ __('site.actions.collaborate') }}
@@ -191,7 +194,7 @@
                             <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-600">{{ $link['label'] }}</p>
                             <h3 class="mt-3 font-display text-[24px] font-bold leading-tight tracking-tight text-ink-950">{{ $link['panel']['title'] }}</h3>
                             <p class="mt-3 text-[14px] leading-relaxed muted">{{ $link['panel']['text'] }}</p>
-                            <a href="{{ route($link['route']) }}"
+                            <a href="{{ $link['url'] ?? route($link['route']) }}"
                                class="group mt-6 inline-flex items-center gap-2 text-[14px] font-semibold text-brand-700">
                                 View all
                                 <x-ui-icon name="arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

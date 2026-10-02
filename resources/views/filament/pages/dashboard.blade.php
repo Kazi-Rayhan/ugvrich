@@ -113,8 +113,10 @@
             @endforeach
         </div>
 
+        @if ($d['access']['pipeline'] || $d['access']['projects'])
         <div class="rd-main">
             {{-- Innovation pipeline --}}
+            @if ($d['access']['pipeline'])
             <section class="rd-card">
                 <div class="rd-card-head">
                     <h3>Innovation pipeline</h3>
@@ -136,8 +138,10 @@
                     </ol>
                 </div>
             </section>
+            @endif
 
             {{-- Project status --}}
+            @if ($d['access']['projects'])
             <section class="rd-card">
                 <div class="rd-card-head">
                     <h3>Project status</h3>
@@ -156,7 +160,11 @@
                                     <tr>
                                         <td>
                                             @if ($project->department)<span class="rd-dept">{{ $project->department }}</span>@endif
-                                            <a href="{{ \App\Filament\Resources\Projects\ProjectResource::getUrl('edit', ['record' => $project]) }}" wire:navigate class="rd-title">{{ $project->title }}</a>
+                                            @can('update', $project)
+                                                <a href="{{ \App\Filament\Resources\Projects\ProjectResource::getUrl('edit', ['record' => $project]) }}" wire:navigate class="rd-title">{{ $project->title }}</a>
+                                            @else
+                                                <span class="rd-title">{{ $project->title }}</span>
+                                            @endcan
                                         </td>
                                         <td>
                                             <span class="rd-pill rd-tone-{{ $stagePill($project->stage) }}">{{ $project->stage_label ?? '—' }}</span>
@@ -175,10 +183,14 @@
                     @endif
                 </div>
             </section>
+            @endif
         </div>
+        @endif
 
+        @if ($d['access']['events'] || $d['access']['publications'] || $d['access']['requests'])
         <div class="rd-four">
             {{-- Upcoming events --}}
+            @if ($d['access']['events'])
             <section class="rd-card">
                 <div class="rd-card-head"><h3>Upcoming events</h3><a href="{{ $d['links']['events'] }}" wire:navigate>Events & training →</a></div>
                 <div class="rd-card-body">
@@ -197,8 +209,10 @@
                     @endforelse
                 </div>
             </section>
+            @endif
 
             {{-- Recent publications --}}
+            @if ($d['access']['publications'])
             <section class="rd-card">
                 <div class="rd-card-head"><h3>Recent publications</h3><a href="{{ $d['links']['publications'] }}" wire:navigate>All publications →</a></div>
                 <div class="rd-card-body">
@@ -237,8 +251,10 @@
                     @endforelse
                 </div>
             </section>
+            @endif
 
             {{-- Industry requests --}}
+            @if ($d['access']['requests'])
             <section class="rd-card">
                 <div class="rd-card-head"><h3>Industry requests</h3><a href="{{ $d['links']['requests'] }}" wire:navigate>All requests →</a></div>
                 <div class="rd-card-body">
@@ -257,6 +273,8 @@
                     @endforelse
                 </div>
             </section>
+            @endif
         </div>
+        @endif
     </div>
 </x-filament-panels::page>

@@ -13,7 +13,7 @@
     <div class="lg:hidden">
         <div class="flex items-baseline justify-between gap-4">
             <p class="min-w-0 truncate text-[12.5px] font-semibold text-ink-500">
-                <span x-text="@js(__('researcher.step.of', ['current' => '%s', 'total' => count($names)])).replace('%s', step + 1)"></span>
+                <span x-text="@js(__('researcher.step.of', ['current' => '%current%', 'total' => '%total%'])).replace('%current%', visibleSteps.indexOf(step) + 1).replace('%total%', visibleSteps.length)"></span>
                 <span class="text-ink-300">·</span>
                 <span class="text-ink-900" x-text="name"></span>
             </p>
@@ -30,7 +30,7 @@
          you. A step already been through can be gone back to by name. --}}
     <ol class="hidden lg:flex lg:items-start">
         @foreach ($names as $i => $label)
-            <li class="relative flex min-w-0 flex-1 flex-col items-center">
+            <li x-show="visibleSteps.includes({{ $i }})" class="relative flex min-w-0 flex-1 flex-col items-center">
 
                 {{-- The joining line, in two halves so each one can colour
                      itself from the step on its own side. --}}

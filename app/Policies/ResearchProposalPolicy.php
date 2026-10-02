@@ -15,13 +15,13 @@ class ResearchProposalPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearchProposal::class);
     }
 
     /** Staff read everything; a researcher reads their own and nobody else's. */
     public function view(User $user, ResearchProposal $proposal): bool
     {
-        return $user->isAdmin() || $user->id === $proposal->user_id;
+        return $user->allowedTo('view', ResearchProposal::class) || $user->id === $proposal->user_id;
     }
 
     /** These are written in the portal, never in the admin. */
@@ -40,7 +40,7 @@ class ResearchProposalPolicy
      */
     public function update(User $user, ResearchProposal $proposal): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->allowedTo('update', ResearchProposal::class)) {
             return true;
         }
 
@@ -49,17 +49,17 @@ class ResearchProposalPolicy
 
     public function delete(User $user, ResearchProposal $proposal): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', ResearchProposal::class);
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('delete', ResearchProposal::class);
     }
 
     /** Assigning a reviewer, starting a review, recording a decision. */
     public function review(User $user, ResearchProposal $proposal): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('review', ResearchProposal::class);
     }
 }

@@ -15,13 +15,13 @@ class ResearchManuscriptPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('viewAny', ResearchManuscript::class);
     }
 
     /** Staff read everything; a researcher reads their own and nobody else's. */
     public function view(User $user, ResearchManuscript $manuscript): bool
     {
-        return $user->isAdmin() || $user->id === $manuscript->user_id;
+        return $user->allowedTo('view', ResearchManuscript::class) || $user->id === $manuscript->user_id;
     }
 
     /** These are written in the portal, never in the admin. */
@@ -53,6 +53,6 @@ class ResearchManuscriptPolicy
     /** Assigning a reviewer, starting a review, recording a decision. */
     public function review(User $user, ResearchManuscript $manuscript): bool
     {
-        return $user->isAdmin();
+        return $user->allowedTo('review', ResearchManuscript::class);
     }
 }

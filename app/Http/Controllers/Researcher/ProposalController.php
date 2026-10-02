@@ -39,6 +39,7 @@ class ProposalController extends Controller
 
     public function create(Request $request)
     {
+        $profile = $request->user()->profile();
         $idea = null;
 
         // Carried forward from an approved idea, if one was named.
@@ -52,12 +53,21 @@ class ProposalController extends Controller
 
         $proposal = new ResearchProposal([
             'status' => ResearchProposal::DRAFT,
+            'name' => $request->user()->name,
+            'email' => $request->user()->email,
+            'phone' => $profile->phone,
+            'designation' => $profile->designation,
+            'institution' => $profile->organization,
+            'researcher_department' => $profile->department,
+            'researcher_type' => null,
             'research_idea_id' => $idea?->id,
-            'department' => $idea?->department,
+            'department' => $idea?->department
+                ?? (in_array($profile->department, ResearchTaxonomy::departments(), true) ? $profile->department : null),
             'research_field' => $idea?->research_field,
             'research_area' => $idea?->research_area,
             'title' => $idea?->title,
-            'summary' => $idea?->description,
+            'background' => $idea?->description,
+            'summary' => $idea?->description ?? '',
             'sdgs' => $idea?->sdgs,
         ]);
 
@@ -65,7 +75,6 @@ class ProposalController extends Controller
             'proposal' => $proposal,
             'idea' => $idea,
             'tree' => ResearchTaxonomy::tree(),
-            'ideas' => $this->linkableIdeas($request),
         ]);
     }
 
@@ -94,7 +103,6 @@ class ProposalController extends Controller
             'proposal' => $proposal,
             'idea' => $proposal->idea,
             'tree' => ResearchTaxonomy::tree(),
-            'ideas' => $this->linkableIdeas($request),
         ]);
     }
 
@@ -114,24 +122,17 @@ class ProposalController extends Controller
         $this->authoriseOwner($request, $proposal);
 
         return view('researcher.proposals.show', [
-            'proposal' => $proposal->load('reviews.reviewer', 'idea'),
+            'proposal' => $proposal->load('reviews.reviewer'),
         ]);
     }
 
     /* ------------------------------------------------------------ helpers */
 
-    /** The researcher's approved ideas, for the "from an idea" select. */
-    protected function linkableIdeas(Request $request)
-    {
-        return ResearchIdea::ownedBy($request->user())
-            ->whereIn('status', [ResearchIdea::APPROVED, ResearchIdea::PROPOSAL])
-            ->get();
-    }
-
     /** @return array<string, mixed> */
     protected function validated(Request $request): array
     {
         $tree = collect(ResearchTaxonomy::tree());
+        $submitting = $request->input('action') === 'submit';
 
         $data = $request->validate([
             'research_idea_id' => [
@@ -142,57 +143,101 @@ class ProposalController extends Controller
                     ->whereIn('status', [ResearchIdea::APPROVED, ResearchIdea::PROPOSAL]),
             ],
 
-            'title' => ['required', 'string', 'max:220'],
-            'department' => ['required', Rule::in($tree->pluck('department')->all())],
-            'research_field' => ['required', 'string', 'max:200'],
+            'title' => [$submitting ? 'required' : 'nullable', 'string', 'max:220'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'institution' => ['nullable', 'string', 'max:200'],
+            'researcher_type' => [$submitting ? 'required' : 'nullable', Rule::in(array_keys(ResearchProposal::researcherTypes()))],
+            'researcher_type_other' => [
+                Rule::requiredIf($submitting && $request->input('researcher_type') === 'other'),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'researcher_department' => [
+                Rule::requiredIf($submitting && $request->input('researcher_type') === 'student'),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'designation' => [
+                Rule::requiredIf($submitting && in_array($request->input('researcher_type'), ['professor', 'other'], true)),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'department' => [$submitting ? 'required' : 'nullable', Rule::in($tree->pluck('department')->all())],
+            'research_field' => [$submitting ? 'required' : 'nullable', 'string', 'max:200'],
             'research_area' => ['nullable', 'string', 'max:200'],
+            'research_type' => [$submitting ? 'required' : 'nullable', Rule::in(array_keys(ResearchProposal::researchTypes()))],
 
-            'summary' => ['required', 'string', 'min:40', 'max:6000'],
             'background' => ['nullable', 'string', 'max:6000'],
             'research_gap' => ['nullable', 'string', 'max:4000'],
             'objectives' => ['nullable', 'string', 'max:4000'],
             'research_questions' => ['nullable', 'string', 'max:4000'],
-            'hypothesis' => ['nullable', 'string', 'max:3000'],
-
             'methodology' => ['nullable', 'string', 'max:6000'],
-            'study_design' => ['nullable', 'string', 'max:200'],
-            'population' => ['nullable', 'string', 'max:3000'],
-            'data_collection' => ['nullable', 'string', 'max:3000'],
-            'data_analysis' => ['nullable', 'string', 'max:3000'],
-
             'expected_outcome' => ['nullable', 'string', 'max:4000'],
             'expected_impact' => ['nullable', 'string', 'max:4000'],
-            'sdgs' => ['nullable', 'array'],
-            'sdgs.*' => ['string', 'max:60'],
-
-            'duration' => ['nullable', 'string', 'max:120'],
+            'innovation_novelty' => ['nullable', 'string', 'max:4000'],
             'timeline' => ['nullable', 'string', 'max:4000'],
-            'budget' => ['nullable', 'string', 'max:120'],
-            'funding_needed' => ['nullable', 'string', 'max:120'],
-            'funding_type' => ['nullable', Rule::in(array_keys(ResearchProposal::fundingTypes()))],
-            'funding_organization' => ['nullable', 'string', 'max:180'],
-            'research_team' => ['nullable', 'string', 'max:3000'],
-            'principal_investigator' => ['nullable', 'string', 'max:160'],
-            'collaborators_needed' => ['nullable', 'string', 'max:160'],
+            'sdgs' => ['nullable', 'array'],
+            'sdgs.*' => ['string', Rule::in(array_map(fn ($number) => 'SDG '.$number, array_keys(__('research_hub.sdg.goals'))))],
 
-            'proposal_document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,zip'],
-            'document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,zip'],
+            'budget' => ['nullable', 'string', 'max:120'],
+            'funding_required' => ['nullable', 'boolean'],
+            'budget_breakdown' => ['nullable', 'string', 'max:4000'],
+            'funding_source' => ['nullable', 'string', 'max:500'],
+            'external_funding_applied' => ['nullable', 'boolean'],
+            'principal_investigator' => ['nullable', 'string', 'max:160'],
+            'co_researchers' => ['nullable', 'array', 'max:30'],
+            'co_researchers.*.name' => ['nullable', 'string', 'max:160'],
+            'co_researchers.*.designation' => ['nullable', 'string', 'max:160'],
+            'co_researchers.*.department' => ['nullable', 'string', 'max:160'],
+            'external_collaborator' => ['nullable', 'string', 'max:200'],
+            'external_department' => ['nullable', 'string', 'max:160'],
+            'external_institution' => ['nullable', 'string', 'max:200'],
+            'human_participants' => ['nullable', 'boolean'],
+            'sensitive_data' => ['nullable', 'boolean'],
+            'ethical_approval_required' => ['nullable', 'boolean'],
+            'informed_consent_required' => ['nullable', 'boolean'],
+            'ai_used' => ['nullable', 'boolean'],
+
         ]);
+
+        $data['title'] = $data['title'] ?? '';
+        $data['department'] = $data['department'] ?? '';
+        $data['research_field'] = $data['research_field'] ?? '';
+        $data['summary'] = $data['background'] ?? '';
+        if (($data['researcher_type'] ?? null) === 'student') {
+            $data['designation'] = null;
+        } else {
+            $data['researcher_department'] = null;
+        }
+        if (($data['researcher_type'] ?? null) !== 'other') {
+            $data['researcher_type_other'] = null;
+        }
+        $data['sdgs'] = array_values(array_unique($data['sdgs'] ?? []));
+        $data['co_researchers'] = collect($data['co_researchers'] ?? [])
+            ->map(fn (array $researcher) => array_filter($researcher, fn ($value) => filled($value)))
+            ->filter()
+            ->values()
+            ->all();
+        if (($data['research_type'] ?? null) !== 'collaborative') {
+            $data['principal_investigator'] = null;
+            $data['co_researchers'] = [];
+        }
+        if (! in_array($data['research_type'] ?? null, ['collaborative', 'interdisciplinary'], true)) {
+            $data['external_collaborator'] = null;
+            $data['external_department'] = null;
+            $data['external_institution'] = null;
+        }
 
         // The field has to belong to the department. Both are selects, but the
         // second is filled in the browser, so the pairing is checked again.
-        $department = $tree->firstWhere('department', $data['department']);
+        $department = $tree->firstWhere('department', $data['department'] ?? null);
 
-        if (! collect($department['fields'] ?? [])->pluck('name')->contains($data['research_field'])) {
+        if (filled($data['research_field'] ?? null)
+            && ! collect($department['fields'] ?? [])->pluck('name')->contains($data['research_field'])) {
             abort(422, __('research_hub.forms.errors.field_mismatch'));
-        }
-
-        foreach (['proposal_document', 'document'] as $file) {
-            if ($request->hasFile($file)) {
-                $data[$file] = $request->file($file)->store('research-proposals', 'public');
-            } else {
-                unset($data[$file]);
-            }
         }
 
         return $data;
