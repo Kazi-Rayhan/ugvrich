@@ -16,18 +16,36 @@
         $label = 'text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-400';
         $highlights = collect($service->highlights ?: []);
 
-        // An uploaded clip plays in the hero, beside the name.
+        // An uploaded clip fills the hero behind the text, like a cover image.
         $video = $service->video ? Storage::url($service->video) : null;
         $videoType = str_ends_with(strtolower((string) $service->video), '.webm') ? 'video/webm' : 'video/mp4';
         $poster = $service->image ? Storage::url($service->image) : null;
     @endphp
 
     {{-- ---------------- Hero ---------------- --}}
-    <section class="relative isolate overflow-hidden bg-navy-700 py-14 text-white sm:py-20">
-        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.12]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -right-32 -top-24 -z-10 h-80 w-80 rounded-full bg-brand-500/25 blur-[100px]" aria-hidden="true"></div>
+    <section @class([
+        'relative isolate overflow-hidden bg-navy-700 text-white',
+        'py-14 sm:py-20' => ! $video,
+        'flex min-h-[460px] items-end py-16 sm:min-h-[560px] sm:py-24' => $video,
+    ])>
+        @if ($video)
+            {{-- Muted, looped and decorative. With reduced motion it stays on its first frame. --}}
+            <video class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+                   autoplay muted loop playsinline preload="auto"
+                   @if ($poster) poster="{{ $poster }}" @endif
+                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                   aria-hidden="true" tabindex="-1">
+                <source src="{{ $video }}" type="{{ $videoType }}">
+            </video>
+            {{-- Darkened from the bottom-left, where the text sits, so it stays readable on any footage. --}}
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-navy-900/95 via-navy-800/70 to-navy-700/40" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-navy-900/70 to-transparent" aria-hidden="true"></div>
+        @else
+            <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.12]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-32 -top-24 -z-10 h-80 w-80 rounded-full bg-brand-500/25 blur-[100px]" aria-hidden="true"></div>
+        @endif
 
-        <div class="container-rich">
+        <div class="container-rich w-full">
             {{-- Where this sits: main service, then this one --}}
             <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-white/60" aria-label="Breadcrumb">
                 <a href="{{ route('services.index') }}" class="transition hover:text-white">{{ __('site.nav.services') }}</a>
@@ -35,11 +53,7 @@
                 <a href="{{ route('services.show', $category) }}" class="transition hover:text-white">{{ $category->name }}</a>
             </nav>
 
-            <div @class([
-                'mt-6 grid gap-10',
-                'lg:grid-cols-[1.4fr_0.6fr] lg:items-end' => ! $video,
-                'lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14' => $video,
-            ])>
+            <div class="mt-6 grid gap-10 lg:grid-cols-[1.4fr_0.6fr] lg:items-end">
                 <div>
                     @if ($category->sector_name)
                         <span class="eyebrow-invert">
@@ -51,41 +65,16 @@
                     <h1 class="mt-5 font-display text-[30px] font-bold leading-[1.1] !text-white sm:text-[46px]">{{ $service->name }}</h1>
 
                     @if ($service->description)
-                        <p class="mt-5 max-w-2xl text-[15.5px] leading-[1.85] text-white/75">{{ $service->description }}</p>
-                    @endif
-
-                    @if ($video)
-                        <div class="mt-8">
-                            <a href="{{ route('consultancy.create') }}" class="btn-primary">
-                                {{ __('site.actions.request_consultancy') }}
-                                <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-                            </a>
-                        </div>
+                        <p @class(['mt-5 max-w-2xl text-[15.5px] leading-[1.85]', 'text-white/75' => ! $video, 'text-white/85' => $video])>{{ $service->description }}</p>
                     @endif
                 </div>
 
-                @if ($video)
-                    {{-- With reduced motion the clip stays on its first frame. --}}
-                    <div class="relative">
-                        <div class="absolute -inset-3 rounded-[2rem] border border-white/10" aria-hidden="true"></div>
-                        <div class="relative aspect-video overflow-hidden rounded-[1.5rem] bg-ink-950 ring-1 ring-white/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.6)]">
-                            <video class="h-full w-full object-cover"
-                                   autoplay muted loop playsinline controls preload="metadata"
-                                   @if ($poster) poster="{{ $poster }}" @endif
-                                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
-                                   aria-label="{{ __('site.projects.video_title', ['title' => $service->name]) }}">
-                                <source src="{{ $video }}" type="{{ $videoType }}">
-                            </video>
-                        </div>
-                    </div>
-                @else
-                    <div class="flex flex-wrap gap-3 lg:justify-end">
-                        <a href="{{ route('consultancy.create') }}" class="btn-primary">
-                            {{ __('site.actions.request_consultancy') }}
-                            <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-                        </a>
-                    </div>
-                @endif
+                <div class="flex flex-wrap gap-3 lg:justify-end">
+                    <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                        {{ __('site.actions.request_consultancy') }}
+                        <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                    </a>
+                </div>
             </div>
         </div>
     </section>
