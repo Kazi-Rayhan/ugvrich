@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ConsultancyRequests\Schemas;
 
+use App\Models\ConsultancyRequest;
 use App\Support\MeetingSlots;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -23,9 +24,11 @@ class ConsultancyRequestForm
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')->required()->maxLength(150),
-                        TextInput::make('organization')->maxLength(150),
-                        TextInput::make('designation')->maxLength(150),
-                        TextInput::make('email')->email()->required()->maxLength(180),
+                        Select::make('organization')
+                            ->label('Organization type')
+                            ->options(fn () => ConsultancyRequest::organizationOptions())
+                            ->native(false),
+                        TextInput::make('email')->email()->maxLength(180),
                         TextInput::make('phone')->tel()->maxLength(40),
                         Select::make('service_category_id')
                             ->label('Area of consultancy')
@@ -41,7 +44,6 @@ class ConsultancyRequestForm
                             ->maxLength(180),
 
                         Textarea::make('requirement')
-                            ->required()
                             ->rows(8)
                             ->columnSpanFull(),
 

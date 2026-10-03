@@ -594,9 +594,16 @@ return [
         'step_documents' => 'Documents & review',
 
         'you_note' => 'So we know who to reply to, and on whose behalf.',
-        'designation' => 'Designation',
+        'organization_placeholder' => 'Select one',
+        'organization_types' => [
+            'individual' => 'Individual',
+            'government' => 'Government organization',
+            'private' => 'Private organization',
+            'ngo' => 'NGO',
+            'other' => 'Other',
+        ],
 
-        'requirement_note' => 'Pick the closest area, then describe the problem in your own words.',
+        'requirement_note' => 'Pick the closest area and, if you like, the service you need.',
         'category' => 'Consultancy category',
         'not_sure' => 'Not sure yet',
         'which_service' => 'Which service?',

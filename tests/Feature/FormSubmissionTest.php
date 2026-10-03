@@ -78,6 +78,26 @@ class FormSubmissionTest extends TestCase
         $this->assertSame(0, ContactMessage::count());
     }
 
+    public function test_a_consultancy_request_needs_only_a_name(): void
+    {
+        $this->post(route('consultancy.store'), [
+            'name' => 'Walk-in Client',
+            'organization' => 'ngo',
+        ])->assertRedirect(route('consultancy.thanks'));
+
+        $this->assertDatabaseHas(ConsultancyRequest::class, [
+            'name' => 'Walk-in Client',
+            'organization' => 'ngo',
+            'email' => null,
+            'requirement' => null,
+        ]);
+
+        $this->post(route('consultancy.store'), [
+            'name' => 'Walk-in Client',
+            'organization' => 'Acme Ltd',
+        ])->assertSessionHasErrors('organization');
+    }
+
     public function test_a_consultancy_request_can_name_a_meeting_slot(): void
     {
         $open = CarbonImmutable::now()->next(CarbonImmutable::TUESDAY)->toDateString();

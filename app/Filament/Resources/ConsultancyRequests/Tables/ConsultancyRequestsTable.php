@@ -43,7 +43,7 @@ class ConsultancyRequestsTable
                     // are just not printed under the name any more - a second
                     // line there is what forced every row taller.
                     ->searchable(['name', 'organization', 'designation'])
-                    ->tooltip(fn ($record) => collect([$record->designation, $record->organization])
+                    ->tooltip(fn ($record) => collect([$record->designation, $record->organization_label])
                         ->filter()
                         ->implode(' · ') ?: null),
 

@@ -9,6 +9,23 @@ class ConsultancyRequest extends Model
 {
     protected $guarded = [];
 
+    /** The kinds of requester the public form offers, stored in `organization`. */
+    public const ORGANIZATION_TYPES = ['individual', 'government', 'private', 'ngo', 'other'];
+
+    /** @return array<string, string> */
+    public static function organizationOptions(): array
+    {
+        return collect(self::ORGANIZATION_TYPES)
+            ->mapWithKeys(fn ($type) => [$type => __('site.consultancy.organization_types.'.$type)])
+            ->all();
+    }
+
+    /** The organization type, read in the language of the page. Older free-text values pass through. */
+    public function getOrganizationLabelAttribute(): ?string
+    {
+        return self::organizationOptions()[$this->organization] ?? $this->organization;
+    }
+
     protected $casts = [
         'handled_at' => 'datetime',
         'preferred_date' => 'date',

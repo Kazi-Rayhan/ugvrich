@@ -72,6 +72,14 @@ class ServiceForm
                                 ->imageEditor()
                                 ->columnSpanFull(),
 
+                            TextInput::make('video_url')
+                                ->label('Video URL (optional)')
+                                ->url()
+                                ->maxLength(255)
+                                ->placeholder('https://www.youtube.com/watch?v=…')
+                                ->columnSpanFull()
+                                ->helperText('YouTube or Vimeo links play on the service page; any other link shows as a "Watch the video" button.'),
+
                             TextInput::make('sort_order')->numeric()->default(0)->required(),
 
                             Toggle::make('is_active')->label('Visible on the site')->default(true),

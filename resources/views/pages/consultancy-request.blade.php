@@ -42,10 +42,10 @@
             <form action="{{ route('consultancy.store') }}" method="POST" enctype="multipart/form-data"
                   class="reveal overflow-hidden rounded-[2rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]"
                   x-data="{
-                      step: {{ $errors->hasAny(['requirement', 'service_category_id', 'preferred_date', 'preferred_slot']) ? 2 : ($errors->has('document') ? 3 : 1) }},
+                      step: {{ $errors->hasAny(['service_category_id', 'preferred_date', 'preferred_slot']) ? 2 : ($errors->has('document') ? 3 : 1) }},
                       last: 3,
-                      chars: {{ mb_strlen((string) old('requirement')) }},
                       file: null,
+                      organizationNames: @js(\App\Models\ConsultancyRequest::organizationOptions()),
                       area: '{{ $selectedArea }}',
                       fields: {
                           name: @js(old('name', '')),
@@ -132,12 +132,31 @@
                         <p class="font-display text-[19px] font-bold text-ink-950">{{ __('site.consultancy.step_you') }}</p>
                         <p class="mt-1.5 text-[14px] muted">{{ __('site.consultancy.you_note') }}</p>
 
-                        <div class="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="mt-7 grid gap-5 sm:grid-cols-2">
                             <x-form.field name="name" :label="__('site.forms.full_name')" icon="users" required autocomplete="name" x-model="fields.name" />
                             <x-form.field name="phone" :label="__('site.forms.phone')" type="tel" icon="phone" autocomplete="tel" x-model="fields.phone" />
-                            <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" required autocomplete="email" x-model="fields.email" />
-                            <x-form.field name="organization" :label="__('site.forms.organization')" icon="building" autocomplete="organization" x-model="fields.organization" />
-                            <x-form.field name="designation" :label="__('site.consultancy.designation')" icon="briefcase" autocomplete="organization-title" />
+                            <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" autocomplete="email" x-model="fields.email" />
+
+                            <div>
+                                <label for="organization" class="mb-2 block text-[13px] font-semibold text-ink-700">{{ __('site.forms.organization') }}</label>
+                                <div class="group relative">
+                                    <x-ui-icon name="building" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-400 transition-colors group-focus-within:text-brand-600" />
+                                    <select id="organization" name="organization" x-model="fields.organization"
+                                            @class([
+                                                'w-full rounded-2xl border bg-ink-50/60 py-3.5 pl-11 pr-4 text-[15px] text-ink-900 transition focus:bg-white focus:outline-none focus:ring-4',
+                                                'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('organization'),
+                                                'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('organization'),
+                                            ])>
+                                        <option value="">{{ __('site.consultancy.organization_placeholder') }}</option>
+                                        @foreach (\App\Models\ConsultancyRequest::organizationOptions() as $value => $label)
+                                            <option value="{{ $value }}" @selected(old('organization') === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @error('organization')
+                                    <p class="mt-1.5 text-[13px] text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </fieldset>
 
@@ -190,28 +209,6 @@
                             </select>
                             @error('area_of_interest')
                                 <p class="mt-1.5 text-[13px] text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="mt-7">
-                            <div class="mb-2 flex items-end justify-between gap-3">
-                                <label for="requirement" class="text-[13px] font-semibold text-ink-700">
-                                    {{ __('site.consultancy.requirement_label') }} <span class="text-brand-600">*</span>
-                                </label>
-                                <span class="text-[12px] tabular-nums transition-colors" :class="chars < 20 ? 'text-ink-400' : 'text-brand-600'">
-                                    <span x-text="chars">{{ mb_strlen((string) old('requirement')) }}</span> / 5000
-                                </span>
-                            </div>
-                            <textarea id="requirement" name="requirement" rows="7" required minlength="20" maxlength="5000"
-                                      @input="chars = $event.target.value.length"
-                                      placeholder="{{ __('site.consultancy.requirement_placeholder') }}"
-                                      @class([
-                                          'w-full rounded-2xl border bg-ink-50/60 px-4 py-3.5 text-[15px] leading-relaxed text-ink-900 placeholder:text-ink-400 transition focus:bg-white focus:outline-none focus:ring-4',
-                                          'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('requirement'),
-                                          'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('requirement'),
-                                      ])>{{ old('requirement') }}</textarea>
-                            @error('requirement')
-                                <p class="mt-1 text-[13px] text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -336,7 +333,7 @@
                                     @foreach ([['name', __('site.consultancy.summary_name')], ['phone', __('site.forms.phone')], ['email', __('site.forms.email')], ['organization', __('site.forms.organization')]] as [$field, $label])
                                         <div class="flex gap-3">
                                             <dt class="w-28 shrink-0 text-ink-500">{{ $label }}</dt>
-                                            <dd class="min-w-0 flex-1 truncate font-medium text-ink-900" x-text="fields.{{ $field }} || '--'">--</dd>
+                                            <dd class="min-w-0 flex-1 truncate font-medium text-ink-900" x-text="{{ $field === 'organization' ? '(organizationNames[fields.organization] ?? fields.organization)' : 'fields.'.$field }} || '--'">--</dd>
                                         </div>
                                     @endforeach
                                     <div class="flex gap-3">
@@ -346,10 +343,6 @@
                                     <div class="flex gap-3">
                                         <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_service') }}</dt>
                                         <dd class="min-w-0 flex-1 font-medium text-ink-900" x-text="service || @js(__('site.consultancy.advise_me'))">--</dd>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_requirement') }}</dt>
-                                        <dd class="min-w-0 flex-1 font-medium text-ink-900"><span x-text="chars">0</span> {{ __('site.consultancy.summary_characters') }}</dd>
                                     </div>
                                     <div class="flex gap-3">
                                         <dt class="w-28 shrink-0 text-ink-500">{{ __('site.consultancy.summary_meeting') }}</dt>

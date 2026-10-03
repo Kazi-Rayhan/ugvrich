@@ -15,13 +15,11 @@ class ConsultancyRequestController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'organization' => ['nullable', 'string', 'max:150'],
-            'designation' => ['nullable', 'string', 'max:150'],
-            'email' => ['required', 'email:rfc', 'max:180'],
+            'organization' => ['nullable', Rule::in(ConsultancyRequest::ORGANIZATION_TYPES)],
+            'email' => ['nullable', 'email:rfc', 'max:180'],
             'phone' => ['nullable', 'string', 'max:40'],
             'service_category_id' => ['nullable', Rule::exists(ServiceCategory::class, 'id')],
             'area_of_interest' => ['nullable', 'string', 'max:180'],
-            'requirement' => ['required', 'string', 'min:20', 'max:5000'],
 
             // A preferred meeting time is optional, but a date and a slot only
             // make sense together, and the office is shut on Thursday and Friday.
@@ -42,7 +40,6 @@ class ConsultancyRequestController extends Controller
             'document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,png,jpg,jpeg'],
             'website' => ['nullable', 'size:0'], // honeypot
         ], [
-            'requirement.min' => 'Please describe your requirement in a little more detail (at least 20 characters).',
             'website.size' => 'Submission rejected.',
         ]);
 

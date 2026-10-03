@@ -15,6 +15,14 @@
          */
         $label = 'text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-400';
         $highlights = collect($service->highlights ?: []);
+
+        // YouTube / Vimeo links become an embeddable URL; anything else is shown as a link.
+        $embed = null;
+        if ($service->video_url && preg_match('~(?:youtube\.com/(?:watch\?v=|shorts/|embed/)|youtu\.be/)([\w-]{11})~', $service->video_url, $m)) {
+            $embed = 'https://www.youtube-nocookie.com/embed/'.$m[1];
+        } elseif ($service->video_url && preg_match('~vimeo\.com/(\d+)~', $service->video_url, $m)) {
+            $embed = 'https://player.vimeo.com/video/'.$m[1];
+        }
     @endphp
 
     {{-- ---------------- Hero ---------------- --}}
@@ -39,7 +47,7 @@
                         </span>
                     @endif
 
-                    <h1 class="mt-5 font-display text-[30px] font-bold leading-[1.1] sm:text-[46px]">{{ $service->name }}</h1>
+                    <h1 class="mt-5 font-display text-[30px] font-bold leading-[1.1] !text-white sm:text-[46px]">{{ $service->name }}</h1>
 
                     @if ($service->description)
                         <p class="mt-5 max-w-2xl text-[15.5px] leading-[1.85] text-white/75">{{ $service->description }}</p>
@@ -57,7 +65,7 @@
     </section>
 
     {{-- ---------------- Overview and what is included ---------------- --}}
-    @if ($service->body || $highlights->isNotEmpty())
+    @if ($service->body || $highlights->isNotEmpty() || $service->video_url)
         <section class="bg-white py-16 sm:py-20">
             <div class="container-rich grid gap-x-12 gap-y-10 lg:grid-cols-[1.3fr_0.7fr]">
                 <div class="reveal">
@@ -70,6 +78,17 @@
                                 <p>{{ $paragraph }}</p>
                             @endforeach
                         </div>
+                    @endif
+
+                    @if ($embed)
+                        <div class="{{ $service->body ? 'mt-8' : '' }} aspect-video overflow-hidden rounded-2xl bg-ink-950">
+                            <iframe src="{{ $embed }}" title="{{ __('site.projects.video_title', ['title' => $service->name]) }}" class="h-full w-full" loading="lazy"
+                                    allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    @elseif ($service->video_url)
+                        <a href="{{ $service->video_url }}" target="_blank" rel="noopener noreferrer" class="btn-ghost {{ $service->body ? 'mt-8' : '' }}">
+                            <x-ui-icon name="play" class="h-4 w-4" /> {{ __('site.projects.watch_video') }}
+                        </a>
                     @endif
                 </div>
 
