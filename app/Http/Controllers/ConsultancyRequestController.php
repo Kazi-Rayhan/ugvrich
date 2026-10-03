@@ -17,7 +17,7 @@ class ConsultancyRequestController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'organization' => ['nullable', Rule::in(ConsultancyRequest::ORGANIZATION_TYPES)],
             'email' => ['nullable', 'email:rfc', 'max:180'],
-            'phone' => ['nullable', 'string', 'max:40'],
+            'phone' => ['required', 'string', 'max:40'],
             'service_category_id' => ['nullable', Rule::exists(ServiceCategory::class, 'id')],
             'area_of_interest' => ['nullable', 'string', 'max:180'],
 
@@ -50,11 +50,12 @@ class ConsultancyRequestController extends Controller
         }
 
         $consultancy = ConsultancyRequest::create($data);
+        $reference = 'RICH-'.str_pad((string) $consultancy->id, 5, '0', STR_PAD_LEFT);
 
         return redirect()
             ->route('consultancy.thanks')
             ->with('consultancy_request', [
-                'reference' => 'RICH-'.str_pad((string) $consultancy->id, 5, '0', STR_PAD_LEFT),
+                'reference' => $reference,
                 'name' => $consultancy->name,
                 'email' => $consultancy->email,
                 'area' => $consultancy->service_category_id
@@ -62,7 +63,30 @@ class ConsultancyRequestController extends Controller
                     : null,
                 'preferred_date' => $consultancy->preferred_date?->translatedFormat('j F Y'),
                 'preferred_slot' => MeetingSlots::label($consultancy->preferred_slot),
+                'calendar_url' => $this->calendarUrl($consultancy, $reference),
             ]);
+    }
+
+    /**
+     * A Google Calendar link for the requested meeting, so the requester can
+     * keep a reminder of it. Slots are office hours in Dhaka.
+     */
+    private function calendarUrl(ConsultancyRequest $consultancy, string $reference): ?string
+    {
+        if (! $consultancy->preferred_date || ! $consultancy->preferred_slot) {
+            return null;
+        }
+
+        [$from, $to] = explode('-', $consultancy->preferred_slot);
+        $day = $consultancy->preferred_date->format('Ymd');
+
+        return 'https://calendar.google.com/calendar/render?'.http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => __('site.thanks.calendar_event', ['reference' => $reference]),
+            'dates' => $day.'T'.str_replace(':', '', $from).'00/'.$day.'T'.str_replace(':', '', $to).'00',
+            'ctz' => 'Asia/Dhaka',
+            'details' => __('site.thanks.calendar_details', ['reference' => $reference]),
+        ]);
     }
 
     public function thanks()

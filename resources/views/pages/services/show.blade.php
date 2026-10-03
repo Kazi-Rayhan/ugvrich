@@ -5,7 +5,7 @@
         :title="$category->name"
         :lead="$category->description"
         :breadcrumbs="[__('site.services.breadcrumb') => route('services.index'), $category->name => null]">
-        <a href="{{ route('contact') }}?area={{ $category->slug }}" class="btn-primary">
+        <a href="{{ route('consultancy.create', ['area' => $category->slug]) }}" class="btn-primary">
             {{ __('site.services.request_service') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
         </a>
         <a href="#services" class="btn-ghost">
@@ -99,7 +99,7 @@
 
             {{-- What this area can be asked for --}}
             <div class="reveal mt-14 flex flex-wrap items-center gap-4 border-t border-ink-100 pt-8">
-                <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                <a href="{{ route('consultancy.create', ['area' => $category->slug]) }}" class="btn-primary">
                     {{ __('site.services.request_service') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
                 <a href="{{ route('services.index') }}" class="btn-ghost">

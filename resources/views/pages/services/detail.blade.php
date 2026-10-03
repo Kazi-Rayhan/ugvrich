@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3 lg:justify-end">
-                    <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                    <a href="{{ route('consultancy.create', ['area' => $category->slug, 'service' => $service->slug]) }}" class="btn-primary">
                         {{ __('site.actions.request_consultancy') }}
                         <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                     </a>
@@ -184,7 +184,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3 lg:justify-end">
-                    <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                    <a href="{{ route('consultancy.create', ['area' => $category->slug, 'service' => $service->slug]) }}" class="btn-primary">
                         {{ __('site.actions.request_consultancy') }}
                         <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                     </a>

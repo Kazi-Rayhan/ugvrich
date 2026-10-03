@@ -64,6 +64,7 @@ class FormSubmissionTest extends TestCase
 
         $this->post(route('consultancy.store'), [
             'name' => 'Client X',
+            'phone' => '01700000000',
             'email' => 'c@example.com',
             'service_category_id' => $category->id,
             'area_of_interest' => $service->name,
@@ -78,15 +79,17 @@ class FormSubmissionTest extends TestCase
         $this->assertSame(0, ContactMessage::count());
     }
 
-    public function test_a_consultancy_request_needs_only_a_name(): void
+    public function test_a_consultancy_request_needs_only_a_name_and_phone(): void
     {
         $this->post(route('consultancy.store'), [
             'name' => 'Walk-in Client',
+            'phone' => '01700000000',
             'organization' => 'ngo',
         ])->assertRedirect(route('consultancy.thanks'));
 
         $this->assertDatabaseHas(ConsultancyRequest::class, [
             'name' => 'Walk-in Client',
+            'phone' => '01700000000',
             'organization' => 'ngo',
             'email' => null,
             'requirement' => null,
@@ -94,6 +97,7 @@ class FormSubmissionTest extends TestCase
 
         $this->post(route('consultancy.store'), [
             'name' => 'Walk-in Client',
+            'phone' => '01700000000',
             'organization' => 'Acme Ltd',
         ])->assertSessionHasErrors('organization');
     }
@@ -104,6 +108,7 @@ class FormSubmissionTest extends TestCase
 
         $this->post(route('consultancy.store'), [
             'name' => 'Nadia Rahman',
+            'phone' => '01700000000',
             'email' => 'nadia@example.test',
             'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
             'preferred_date' => $open,
@@ -121,6 +126,7 @@ class FormSubmissionTest extends TestCase
         foreach ([CarbonImmutable::THURSDAY, CarbonImmutable::FRIDAY] as $closed) {
             $this->post(route('consultancy.store'), [
                 'name' => 'Nadia Rahman',
+                'phone' => '01700000000',
                 'email' => 'nadia@example.test',
                 'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
                 'preferred_date' => CarbonImmutable::now()->next($closed)->toDateString(),
@@ -133,6 +139,7 @@ class FormSubmissionTest extends TestCase
     {
         $base = [
             'name' => 'Nadia Rahman',
+            'phone' => '01700000000',
             'email' => 'nadia@example.test',
             'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
         ];
@@ -152,6 +159,7 @@ class FormSubmissionTest extends TestCase
 
         $booking = [
             'name' => 'Nadia Rahman',
+            'phone' => '01700000000',
             'email' => 'nadia@example.test',
             'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
             'preferred_date' => $open,
@@ -175,6 +183,7 @@ class FormSubmissionTest extends TestCase
 
         ConsultancyRequest::create([
             'name' => 'Nadia Rahman',
+            'phone' => '01700000000',
             'email' => 'nadia@example.test',
             'requirement' => 'An energy audit of two production lines.',
             'preferred_date' => $open,
@@ -184,6 +193,7 @@ class FormSubmissionTest extends TestCase
 
         $this->post(route('consultancy.store'), [
             'name' => 'Other Person',
+            'phone' => '01700000000',
             'email' => 'other@example.test',
             'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
             'preferred_date' => $open,
@@ -216,6 +226,7 @@ class FormSubmissionTest extends TestCase
 
         $this->post(route('consultancy.store'), [
             'name' => 'Nadia Rahman',
+            'phone' => '01700000000',
             'email' => 'nadia@example.test',
             'requirement' => 'We would like an energy audit of our two production lines before the next quarter.',
             'preferred_date' => CarbonImmutable::now()->next(CarbonImmutable::TUESDAY)->toDateString(),

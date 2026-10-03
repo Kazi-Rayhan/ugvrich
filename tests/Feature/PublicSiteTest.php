@@ -110,7 +110,7 @@ class PublicSiteTest extends TestCase
             'name' => '',
             'email' => 'not-an-email',
             'organization' => 'Somewhere Ltd',
-        ])->assertSessionHasErrors(['name', 'email', 'organization']);
+        ])->assertSessionHasErrors(['name', 'phone', 'email', 'organization']);
 
         $this->assertSame(0, ConsultancyRequest::count());
     }
@@ -119,6 +119,7 @@ class PublicSiteTest extends TestCase
     {
         $this->post(route('consultancy.store'), [
             'name' => 'Spam Bot',
+            'phone' => '01700000000',
             'email' => 'bot@example.com',
             'requirement' => 'This is a long enough requirement string to pass the minimum.',
             'website' => 'http://spam.example',

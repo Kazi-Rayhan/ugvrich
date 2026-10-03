@@ -685,6 +685,12 @@ return [
         'see_projects' => 'See our projects',
         'add_something' => 'Need to add something? Email',
         'email_subject' => 'Consultancy request',
+        'meeting_title' => 'Your requested meeting',
+        'reminder_label' => 'Reminder:',
+        'meeting_note' => 'Please keep this time free. Our team will confirm the meeting before the day.',
+        'add_to_calendar' => 'Add a reminder to Google Calendar',
+        'calendar_event' => 'Consultancy meeting with UGV RICH (:reference)',
+        'calendar_details' => 'Your consultancy meeting with UGV RICH. Request reference: :reference.',
 
         'idea_title' => 'Idea received',
         'idea_description' => 'Your innovation idea has been received by the UGV RICH Innovation Wing.',

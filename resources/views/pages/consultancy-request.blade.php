@@ -2,7 +2,10 @@
                :description="__('site.consultancy.meta_description')">
 
     @php
-        $selectedArea = old('service_category_id', optional($categories->firstWhere('slug', request('area')))->id);
+        // Arriving from a service page (?area=…&service=…) opens with that service already chosen.
+        $requestedArea = $categories->firstWhere('slug', request('area'));
+        $selectedArea = old('service_category_id', $requestedArea?->id);
+        $selectedService = old('area_of_interest', $requestedArea?->services->firstWhere('slug', request('service'))?->name ?? '');
     @endphp
 
     <x-page-hero
@@ -53,7 +56,7 @@
                           email: @js(old('email', '')),
                           organization: @js(old('organization', '')),
                       },
-                      service: @js(old('area_of_interest', '')),
+                      service: @js($selectedService),
                       meetingDate: @js(old('preferred_date', '')),
                       slot: @js(old('preferred_slot', '')),
                       closedDays: @js(\App\Support\MeetingSlots::closedDays()),
@@ -106,22 +109,39 @@
                         </span>
                     </div>
 
-                    <ol class="mt-7 grid gap-3 sm:grid-cols-3">
-                        @foreach ([[1, __('site.consultancy.step_you'), 'users'], [2, __('site.consultancy.step_requirement'), 'document'], [3, __('site.consultancy.step_documents'), 'upload']] as [$n, $label, $icon])
-                            <li class="flex items-center gap-3 rounded-2xl border bg-white p-3.5 transition duration-300"
-                                :class="step === {{ $n }} ? 'border-brand-600 ring-4 ring-brand-100' : (step > {{ $n }} ? 'border-brand-200' : 'border-ink-200')">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-display text-[13px] font-bold transition-colors duration-300"
-                                      :class="step >= {{ $n }} ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500'">
-                                    <template x-if="step > {{ $n }}"><x-ui-icon name="check" class="h-4 w-4" stroke="2.6" /></template>
-                                    <span x-show="step <= {{ $n }}">{{ $n }}</span>
-                                </span>
-                                <span class="min-w-0">
-                                    <span class="block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-400">{{ __('site.consultancy.step', ['number' => $n]) }}</span>
-                                    <span class="block truncate font-display text-[14.5px] font-semibold text-ink-950">{{ $label }}</span>
-                                </span>
-                            </li>
-                        @endforeach
-                    </ol>
+                    {{-- Stepper: a track that fills as the form moves on. Finished
+                         steps can be clicked to go back to them. --}}
+                    <div class="relative mt-8">
+                        <div class="absolute left-[16.667%] right-[16.667%] top-6 -translate-y-1/2 border-t-[3px] border-dotted border-ink-300" aria-hidden="true">
+                            <div class="absolute left-0 -top-[3px] border-t-[3px] border-dotted border-brand-600 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                                 :style="`width: ${(step - 1) / (last - 1) * 100}%`"></div>
+                        </div>
+
+                        <ol class="relative grid grid-cols-3">
+                            @foreach ([[1, __('site.consultancy.step_you'), 'users'], [2, __('site.consultancy.step_requirement'), 'document'], [3, __('site.consultancy.step_documents'), 'upload']] as [$n, $label, $icon])
+                                <li class="flex flex-col items-center text-center">
+                                    <button type="button" @click="if (step > {{ $n }}) step = {{ $n }}"
+                                            :disabled="step <= {{ $n }}"
+                                            :aria-current="step === {{ $n }} ? 'step' : null"
+                                            class="group relative flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-500 disabled:cursor-default"
+                                            :class="step > {{ $n }}
+                                                ? 'border-brand-600 bg-brand-600 text-white shadow-[0_10px_24px_-10px_var(--color-brand-600)] hover:scale-105'
+                                                : (step === {{ $n }}
+                                                    ? 'scale-110 border-brand-600 bg-white text-brand-600 shadow-[0_0_0_6px_var(--color-brand-100),0_14px_30px_-12px_var(--color-brand-600)]'
+                                                    : 'border-ink-200 bg-white text-ink-400')">
+                                        <span x-show="step === {{ $n }}" class="absolute inset-0 animate-ping rounded-full bg-brand-400/25" aria-hidden="true"></span>
+                                        <x-ui-icon name="check" class="h-5 w-5" stroke="2.6" x-show="step > {{ $n }}" x-cloak />
+                                        <x-ui-icon :name="$icon" class="h-5 w-5" x-show="step <= {{ $n }}" />
+                                    </button>
+
+                                    <span class="mt-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] transition-colors"
+                                          :class="step >= {{ $n }} ? 'text-brand-600' : 'text-ink-400'">{{ __('site.consultancy.step', ['number' => $n]) }}</span>
+                                    <span class="mt-0.5 block font-display text-[12.5px] font-semibold leading-snug transition-colors sm:text-[14px]"
+                                          :class="step >= {{ $n }} ? 'text-ink-950' : 'text-ink-400'">{{ $label }}</span>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </div>
                 </div>
 
                 <div class="px-6 py-8 sm:px-10 sm:py-10">
@@ -134,7 +154,7 @@
 
                         <div class="mt-7 grid gap-5 sm:grid-cols-2">
                             <x-form.field name="name" :label="__('site.forms.full_name')" icon="users" required autocomplete="name" x-model="fields.name" />
-                            <x-form.field name="phone" :label="__('site.forms.phone')" type="tel" icon="phone" autocomplete="tel" x-model="fields.phone" />
+                            <x-form.field name="phone" :label="__('site.forms.phone')" type="tel" icon="phone" required autocomplete="tel" x-model="fields.phone" />
                             <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" autocomplete="email" x-model="fields.email" />
 
                             <div>
@@ -204,7 +224,7 @@
                                     class="w-full rounded-2xl border border-ink-200 bg-ink-50/60 px-4 py-3.5 text-[15px] text-ink-900 transition hover:border-ink-300 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-100">
                                 <option value="">{{ __('site.consultancy.advise_me') }}</option>
                                 <template x-for="name in (services[area] ?? [])" :key="name">
-                                    <option :value="name" x-text="name"></option>
+                                    <option :value="name" x-text="name" :selected="name === service"></option>
                                 </template>
                             </select>
                             @error('area_of_interest')
