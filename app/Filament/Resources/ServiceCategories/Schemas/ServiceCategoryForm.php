@@ -95,6 +95,14 @@ class ServiceCategoryForm
                                 ->directory('service-categories')
                                 ->imageEditor(),
 
+                            FileUpload::make('video')
+                                ->label('Video (optional)')
+                                ->disk('public')
+                                ->directory('service-categories/videos')
+                                ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                ->maxSize(204800)
+                                ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped in place of the image; the image shows while it loads.'),
+
                             TextInput::make('sort_order')
                                 ->numeric()
                                 ->default(0)
