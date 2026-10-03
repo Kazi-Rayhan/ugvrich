@@ -26,7 +26,7 @@
     <section @class([
         'relative isolate overflow-hidden bg-navy-700 text-white',
         'py-14 sm:py-20' => ! $video,
-        'flex min-h-[460px] items-end py-16 sm:min-h-[560px] sm:py-24' => $video,
+        'flex min-h-[340px] items-end py-12 sm:min-h-[400px] sm:py-16' => $video,
     ])>
         @if ($video)
             {{-- Muted, looped and decorative. With reduced motion it stays on its first frame. --}}
