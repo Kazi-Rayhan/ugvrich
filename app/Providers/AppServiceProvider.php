@@ -34,6 +34,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Livewire stops temporary uploads at 12 MB, too small for the videos
+        // the admin panel takes. Each field still sets its own, smaller limit.
+        config([
+            'livewire.temporary_file_upload.rules' => ['required', 'file', 'max:204800'],
+            'livewire.temporary_file_upload.max_upload_time' => 30,
+        ]);
+
         View::composer('*', function ($view) {
             $view->with('site', app(Site::class));
         });

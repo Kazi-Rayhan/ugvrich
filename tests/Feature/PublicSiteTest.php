@@ -87,8 +87,7 @@ class PublicSiteTest extends TestCase
 
         $response = $this->post(route('consultancy.store'), [
             'name' => 'Ayesha Rahman',
-            'organization' => 'District Administration',
-            'designation' => 'Deputy Commissioner',
+            'organization' => 'government',
             'email' => 'ayesha@example.org',
             'phone' => '+880 1700 000000',
             'service_category_id' => ServiceCategory::first()->id,
@@ -110,8 +109,8 @@ class PublicSiteTest extends TestCase
         $this->post(route('consultancy.store'), [
             'name' => '',
             'email' => 'not-an-email',
-            'requirement' => 'too short',
-        ])->assertSessionHasErrors(['name', 'email', 'requirement']);
+            'organization' => 'Somewhere Ltd',
+        ])->assertSessionHasErrors(['name', 'email', 'organization']);
 
         $this->assertSame(0, ConsultancyRequest::count());
     }

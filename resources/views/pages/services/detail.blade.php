@@ -16,13 +16,10 @@
         $label = 'text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-400';
         $highlights = collect($service->highlights ?: []);
 
-        // YouTube / Vimeo links become an embeddable URL; anything else is shown as a link.
-        $embed = null;
-        if ($service->video_url && preg_match('~(?:youtube\.com/(?:watch\?v=|shorts/|embed/)|youtu\.be/)([\w-]{11})~', $service->video_url, $m)) {
-            $embed = 'https://www.youtube-nocookie.com/embed/'.$m[1];
-        } elseif ($service->video_url && preg_match('~vimeo\.com/(\d+)~', $service->video_url, $m)) {
-            $embed = 'https://player.vimeo.com/video/'.$m[1];
-        }
+        // An uploaded clip plays in the hero, beside the name.
+        $video = $service->video ? Storage::url($service->video) : null;
+        $videoType = str_ends_with(strtolower((string) $service->video), '.webm') ? 'video/webm' : 'video/mp4';
+        $poster = $service->image ? Storage::url($service->image) : null;
     @endphp
 
     {{-- ---------------- Hero ---------------- --}}
@@ -38,7 +35,11 @@
                 <a href="{{ route('services.show', $category) }}" class="transition hover:text-white">{{ $category->name }}</a>
             </nav>
 
-            <div class="mt-6 grid gap-10 lg:grid-cols-[1.4fr_0.6fr] lg:items-end">
+            <div @class([
+                'mt-6 grid gap-10',
+                'lg:grid-cols-[1.4fr_0.6fr] lg:items-end' => ! $video,
+                'lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14' => $video,
+            ])>
                 <div>
                     @if ($category->sector_name)
                         <span class="eyebrow-invert">
@@ -52,20 +53,45 @@
                     @if ($service->description)
                         <p class="mt-5 max-w-2xl text-[15.5px] leading-[1.85] text-white/75">{{ $service->description }}</p>
                     @endif
+
+                    @if ($video)
+                        <div class="mt-8">
+                            <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                                {{ __('site.actions.request_consultancy') }}
+                                <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                            </a>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="flex flex-wrap gap-3 lg:justify-end">
-                    <a href="{{ route('consultancy.create') }}" class="btn-primary">
-                        {{ __('site.actions.request_consultancy') }}
-                        <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-                    </a>
-                </div>
+                @if ($video)
+                    {{-- With reduced motion the clip stays on its first frame. --}}
+                    <div class="relative">
+                        <div class="absolute -inset-3 rounded-[2rem] border border-white/10" aria-hidden="true"></div>
+                        <div class="relative aspect-video overflow-hidden rounded-[1.5rem] bg-ink-950 ring-1 ring-white/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.6)]">
+                            <video class="h-full w-full object-cover"
+                                   autoplay muted loop playsinline controls preload="metadata"
+                                   @if ($poster) poster="{{ $poster }}" @endif
+                                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                                   aria-label="{{ __('site.projects.video_title', ['title' => $service->name]) }}">
+                                <source src="{{ $video }}" type="{{ $videoType }}">
+                            </video>
+                        </div>
+                    </div>
+                @else
+                    <div class="flex flex-wrap gap-3 lg:justify-end">
+                        <a href="{{ route('consultancy.create') }}" class="btn-primary">
+                            {{ __('site.actions.request_consultancy') }}
+                            <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </section>
 
     {{-- ---------------- Overview and what is included ---------------- --}}
-    @if ($service->body || $highlights->isNotEmpty() || $service->video_url)
+    @if ($service->body || $highlights->isNotEmpty())
         <section class="bg-white py-16 sm:py-20">
             <div class="container-rich grid gap-x-12 gap-y-10 lg:grid-cols-[1.3fr_0.7fr]">
                 <div class="reveal">
@@ -78,17 +104,6 @@
                                 <p>{{ $paragraph }}</p>
                             @endforeach
                         </div>
-                    @endif
-
-                    @if ($embed)
-                        <div class="{{ $service->body ? 'mt-8' : '' }} aspect-video overflow-hidden rounded-2xl bg-ink-950">
-                            <iframe src="{{ $embed }}" title="{{ __('site.projects.video_title', ['title' => $service->name]) }}" class="h-full w-full" loading="lazy"
-                                    allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                    @elseif ($service->video_url)
-                        <a href="{{ $service->video_url }}" target="_blank" rel="noopener noreferrer" class="btn-ghost {{ $service->body ? 'mt-8' : '' }}">
-                            <x-ui-icon name="play" class="h-4 w-4" /> {{ __('site.projects.watch_video') }}
-                        </a>
                     @endif
                 </div>
 

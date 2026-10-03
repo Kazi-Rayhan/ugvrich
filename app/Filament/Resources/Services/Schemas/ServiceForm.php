@@ -72,13 +72,14 @@ class ServiceForm
                                 ->imageEditor()
                                 ->columnSpanFull(),
 
-                            TextInput::make('video_url')
-                                ->label('Video URL (optional)')
-                                ->url()
-                                ->maxLength(255)
-                                ->placeholder('https://www.youtube.com/watch?v=…')
+                            FileUpload::make('video')
+                                ->label('Video (optional)')
+                                ->disk('public')
+                                ->directory('services/videos')
+                                ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                ->maxSize(204800)
                                 ->columnSpanFull()
-                                ->helperText('YouTube or Vimeo links play on the service page; any other link shows as a "Watch the video" button.'),
+                                ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped in the hero of the service page, in place of the image.'),
 
                             TextInput::make('sort_order')->numeric()->default(0)->required(),
 
