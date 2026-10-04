@@ -17,15 +17,6 @@
     // The rotating kicker above the headline.
     $rotatingWords = __('site.home.rotate_words');
 
-    // Glass cards over the footage: real figures only. Faculties and the yearly
-    // funded projects come from the research-call policy; projects from the KPIs.
-    $faculties = count(config('research_calls.faculties'));
-    $projectStat = $stats->first(fn ($stat) => str_contains(strtolower($stat->getRawOriginal('label') ?? $stat->label), 'active project'));
-    $glassCards = array_values(array_filter([
-        [$faculties, '', __('site.home.glass_faculties'), 'academic', 'left-0 top-10 lg:-left-12', 18, '0s'],
-        $projectStat ? [$projectStat->value, $projectStat->suffix, $projectStat->label, 'target', 'right-0 top-[38%] xl:-right-10', 30, '-2.5s'] : null,
-        [$faculties * config('research_calls.funded_per_faculty'), '', __('site.home.glass_funded'), 'star', '-bottom-7 left-12', 12, '-5s'],
-    ]));
 @endphp
 
 {{-- The clip is square, so rather than cropping it across the full width it sits whole in a frame beside the copy. --}}
@@ -99,21 +90,6 @@
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-950/60 to-transparent"></div>
             </div>
 
-            {{-- Floating glass cards: desktop only, drifting gently and leaning
-                 with the pointer at different depths. --}}
-            @foreach ($glassCards as [$value, $suffix, $text, $icon, $position, $depth, $delay])
-                <div class="hero-float pointer-events-none absolute z-10 hidden lg:block {{ $position }}" style="--depth: {{ $depth }}">
-                    <div class="glass-card" style="animation-delay: {{ $delay }}">
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-gold-300 ring-1 ring-white/15">
-                            <x-ui-icon :name="$icon" class="h-[18px] w-[18px]" />
-                        </span>
-                        <span class="min-w-0">
-                            <span class="block font-display text-[20px] font-bold leading-none tabular-nums text-white">{{ \App\Support\Numerals::localize((string) $value) }}{{ $suffix }}</span>
-                            <span class="mt-1 block whitespace-nowrap text-[12px] font-medium text-white/65">{{ $text }}</span>
-                        </span>
-                    </div>
-                </div>
-            @endforeach
         </div>
     </div>
 </section>

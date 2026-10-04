@@ -29,9 +29,9 @@
                     </a>
                 </div>
 
-                {{-- The headline figures (Stats marked "Show on the home page"), in
-                     one panel divided by hairlines. Each cell rises in on a stagger,
-                     counts up, and draws a brand-to-gold line under itself. --}}
+                {{-- The headline figures (Stats marked "Show on the home page"), each
+                     inside a ring that draws itself while the number counts up.
+                     The ring always closes: it is decoration, not a gauge. --}}
                 @php
                     // A stat without the flag (a database the show_on_home migration
                     // has not reached yet) counts as shown, and if nothing is marked
@@ -40,29 +40,43 @@
                     $homeStats = $stats->filter(fn ($stat) => $stat->show_on_home ?? true)->values();
                     $homeStats = $homeStats->isNotEmpty() ? $homeStats : $stats->take(6)->values();
                 @endphp
-                <div class="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_60px_-40px_rgba(7,20,38,0.35)] ring-1 ring-ink-100">
-                <div class="-mb-px -mr-px grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                {{-- One gradient, shared by every ring --}}
+                <svg class="absolute h-0 w-0" aria-hidden="true" focusable="false">
+                    <defs>
+                        <linearGradient id="kpi-ring-gradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" style="stop-color: var(--color-brand-500)" />
+                            <stop offset="100%" style="stop-color: var(--color-gold-400)" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                <ul class="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
                     @foreach ($homeStats as $i => $stat)
-                        <div class="kpi-cell reveal spotlight group relative isolate border-b border-r border-ink-100 px-5 pb-8 pt-6 sm:px-6"
-                             style="transition-delay: {{ $i * 80 }}ms; --d: {{ $i * 80 }}ms"
-                             x-data="counter({{ (int) preg_replace('/\D/', '', $stat->value) }})" x-intersect.once="start()">
-                            <div class="relative z-10 flex items-center justify-between">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:-rotate-6 group-hover:bg-brand-600 group-hover:text-white group-hover:ring-brand-600">
-                                    <x-ui-icon :name="$stat->icon ?? 'chart'" class="h-5 w-5" />
-                                </span>
-                                <span class="font-numeric text-[11px] font-semibold tabular-nums text-ink-300" aria-hidden="true">{{ \App\Support\Numerals::localize(str_pad($i + 1, 2, '0', STR_PAD_LEFT)) }}</span>
+                        <li class="kpi-ring-item reveal group flex flex-col items-center text-center"
+                            style="transition-delay: {{ $i * 90 }}ms; --d: {{ $i * 90 }}ms"
+                            x-data="counter({{ (int) preg_replace('/\D/', '', $stat->value) }})" x-intersect.once="start()">
+                            <div class="relative h-36 w-36 sm:h-40 sm:w-40">
+                                <svg class="kpi-ring h-full w-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+                                    <circle cx="60" cy="60" r="52" fill="none" stroke-width="6" class="stroke-ink-100" />
+                                    <circle cx="60" cy="60" r="52" fill="none" stroke-width="6" stroke-linecap="round"
+                                            pathLength="100" stroke="url(#kpi-ring-gradient)" class="kpi-ring-progress" />
+                                </svg>
+
+                                {{-- Soft disc behind the figure, lit on hover --}}
+                                <div class="absolute inset-[18%] rounded-full bg-white shadow-[0_14px_34px_-18px_rgba(7,20,38,0.35)] transition duration-500 group-hover:shadow-[0_18px_40px_-14px_var(--color-brand-500)]" aria-hidden="true"></div>
+
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <x-ui-icon :name="$stat->icon ?? 'chart'" class="h-4 w-4 text-brand-600 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                                    <p class="mt-1 font-display text-[30px] font-bold leading-none tracking-tight tabular-nums text-ink-950 sm:text-[34px]">
+                                        <span x-text="value">{{ $stat->value }}</span><span class="text-gold-500">{{ $stat->suffix }}</span>
+                                    </p>
+                                </div>
                             </div>
 
-                            <p class="relative z-10 mt-6 font-display text-[36px] font-bold leading-none tracking-tight tabular-nums text-ink-950 sm:text-[40px]">
-                                <span x-text="value">{{ $stat->value }}</span><span class="text-gold-500">{{ $stat->suffix }}</span>
-                            </p>
-                            <p class="relative z-10 mt-2.5 text-[13.5px] font-medium leading-snug text-ink-600">{{ $stat->label }}</p>
-
-                            <span class="kpi-bar" aria-hidden="true"></span>
-                        </div>
+                            <p class="mt-4 max-w-[10rem] text-[14px] font-semibold leading-snug text-ink-800">{{ $stat->label }}</p>
+                        </li>
                     @endforeach
-                </div>
-                </div>
+                </ul>
             </div>
 
             @include('partials.innovation-pipeline', ['class' => 'mt-6'])

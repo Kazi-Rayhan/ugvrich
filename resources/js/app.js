@@ -223,7 +223,7 @@ Alpine.data('counter', (target = 0, duration = 1500) => ({
 }));
 
 /* ---------------------------------------------------------------------
- | Home hero: the research network, the cursor light and card parallax
+ | Home hero: the research network and the cursor light
  |
  | Everything here is decorative. With reduced motion the network is drawn
  | once and left still, and nothing follows the pointer. On touch screens
@@ -359,15 +359,12 @@ Alpine.data('heroScene', () => ({
         let x = 0;
         let y = 0;
 
-        // One write per frame: the light's position and a -1…1 offset the
-        // glass cards turn into parallax at their own depth.
+        // One write per frame: where the light sits.
         const apply = () => {
             frame = null;
             const rect = hero.getBoundingClientRect();
             hero.style.setProperty('--hx', `${x - rect.left}px`);
             hero.style.setProperty('--hy', `${y - rect.top}px`);
-            hero.style.setProperty('--px', (((x - rect.left) / rect.width) * 2 - 1).toFixed(3));
-            hero.style.setProperty('--py', (((y - rect.top) / rect.height) * 2 - 1).toFixed(3));
         };
 
         hero.addEventListener('pointermove', (event) => {
@@ -379,8 +376,6 @@ Alpine.data('heroScene', () => ({
 
         hero.addEventListener('pointerleave', () => {
             delete hero.dataset.pointer;
-            hero.style.setProperty('--px', '0');
-            hero.style.setProperty('--py', '0');
         });
     },
 }));

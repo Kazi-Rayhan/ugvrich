@@ -1038,31 +1038,6 @@
     opacity: 1;
 }
 
-/* Glass cards: each leans with the pointer at its own depth (--depth),
-   and the card inside drifts on a slow float. */
-.hero-float {
-    transform: translate3d(calc(var(--px, 0) * var(--depth, 16) * 1px), calc(var(--py, 0) * var(--depth, 16) * 1px), 0);
-    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.glass-card {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.8rem 1.15rem 0.8rem 0.8rem;
-    border-radius: 1.25rem;
-    background: rgb(2 22 52 / 0.55);
-    border: 1px solid rgb(255 255 255 / 0.12);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    backdrop-filter: blur(14px) saturate(140%);
-    box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.08);
-    animation: float-soft 7s ease-in-out infinite;
-}
-
-@keyframes float-soft {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
-}
 
 /* Rotating word. Every word sits in the same grid cell, so the line is as
    wide as the longest word and never jumps. Each word draws its own gold
@@ -1140,8 +1115,6 @@
 
 
 @media (prefers-reduced-motion: reduce) {
-    .glass-card { animation: none; }
-    .hero-float { transform: none; transition: none; }
     .hero-cursor-glow { display: none; }
     .rotator-word,
     .rotator-word.text-highlight::after { transition: none; }
@@ -1184,36 +1157,32 @@ html:lang(bn) [class*='tracking-wide'] {
     }
 }
 
-/* Home KPI panel: a thin accent line along the foot of each figure that
-   draws brand-to-gold once the cell has risen in. Decorative, not a gauge:
-   it always fills completely. */
-.kpi-bar {
-    position: absolute;
-    left: 1.5rem;
-    right: 1.5rem;
-    bottom: 1.1rem;
-    height: 3px;
-    border-radius: 999px;
-    background: var(--color-ink-100);
-    overflow: hidden;
+
+
+/* Home KPI rings: the gradient arc draws all the way round in step with the
+   count-up (1.5s, like the counter). It always closes — decoration, not a
+   gauge. On hover the ring turns a little, as if winding on. */
+.kpi-ring {
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.kpi-bar::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--color-brand-500), var(--color-gold-400));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-    transition-delay: calc(var(--d, 0ms) + 350ms);
+.kpi-ring-progress {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--d, 0ms);
 }
 
-.kpi-cell.is-visible .kpi-bar::after {
-    transform: scaleX(1);
+.kpi-ring-item.is-visible .kpi-ring-progress {
+    stroke-dashoffset: 0;
 }
+
+.kpi-ring-item:hover .kpi-ring {
+    transform: rotate(-60deg);
+}
+
 
 @media (prefers-reduced-motion: reduce) {
-    .kpi-bar::after { transition: none; }
+    .kpi-ring-progress { transition: none; stroke-dashoffset: 0; }
+    .kpi-ring-item:hover .kpi-ring { transform: none; }
 }
