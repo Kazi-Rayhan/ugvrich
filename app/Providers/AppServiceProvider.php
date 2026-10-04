@@ -14,6 +14,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->scoped(Site::class);
 
+        $this->app->bind(\Filament\Auth\Http\Responses\Contracts\LogoutResponse::class, \App\Http\Responses\LogoutResponse::class);
+
         // route() should answer in the language being read, so the generator
         // is swapped for one that knows about the `en.` route names.
         $this->app->singleton('url', function ($app) {

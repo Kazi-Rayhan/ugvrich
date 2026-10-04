@@ -1,16 +1,47 @@
 <x-layouts.app :title="__('site.services.meta_title')"
                :description="__('site.services.meta_description')">
 
-    <x-page-hero
-        :eyebrow="__('site.services.hero_eyebrow')"
-        :title="__('site.services.hero_title')"
-        :video="$site->get('services_video')"
-        :breadcrumbs="[__('site.nav.consultancy') => null]">
-        <a href="{{ route('consultancy.create') }}" class="btn-primary">
-            {{ __('site.actions.request_consultancy') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
-        </a>
-        <a href="#services" class="btn-ghost">{{ __('site.actions.browse_catalogue') }}</a>
-    </x-page-hero>
+    @php($heroVideo = $site->get('services_video'))
+
+    {{-- Hero, in the same voice as the Research page: navy, a pill eyebrow and
+         the highlighted phrase. A video from Site Settings plays behind it. --}}
+    <section class="relative isolate overflow-hidden bg-navy-700 text-white">
+        @if ($heroVideo)
+            {{-- Muted, looped and decorative. With reduced motion it stays on its first frame. --}}
+            <video class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+                   autoplay muted loop playsinline preload="auto"
+                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                   aria-hidden="true" tabindex="-1">
+                <source src="{{ Storage::url($heroVideo) }}" type="{{ str_ends_with(strtolower($heroVideo), '.webm') ? 'video/webm' : 'video/mp4' }}">
+            </video>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-navy-900/70" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-navy-900/90 via-navy-800/60 to-transparent" aria-hidden="true"></div>
+        @else
+            <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.15]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-40 -top-48 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[130px]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -bottom-52 -left-32 -z-10 h-[30rem] w-[30rem] rounded-full border border-white/10" aria-hidden="true"></div>
+        @endif
+
+        <div class="container-rich py-24 sm:py-32 lg:py-36">
+            <p class="reveal eyebrow-invert">{{ __('site.services.hero_eyebrow') }}</p>
+
+            <h1 class="reveal mt-7 max-w-4xl font-display text-[38px] font-bold leading-[1.05] tracking-[-0.03em] !text-white sm:text-[58px]">
+                {!! __('site.services.hero_title') !!}
+            </h1>
+
+            <p class="reveal mt-7 max-w-2xl text-[17.5px] leading-[1.8] text-white/75">{{ __('site.services.hero_lead') }}</p>
+
+            <div class="reveal mt-10 flex flex-wrap gap-3">
+                <a href="{{ route('consultancy.create') }}" class="btn-lead group">
+                    <span class="relative">{{ __('site.actions.request_consultancy') }}</span>
+                    <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+                <a href="#services" class="btn-invert px-7 py-4 text-[15px]">
+                    {{ __('site.actions.browse_catalogue') }}
+                </a>
+            </div>
+        </div>
+    </section>
 
     {{-- The positioning statement. This is the page's revenue pitch, so it is
          set large, with the services marked and the clients called out. --}}

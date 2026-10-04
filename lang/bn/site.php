@@ -387,7 +387,8 @@ return [
         'meta_title' => 'পরামর্শ ও শিল্প সেবা',
         'meta_description' => 'শিল্প, সরকারি সংস্থা, এনজিও ও ব্যবসা প্রতিষ্ঠানের জন্য ইউজিভি রিচের গবেষণা, কারিগরি পরীক্ষা, প্রকৌশল সমাধান, সফটওয়্যার উন্নয়ন, পেশাগত প্রশিক্ষণ ও পরামর্শসেবা।',
         'hero_eyebrow' => 'পরামর্শ ও শিল্প সেবা',
-        'hero_title' => 'বিশ্ববিদ্যালয়ের দক্ষতা থেকে <span class="text-accent">শিল্পের সমাধান</span>',
+        'hero_title' => 'বিশ্ববিদ্যালয়ের দক্ষতা থেকে <span class="text-highlight">শিল্পের সমাধান</span>',
+        'hero_lead' => 'শিল্প, সরকারি সংস্থা, এনজিও ও ব্যবসার জন্য গবেষণা, কারিগরি পরীক্ষা, প্রকৌশল, সফটওয়্যার, প্রশিক্ষণ ও পরামর্শসেবা — ইউজিভির শিক্ষক ও পেশাজীবীদের হাতে।',
 
         'offer_eyebrow' => 'ইউজিভি রিচ যা দেয়',
         'offer_statement' => 'ইউজিভি রিচ <span class="text-brand-700">শিল্পপ্রতিষ্ঠান</span>, <span class="text-brand-700">সরকারি সংস্থা</span>, <span class="text-brand-700">এনজিও</span> ও <span class="text-brand-700">ব্যবসা প্রতিষ্ঠানকে</span> <span class="mark">গবেষণা</span>, <span class="mark">কারিগরি পরীক্ষা</span>, <span class="mark">প্রকৌশল সমাধান</span>, <span class="mark">সফটওয়্যার উন্নয়ন</span>, <span class="mark">পেশাগত প্রশিক্ষণ</span> ও <span class="mark">পরামর্শসেবা</span> দেয়।',

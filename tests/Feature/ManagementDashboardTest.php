@@ -28,6 +28,15 @@ class ManagementDashboardTest extends TestCase
         $this->get('/admin')->assertRedirect('/admin/login');
     }
 
+    public function test_signing_out_of_the_dashboard_lands_on_the_home_page(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->post(route('filament.admin.auth.logout'))
+            ->assertRedirect(route('home'));
+
+        $this->assertGuest();
+    }
+
     public function test_dashboard_home_shows_the_figures_pipeline_and_projects(): void
     {
         $response = $this->actingAs(User::factory()->create())->get('/admin')->assertOk();

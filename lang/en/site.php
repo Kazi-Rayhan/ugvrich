@@ -386,7 +386,8 @@ return [
         'meta_title' => 'Consultancy & Industry Services',
         'meta_description' => 'Research, technical testing, engineering solutions, software development, professional training and consultancy from UGV RICH for industry, government, NGOs and business.',
         'hero_eyebrow' => 'Consultancy & industry services',
-        'hero_title' => 'From University Expertise to <span class="text-accent">Industry Solutions</span>',
+        'hero_title' => 'From University Expertise to <span class="text-highlight">Industry Solutions</span>',
+        'hero_lead' => 'Research, technical testing, engineering, software, training and consultancy for industry, government, NGOs and business — delivered by UGV faculty and professionals.',
 
         'offer_eyebrow' => 'What UGV RICH offers',
         'offer_statement' => 'UGV RICH provides <span class="mark">research</span>, <span class="mark">technical testing</span>, <span class="mark">engineering solutions</span>, <span class="mark">software development</span>, <span class="mark">professional training</span> and <span class="mark">consultancy services</span> to <span class="text-brand-700">industries</span>, <span class="text-brand-700">government organizations</span>, <span class="text-brand-700">NGOs</span> and <span class="text-brand-700">businesses</span>.',
