@@ -22,7 +22,7 @@
             <div class="pointer-events-none absolute -bottom-52 -left-32 -z-10 h-[30rem] w-[30rem] rounded-full border border-white/10" aria-hidden="true"></div>
         @endif
 
-        <div class="container-rich py-24 sm:py-32 lg:py-36">
+        <div class="container-rich py-16 sm:py-20">
             <p class="reveal eyebrow-invert">{{ __('site.services.hero_eyebrow') }}</p>
 
             <h1 class="reveal mt-7 max-w-4xl font-display text-[38px] font-bold leading-[1.05] tracking-[-0.03em] !text-white sm:text-[58px]">
