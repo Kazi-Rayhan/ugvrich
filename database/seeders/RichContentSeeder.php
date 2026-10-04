@@ -233,7 +233,8 @@ class RichContentSeeder extends Seeder
         ];
 
         foreach ($stats as $i => $stat) {
-            Stat::updateOrCreate(['label' => $stat['label']], $stat + ['sort_order' => $i, 'is_active' => true]);
+            // Supporting figures: used across the site, but not in the home page's six.
+            Stat::updateOrCreate(['label' => $stat['label']], $stat + ['sort_order' => $i, 'is_active' => true, 'show_on_home' => false]);
         }
     }
 

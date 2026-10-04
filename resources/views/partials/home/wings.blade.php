@@ -1,21 +1,28 @@
 @php
     /*
-     | The RICH ecosystem as a bento grid: one large tile for the Research Wing,
-     | the other two stacked beside it (three columns: Research 2×2,
-     | Innovation and Consultancy in the third).
+     | The RICH ecosystem as a bento grid: one large tile for Consultancy,
+     | the other two stacked beside it (three columns: Consultancy 2×2,
+     | Research and Innovation in the third).
      |
      | Every tile sits on its own photograph under a tint of its own, so the
-     | three read as one family without being copies: navy for Research, green
-     | for Innovation, navy warming to gold for Consultancy. Consultancy plays
+     | three read as one family without being copies: navy warming to gold for
+     | Consultancy, navy for Research, green for Innovation. Consultancy plays
      | the Services page video (Site Settings → Hero) when one is set.
      */
     $servicesVideo = $site->get('services_video');
 
     $wings = [
         [
+            'key' => 'consultancy', 'url' => route('services.index'), 'icon' => 'briefcase',
+            'image' => asset('media/pillars/consultancy.jpg'),
+            'video' => $servicesVideo ? Storage::url($servicesVideo) : null,
+            'large' => true, 'layout' => 'md:col-span-2 lg:row-span-2',
+            'tint' => 'from-navy-900 via-navy-900/75 to-gold-700/30',
+        ],
+        [
             'key' => 'research', 'url' => route('research'), 'icon' => 'beaker',
             'image' => asset('media/pillars/research.jpg'), 'video' => null,
-            'large' => true, 'layout' => 'md:col-span-2 lg:row-span-2',
+            'large' => false, 'layout' => '',
             'tint' => 'from-navy-900 via-navy-900/75 to-navy-900/15',
         ],
         [
@@ -23,13 +30,6 @@
             'image' => asset('media/pillars/innovation.jpg'), 'video' => null,
             'large' => false, 'layout' => '',
             'tint' => 'from-brand-900 via-brand-900/75 to-brand-700/25',
-        ],
-        [
-            'key' => 'consultancy', 'url' => route('services.index'), 'icon' => 'briefcase',
-            'image' => asset('media/pillars/consultancy.jpg'),
-            'video' => $servicesVideo ? Storage::url($servicesVideo) : null,
-            'large' => false, 'layout' => '',
-            'tint' => 'from-navy-900 via-navy-900/75 to-gold-700/30',
         ],
     ];
 @endphp
