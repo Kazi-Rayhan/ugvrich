@@ -158,6 +158,18 @@ class ManageSiteSettings extends Page implements HasSchemas
                                     ->disk('public')
                                     ->directory('hero')
                                     ->helperText('Shown while the video loads, and instead of it for visitors who ask for reduced motion.'),
+
+                                Section::make('Services page')
+                                    ->description('The banner at the top of the Services page.')
+                                    ->schema([
+                                        FileUpload::make('services_video')
+                                            ->label('Services page video')
+                                            ->disk('public')
+                                            ->directory('hero')
+                                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                            ->maxSize(204800)
+                                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the banner text, in place of the photo. Leave empty to keep the photo.'),
+                                    ]),
                             ]),
 
                             Tabs\Tab::make('About')->icon('heroicon-o-information-circle')->schema([

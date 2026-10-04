@@ -46,6 +46,14 @@
 
         $goals = __('research_hub.sdg.goals');
 
+        /* The annual faculty research funding cycle, from config/research_calls.php. */
+        $calls = config('research_calls');
+        $faculties = collect($calls['faculties']);
+        $min = $calls['shortlist_min'];
+        $max = $calls['shortlist_max'];
+        $funded = $calls['funded_per_faculty'];
+        $callVars = ['min' => $num($min), 'max' => $num($max), 'funded' => $num($funded), 'total' => $num($funded * $faculties->count())];
+
     @endphp
 
     {{-- ---------------- 1. Hero ---------------- --}}
@@ -94,6 +102,123 @@
                 <x-ui-icon name="compass" class="mt-0.5 h-4 w-4 shrink-0 text-brand-300" />
                 {{ __('research_hub.hero.note') }}
             </p>
+        </div>
+    </section>
+
+    {{-- ---------------- Annual faculty research funding ----------------
+
+         The yearly cycle as a funnel: unlimited proposals, the top few in each
+         faculty announced, one funded per faculty. Every figure comes from
+         config/research_calls.php. --}}
+    <section id="funding-call" class="scroll-mt-24 border-b border-ink-100 bg-white py-20 sm:py-24">
+        <div class="container-rich">
+            <div class="flex flex-wrap items-end justify-between gap-6">
+                <div>
+                    <p class="{{ $eyebrow }}"><span class="text-brand-300">//</span> {{ __('research_hub.calls.eyebrow') }}</p>
+                    <h2 class="{{ $h2 }}">{{ __('research_hub.calls.title') }}</h2>
+                    <p class="{{ $lead }}">{{ __('research_hub.calls.lead', $callVars) }}</p>
+                </div>
+
+                <a href="{{ route('research.proposal') }}" class="reveal btn-primary group shrink-0">
+                    {{ __('research_hub.calls.cta') }}
+                    <x-ui-icon name="arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </a>
+            </div>
+
+            {{-- The funnel: each stage narrower than the last --}}
+            <ol class="mt-12 grid gap-4 lg:grid-cols-3 lg:gap-6">
+                @foreach ([
+                    ['proposals', '∞', 'document', 'bg-ink-50/70 border border-ink-100', 'text-ink-950', 'text-ink-600'],
+                    ['shortlist', $min === $max ? $num($min) : $num($min).'–'.$num($max), 'chart', 'bg-brand-50 border border-brand-100', 'text-brand-800', 'text-brand-900/70'],
+                    ['funded', $num($funded), 'star', 'bg-brand-600 text-white shadow-[0_24px_50px_-28px_var(--color-brand-600)]', '!text-white', 'text-white/85'],
+                ] as $i => [$stage, $value, $icon, $box, $valueColour, $textColour])
+                    @php [$title, $body] = __('research_hub.calls.funnel.'.$stage); @endphp
+                    <li class="reveal relative flex flex-col rounded-[1.5rem] p-7 {{ $box }}" style="{{ $delay($i, 90) }}">
+                        <div class="flex items-center justify-between gap-4">
+                            <span class="font-display text-[48px] font-bold leading-none tabular-nums {{ $valueColour }}">{{ $value }}</span>
+                            <span @class([
+                                    'flex h-11 w-11 items-center justify-center rounded-xl',
+                                    'bg-white text-brand-600 ring-1 ring-ink-100' => ! $loop->last,
+                                    'bg-white/15 text-white' => $loop->last,
+                                  ])>
+                                <x-ui-icon :name="$icon" class="h-5 w-5" />
+                            </span>
+                        </div>
+                        <p class="mt-5 font-display text-[17px] font-bold {{ $valueColour }}">{{ $title }}</p>
+                        <p class="mt-1.5 text-[13.5px] leading-relaxed {{ $textColour }}">{{ strtr($body, [':total' => $callVars['total']]) }}</p>
+
+                        @unless ($loop->last)
+                            {{-- Arrow into the next stage --}}
+                            <span class="absolute -bottom-[1.625rem] left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-white text-brand-600 shadow-md ring-1 ring-ink-100 lg:-right-[1.875rem] lg:bottom-auto lg:left-auto lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2" aria-hidden="true">
+                                <x-ui-icon name="arrow-right" class="h-4 w-4 rotate-90 lg:rotate-0" />
+                            </span>
+                        @endunless
+                    </li>
+                @endforeach
+            </ol>
+
+            {{-- One card per faculty: its top proposals, and what it funds --}}
+            <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach ($faculties as $key => $icon)
+                    <li class="reveal flex flex-col rounded-[1.5rem] border border-ink-100 bg-white p-6 shadow-[0_20px_50px_-40px_rgba(7,20,38,0.45)]" style="{{ $delay($loop->index) }}">
+                        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                            <x-ui-icon :name="$icon" class="h-5 w-5" />
+                        </span>
+                        <h3 class="mt-4 font-display text-[16.5px] font-bold leading-snug text-ink-950">{{ __('research_hub.calls.faculties.'.$key) }}</h3>
+
+                        <div class="mt-auto pt-5">
+                            <p class="{{ $label }}">{{ __('research_hub.calls.shortlist_label') }}</p>
+                            {{-- Solid: always announced. Dotted: announced when the year's proposals earn it. --}}
+                            <div class="mt-2.5 flex gap-1.5" aria-hidden="true">
+                                @for ($c = 1; $c <= $max; $c++)
+                                    <span @class([
+                                        'h-2.5 flex-1 rounded-full',
+                                        'bg-brand-600' => $c <= $min,
+                                        'border-2 border-dotted border-brand-300' => $c > $min,
+                                    ])></span>
+                                @endfor
+                            </div>
+                            <p class="mt-2 text-[12.5px] text-ink-500">{{ __('research_hub.calls.shortlist_range', $callVars) }}</p>
+
+                            <div class="mt-4 flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-3.5 py-2.5">
+                                <span class="text-[12.5px] font-medium text-brand-800">{{ __('research_hub.calls.funded_label') }}</span>
+                                <span class="inline-flex items-center gap-1.5 text-[13px] font-bold text-brand-700">
+                                    <x-ui-icon name="star" class="h-4 w-4" />
+                                    {{ trans_choice('research_hub.calls.funded_value', $funded, ['count' => $num($funded)]) }}
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+
+            {{-- How the year runs --}}
+            <div class="reveal mt-14">
+                <p class="{{ $label }}">{{ __('research_hub.calls.steps_title') }}</p>
+
+                <div class="relative mt-6">
+                    <div class="absolute left-[12.5%] right-[12.5%] top-5 hidden border-t-[3px] border-dotted border-brand-300 lg:block" aria-hidden="true"></div>
+                    <ol class="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        @foreach (__('research_hub.calls.steps') as $i => [$title, $body])
+                            <li class="relative flex flex-col items-start lg:items-center lg:text-center">
+                                <span @class([
+                                    'relative flex h-10 w-10 items-center justify-center rounded-full font-display text-[14px] font-bold ring-4 ring-white',
+                                    'bg-brand-600 text-white' => $loop->last,
+                                    'border-2 border-brand-600 bg-white text-brand-700' => ! $loop->last,
+                                ])>
+                                    @if ($loop->last)
+                                        <x-ui-icon name="star" class="h-4 w-4" />
+                                    @else
+                                        {{ $num($i + 1) }}
+                                    @endif
+                                </span>
+                                <p class="mt-4 font-display text-[15.5px] font-bold text-ink-950">{{ $title }}</p>
+                                <p class="mt-1.5 max-w-[16rem] text-[13.5px] leading-relaxed text-ink-600">{{ strtr($body, [':min' => $callVars['min'], ':max' => $callVars['max'], ':funded' => $callVars['funded']]) }}</p>
+                            </li>
+                        @endforeach
+                    </ol>
+                </div>
+            </div>
         </div>
     </section>
 

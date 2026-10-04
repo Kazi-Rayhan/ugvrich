@@ -15,17 +15,46 @@ return [
     'hero' => [
         'eyebrow' => 'UGV RICH · Research Wing',
         'title' => 'Research, Innovation & <span class="text-highlight">Collaboration Hub</span>',
-        'lead' => 'RICH is being built as the place where researchers, students, ideas, collaboration, funding, publication and research impact meet — one hub for the whole of UGV research.',
+        'lead' => 'RICH is the place where researchers, students, ideas, collaboration, funding, publication and research impact meet — one hub for the whole of UGV research.',
         'primary' => 'Start your research journey',
         'secondary' => 'Explore research areas',
-        'note' => 'A vision for the research ecosystem. Some of what follows is in place today; the rest is what RICH is being designed to become.',
+        'note' => 'The research ecosystem of UGV in one place: the research areas, the support desk, the annual funding call and the path from an idea to its impact.',
+    ],
+
+    'calls' => [
+        'eyebrow' => 'Annual faculty research funding',
+        'title' => 'Research funding for every faculty, every year',
+        'lead' => 'There is no limit on proposals. Every year, the top :min to :max proposals in each faculty are announced, and :funded project from each faculty receives funding.',
+        'funnel' => [
+            'proposals' => ['Unlimited proposals', 'Open to every researcher, all year round. Send as many as you like.'],
+            'shortlist' => ['Top proposals per faculty', 'Selected on merit and announced every year.'],
+            'funded' => ['Funded project per faculty', ':total research projects are funded every year.'],
+        ],
+        'shortlist_label' => 'Top proposals announced each year',
+        'shortlist_range' => ':min minimum · up to :max',
+        'funded_label' => 'Funded each year',
+        'funded_value' => '{1} :count project|[2,*] :count projects',
+        'steps_title' => 'How it works',
+        'steps' => [
+            ['Submit', 'Send a proposal any time. There is no limit on how many.'],
+            ['Review', 'The Research Wing reviews every proposal on its merit.'],
+            ['Top proposals announced', 'Each year, the top :min to :max proposals in each faculty are announced.'],
+            ['Funding', ':funded project from each faculty receives funding.'],
+        ],
+        'cta' => 'Submit a proposal',
+        'faculties' => [
+            'engineering' => 'Faculty of Engineering & Technology',
+            'business' => 'Faculty of Business & Economics',
+            'health' => 'Faculty of Health Science',
+            'humanities' => 'Faculty of Humanities & Social Science',
+        ],
     ],
 
     'about' => [
         'eyebrow' => 'What is RICH',
         'title' => 'A central research ecosystem for UGV',
-        'lead' => 'The long-term vision is a single hub that connects every part of research at the university, so a researcher never has to go looking for the pieces one at a time.',
-        'brings_together' => 'Designed to bring together',
+        'lead' => 'RICH is a single hub that connects every part of research at the university, so a researcher never has to go looking for the pieces one at a time.',
+        'brings_together' => 'Brings together',
         'items' => [
             'Researchers',
             'Students',
@@ -49,7 +78,7 @@ return [
         ],
         'eyebrow' => 'The research lifecycle',
         'title' => 'From an idea to its impact',
-        'lead' => 'RICH is envisioned to support a researcher across the whole of this journey, rather than at one point in it. Each stage below is a place where the hub could help.',
+        'lead' => 'RICH supports a researcher across the whole of this journey, not at one point in it. At each stage below, the hub helps.',
         'stages' => [
             ['Idea', 'A question worth asking, from the classroom, the field or the community.'],
             ['Collaboration', 'The people and departments the question needs.'],
@@ -67,9 +96,9 @@ return [
     ],
 
     'offer' => [
-        'eyebrow' => 'What RICH could offer',
-        'title' => 'The modules the hub is being designed around',
-        'lead' => 'Each of these is a capability RICH is planned to provide. They are described here as intent, not as something you can use today.',
+        'eyebrow' => 'What RICH offers',
+        'title' => 'The modules the hub is built around',
+        'lead' => 'Each of these is part of what RICH provides to UGV researchers.',
         'cards' => [
             ['Research areas', 'Explore research themes by department and research field.', 'compass'],
             ['Find a collaborator', 'Connect researchers by expertise, methodology and research interest.', 'users'],
@@ -96,8 +125,8 @@ return [
     'collaboration' => [
         'eyebrow' => 'Collaboration',
         'title' => 'Find the right research collaborator',
-        'lead' => 'A researcher would describe what the work needs, and the hub would suggest the people who fit. The criteria below are what the matching is being designed around.',
-        'criteria_title' => 'What a request would describe',
+        'lead' => 'A researcher describes what the work needs, and the hub suggests the people who fit. The matching works on the criteria below.',
+        'criteria_title' => 'What a request describes',
         'criteria' => [
             ['Department', 'Which departments the question needs at the table.'],
             ['Research field', 'The field or sub-field the work sits in.'],
@@ -109,16 +138,16 @@ return [
         'examples_title' => 'How one problem draws in several departments',
         'examples_lead' => 'These examples are from the research framework — a single question, and the departments it needs.',
         'post_title' => 'Post a research idea',
-        'post_lead' => 'A researcher could publish an idea and let others find it and express interest, instead of asking around one person at a time.',
+        'post_lead' => 'A researcher publishes an idea, and others find it and express interest, instead of asking around one person at a time.',
         'post_example_label' => 'For example',
         'post_example' => 'AI-assisted assessment in Bangladeshi higher education',
-        'post_interest' => 'Other researchers could register interest',
+        'post_interest' => 'Other researchers register interest',
     ],
 
     'support' => [
         'eyebrow' => 'Research support',
         'title' => 'A support desk for the whole of the work',
-        'lead' => 'The framework sets out help before, during and after a study. The hub is intended to make that help something a researcher can ask for in one place.',
+        'lead' => 'The framework sets out help before, during and after a study. The hub makes that help something a researcher asks for in one place.',
         'items' => [
             'Proposal review',
             'Research design',
@@ -139,7 +168,7 @@ return [
     'impact' => [
         'eyebrow' => 'Research impact',
         'title' => 'Counting the work, and what it changed',
-        'lead' => 'RICH is meant to record not only how much research happens but what it leads to. The figures below are what the site holds today — where there is nothing to count yet, it says so rather than guessing.',
+        'lead' => 'RICH records not only how much research happens but what it leads to. The figures below are what the site holds today — where there is nothing to count yet, it says so rather than guessing.',
         'soon' => 'Coming soon',
         'metrics' => [
             'research_projects' => 'Research projects',
@@ -158,7 +187,7 @@ return [
     'sdg' => [
         'eyebrow' => 'Sustainable Development Goals',
         'title' => 'UGV research against the SDGs',
-        'lead' => 'Every priority field in the research framework already names the goals it serves. The hub could map each project and publication the same way, so the university can see its contribution as a whole.',
+        'lead' => 'Every priority field in the research framework already names the goals it serves. The hub maps each project and publication the same way, so the university sees its contribution as a whole.',
         'areas_label' => '{1} :count research field|[2,*] :count research fields',
         'goals' => [
             3 => 'Good health & well-being',
@@ -196,9 +225,9 @@ return [
     ],
 
     'future' => [
-        'eyebrow' => 'The future of RICH',
-        'title' => 'What is planned, and what is not built yet',
-        'lead' => 'Named plainly, so nobody is left guessing which parts of the hub they can use today.',
+        'eyebrow' => 'Roadmap',
+        'title' => 'What is available, and what is in progress',
+        'lead' => 'Named plainly, so everyone knows which parts of the hub are in use today.',
         'status' => [
             'live' => 'Available',
             'planned' => 'Planned',
@@ -223,7 +252,7 @@ return [
 
     'cta' => [
         'title' => 'Start your research journey',
-        'lead' => 'Have a research idea? Looking for collaboration, support, or opportunities? RICH is designed to bring ideas, people and research opportunities together.',
+        'lead' => 'Have a research idea? Looking for collaboration, support, or opportunities? RICH brings ideas, people and research opportunities together.',
         'primary' => 'Explore research',
         'secondary' => 'Connect & collaborate',
     ],
@@ -239,7 +268,7 @@ return [
     'send' => [
         'eyebrow' => 'Send something in',
         'title' => 'Two things you can do today',
-        'lead' => 'Everything above is what RICH is being built to become. These two are not concepts: send either one and a member of the Research Wing will read it.',
+        'lead' => 'Send either one, and a member of the Research Wing reads it and replies.',
     ],
 
     'forms' => [

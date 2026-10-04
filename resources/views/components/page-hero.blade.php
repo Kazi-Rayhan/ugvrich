@@ -4,6 +4,7 @@
     'lead' => null,
     'breadcrumbs' => [],   // [label => url|null]
     'image' => null,       // storage path, absolute URL or /public path; falls back to a per-section default
+    'video' => null,       // optional storage path; plays behind the text, with the photo as its poster
 ])
 
 @php
@@ -28,9 +29,20 @@
 @endphp
 
 <section class="relative isolate overflow-hidden bg-ink-950 pb-12 pt-8 sm:pb-14 sm:pt-10 lg:pb-16">
-    {{-- Background photo --}}
-    <img src="{{ $src }}" alt="" aria-hidden="true" fetchpriority="high"
-         class="absolute inset-0 -z-20 h-full w-full scale-105 object-cover">
+    {{-- Background: a muted looped video when one is set (the photo is its poster), otherwise the photo.
+         With reduced motion the video stays on its first frame. --}}
+    @if ($video)
+        <video class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+               autoplay muted loop playsinline preload="auto" poster="{{ $src }}"
+               x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+               aria-hidden="true" tabindex="-1">
+            <source src="{{ \Illuminate\Support\Facades\Storage::url($video) }}"
+                    type="{{ str_ends_with(strtolower($video), '.webm') ? 'video/webm' : 'video/mp4' }}">
+        </video>
+    @else
+        <img src="{{ $src }}" alt="" aria-hidden="true" fetchpriority="high"
+             class="absolute inset-0 -z-20 h-full w-full scale-105 object-cover">
+    @endif
 
     {{-- Legibility layers --}}
     <div class="absolute inset-0 -z-10 bg-ink-950/60" aria-hidden="true"></div>

@@ -4,6 +4,7 @@
     <x-page-hero
         :eyebrow="__('site.services.hero_eyebrow')"
         :title="__('site.services.hero_title')"
+        :video="$site->get('services_video')"
         :breadcrumbs="[__('site.nav.consultancy') => null]">
         <a href="{{ route('consultancy.create') }}" class="btn-primary">
             {{ __('site.actions.request_consultancy') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
