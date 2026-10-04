@@ -41,6 +41,11 @@ class StatForm
                             TextInput::make('sort_order')->numeric()->default(0)->required(),
 
                             Toggle::make('is_active')->label('Visible on the site')->default(true),
+
+                            Toggle::make('show_on_home')
+                                ->label('Show on the home page')
+                                ->helperText('The home page dashboard keeps to a few headline figures. Off still shows it elsewhere on the site.')
+                                ->default(true),
                         ]),
                 ]),
             ]);

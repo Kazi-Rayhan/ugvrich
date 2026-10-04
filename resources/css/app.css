@@ -14,12 +14,11 @@
 
 @theme {
     --font-sans: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-    --font-display: 'Space Grotesk', 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
-    /* Figures sit out of Space Grotesk. Its 1 is a bare stem with a hairline
-       flag and no foot, which beside its own geometric 2/0/8 reads at display
-       sizes as a glyph that failed to load. Inter's figures are even, so every
-       number on the site — KPIs, counters, page numbers — uses this stack.
+    /* Counters and figures use Inter: its numerals are even-width and
+       steady at every size, so every number on the site — KPIs, counters,
+       page numbers — uses this stack.
        Bengali digits are in neither Latin face and still come from Noto. */
     --font-numeric: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif;
 
@@ -1009,4 +1008,212 @@
     .reveal { opacity: 1; transform: none; transition: none; }
     html { scroll-behavior: auto; }
     [class*='animate-'] { animation: none !important; }
+}
+
+/* ==================================================================
+ | Home page, first round: hero scene, rotating word, wings bento,
+ | subdued partner wall and KPI border. All motion is decorative and
+ | switched off under prefers-reduced-motion at the bottom.
+ ================================================================== */
+
+/* Soft green light under the pointer. A fixed-size disc moved with a
+   transform, so following the cursor never repaints a full gradient. */
+.hero-cursor-glow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 42rem;
+    height: 42rem;
+    margin: -21rem 0 0 -21rem;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, rgb(65 132 63 / 0.22), transparent);
+    opacity: 0;
+    transform: translate3d(var(--hx, 0px), var(--hy, 0px), 0);
+    transition: opacity 0.8s ease;
+    will-change: transform;
+    pointer-events: none;
+}
+
+[data-pointer] .hero-cursor-glow {
+    opacity: 1;
+}
+
+/* Glass cards: each leans with the pointer at its own depth (--depth),
+   and the card inside drifts on a slow float. */
+.hero-float {
+    transform: translate3d(calc(var(--px, 0) * var(--depth, 16) * 1px), calc(var(--py, 0) * var(--depth, 16) * 1px), 0);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1.15rem 0.8rem 0.8rem;
+    border-radius: 1.25rem;
+    background: rgb(2 22 52 / 0.55);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.08);
+    animation: float-soft 7s ease-in-out infinite;
+}
+
+@keyframes float-soft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+
+/* Rotating word. Every word sits in the same grid cell, so the line is as
+   wide as the longest word and never jumps. Each word draws its own gold
+   underline as it arrives. */
+.rotator {
+    display: inline-grid;
+    justify-items: start;
+    vertical-align: bottom;
+    overflow: hidden;
+    padding-bottom: 0.22em;
+    margin-bottom: -0.22em;
+}
+
+.rotator-word {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+}
+
+.rotator-word.is-active,
+.rotator:not(:has(.is-active)) .rotator-word[data-first] {
+    opacity: 1;
+    transform: none;
+}
+
+.rotator-word.is-leaving {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.rotator-word.text-highlight::after {
+    animation: none;
+    transform: scaleX(0);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.rotator-word.is-active::after,
+.rotator:not(:has(.is-active)) .rotator-word[data-first]::after {
+    transform: scaleX(1);
+}
+
+/* Wings bento. Once revealed, a tile can lean (--rx/--ry, set from the
+   pointer) and lifts on hover. Declared after .reveal so it wins. */
+.wing-tile {
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+}
+
+.wing-tile.is-visible {
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+}
+
+.wing-tile:hover {
+    --lift: -4px;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.55);
+}
+
+/* The spotlight, lit for dark surfaces. */
+.spotlight-invert::before {
+    background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgb(143 191 139 / 0.16), transparent 62%);
+}
+
+/* Partner wall on the home page: greyscale marks that colour on hover. */
+.partners-subdued .partner-mark {
+    filter: grayscale(1);
+    opacity: 0.75;
+    transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+.partners-subdued .partner-chip:hover .partner-mark {
+    filter: none;
+    opacity: 1;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    .glass-card { animation: none; }
+    .hero-float { transform: none; transition: none; }
+    .hero-cursor-glow { display: none; }
+    .rotator-word,
+    .rotator-word.text-highlight::after { transition: none; }
+    .wing-tile.is-visible { transform: none; }
+}
+
+/* Bangla does not take letter spacing: the wide tracking that suits small
+   English capitals pulls Bangla letters and conjuncts apart. Covers the
+   eyebrow pills and every tracking utility used for labels. */
+html:lang(bn) .eyebrow,
+html:lang(bn) .eyebrow-invert,
+html:lang(bn) [class*='tracking-['],
+html:lang(bn) [class*='tracking-wide'] {
+    letter-spacing: normal;
+}
+
+/* The gold highlight on a light surface: the same drawn underline as
+   .text-highlight, under the darker gold text. */
+.text-highlight-ink::after {
+    content: '';
+    position: absolute;
+    inset-inline: -0.08em;
+    bottom: 0.02em;
+    height: 0.14em;
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+        rgb(227 171 46 / 0) 0%,
+        rgb(227 171 46 / 0.55) 12%,
+        rgb(227 171 46 / 0.75) 60%,
+        rgb(227 171 46 / 0) 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: highlight-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) 500ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .text-highlight-ink::after {
+        animation: none;
+        transform: scaleX(1);
+    }
+}
+
+/* Home KPI panel: a thin accent line along the foot of each figure that
+   draws brand-to-gold once the cell has risen in. Decorative, not a gauge:
+   it always fills completely. */
+.kpi-bar {
+    position: absolute;
+    left: 1.5rem;
+    right: 1.5rem;
+    bottom: 1.1rem;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--color-ink-100);
+    overflow: hidden;
+}
+
+.kpi-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-brand-500), var(--color-gold-400));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--d, 0ms) + 350ms);
+}
+
+.kpi-cell.is-visible .kpi-bar::after {
+    transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kpi-bar::after { transition: none; }
 }

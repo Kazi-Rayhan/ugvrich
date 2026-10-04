@@ -20,6 +20,7 @@ class PageController extends Controller
     {
         return view('pages.home', [
             'stats' => Stat::active()->orderBy('sort_order')->get(),
+            'partners' => Partner::active()->orderBy('sort_order')->get(),
         ]);
     }
 

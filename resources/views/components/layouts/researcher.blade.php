@@ -38,7 +38,7 @@
 
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png" sizes="64x64">
 
-    {{ Vite::fonts(['space-grotesk', 'inter', 'noto-sans-bengali']) }}
+    {{ Vite::fonts(['plus-jakarta-sans', 'inter', 'noto-sans-bengali']) }}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 

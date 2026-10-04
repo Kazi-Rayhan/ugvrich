@@ -22,11 +22,11 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
 
-    {{-- Each script keeps its own face: Space Grotesk and Inter draw the Latin,
+    {{-- Each script keeps its own face: Plus Jakarta Sans and Inter draw the Latin,
          Noto Sans Bengali the Bangla. Both are loaded whichever language the
          page is in — the English pages still print বাংলা in the language
          switch, and the Bangla pages are full of Latin names and acronyms. --}}
-    {{ Vite::fonts(['space-grotesk', 'inter', 'noto-sans-bengali']) }}
+    {{ Vite::fonts(['plus-jakarta-sans', 'inter', 'noto-sans-bengali']) }}
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

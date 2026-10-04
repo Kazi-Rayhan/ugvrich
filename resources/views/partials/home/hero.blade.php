@@ -13,20 +13,52 @@
     $headingHtml = $highlight === ''
         ? $heading
         : preg_replace('/'.preg_quote(e($highlight), '/').'/i', '<span class="text-brand-300">$0</span>', $heading, 1);
+
+    // The rotating kicker above the headline.
+    $rotatingWords = __('site.home.rotate_words');
+
+    // Glass cards over the footage: real figures only. Faculties and the yearly
+    // funded projects come from the research-call policy; projects from the KPIs.
+    $faculties = count(config('research_calls.faculties'));
+    $projectStat = $stats->first(fn ($stat) => str_contains(strtolower($stat->getRawOriginal('label') ?? $stat->label), 'active project'));
+    $glassCards = array_values(array_filter([
+        [$faculties, '', __('site.home.glass_faculties'), 'academic', 'left-0 top-10 lg:-left-12', 18, '0s'],
+        $projectStat ? [$projectStat->value, $projectStat->suffix, $projectStat->label, 'target', 'right-0 top-[38%] xl:-right-10', 30, '-2.5s'] : null,
+        [$faculties * config('research_calls.funded_per_faculty'), '', __('site.home.glass_funded'), 'star', '-bottom-7 left-12', 12, '-5s'],
+    ]));
 @endphp
 
 {{-- The clip is square, so rather than cropping it across the full width it sits whole in a frame beside the copy. --}}
-<section class="relative isolate overflow-hidden bg-ink-950">
+<section class="hero-scene relative isolate overflow-hidden bg-ink-950" x-data="heroScene">
 
-    {{-- Backdrop: brand glow and a faint grid --}}
+    {{-- Backdrop: brand glow, a faint grid, the drifting research network and
+         a soft light that follows the pointer. All decorative. --}}
     <div class="absolute inset-0 -z-10" aria-hidden="true">
         <div class="absolute -right-40 top-10 h-[640px] w-[640px] rounded-full bg-brand-500/30 blur-[140px]"></div>
         <div class="absolute -left-40 bottom-0 h-[420px] w-[420px] rounded-full bg-navy-500/35 blur-[120px]"></div>
         <div class="grid-overlay absolute inset-0 text-white [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"></div>
+        <canvas x-ref="network" class="absolute inset-0 h-full w-full opacity-80 [mask-image:radial-gradient(ellipse_at_45%_50%,black_30%,transparent_80%)]"></canvas>
+        <div class="hero-cursor-glow"></div>
     </div>
 
     <div class="container-rich grid items-center gap-12 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pb-24 lg:pt-24">
         <div class="max-w-xl">
+            {{-- Kicker: "From idea to …" cycling through what RICH does. Screen
+                 readers get the whole list once instead of the motion. --}}
+            <p class="reveal mb-5 font-display text-[18px] font-semibold tracking-tight text-white/75 sm:text-[21px]"
+               x-data="rotatingWord({{ count($rotatingWords) }})" x-intersect:enter="play()" x-intersect:leave="pause()">
+                <span aria-hidden="true">
+                    {{ __('site.home.rotate_lead') }}
+                    <span class="rotator">
+                        @foreach ($rotatingWords as $i => $word)
+                            <span class="rotator-word text-highlight" :class="{ 'is-active': current === {{ $i }}, 'is-leaving': previous === {{ $i }} }"
+                                  @if ($i === 0) data-first @endif>{{ $word }}</span>
+                        @endforeach
+                    </span>
+                </span>
+                <span class="sr-only">{{ __('site.home.rotate_lead') }} {{ implode(', ', $rotatingWords) }}</span>
+            </p>
+
             <h1 data-split
                 class="reveal font-display text-[28px] font-bold leading-[1.15] tracking-tight text-white sm:text-[36px] lg:text-[44px]">
                 {!! $headingHtml !!}
@@ -37,7 +69,7 @@
             </p>
 
             <div class="reveal mt-9 flex flex-wrap items-center gap-3" style="transition-delay: 220ms">
-                <a href="{{ route('innovation.index') }}" class="btn-primary group !px-6">
+                <a href="{{ route('innovation.index') }}" class="btn-primary group !px-6" data-magnetic>
                     {{ __('site.home.explore_innovation') }}
                     <x-ui-icon name="arrow-up-right" class="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
                 </a>
@@ -65,11 +97,23 @@
                     <source src="{{ $heroVideo }}" type="{{ $videoType }}">
                 </video>
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-950/60 to-transparent"></div>
-                {{-- <span class="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-medium text-white backdrop-blur-md">
-                    <span class="h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
-                    Inside UGV RICH
-                </span> --}}
             </div>
+
+            {{-- Floating glass cards: desktop only, drifting gently and leaning
+                 with the pointer at different depths. --}}
+            @foreach ($glassCards as [$value, $suffix, $text, $icon, $position, $depth, $delay])
+                <div class="hero-float pointer-events-none absolute z-10 hidden lg:block {{ $position }}" style="--depth: {{ $depth }}">
+                    <div class="glass-card" style="animation-delay: {{ $delay }}">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-gold-300 ring-1 ring-white/15">
+                            <x-ui-icon :name="$icon" class="h-[18px] w-[18px]" />
+                        </span>
+                        <span class="min-w-0">
+                            <span class="block font-display text-[20px] font-bold leading-none tabular-nums text-white">{{ \App\Support\Numerals::localize((string) $value) }}{{ $suffix }}</span>
+                            <span class="mt-1 block whitespace-nowrap text-[12px] font-medium text-white/65">{{ $text }}</span>
+                        </span>
+                    </div>
+                </div>
+            @endforeach
         </div>
     </div>
 </section>

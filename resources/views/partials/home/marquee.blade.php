@@ -6,10 +6,13 @@
         : collect([$partners]);
 
     $partnerStat = $stats->first(fn ($s) => str_contains(strtolower($s->label), 'partner'));
+
+    // The home page shows the marks in greyscale until hovered; About keeps colour.
+    $subdued ??= false;
 @endphp
 
 @if ($partners->isNotEmpty())
-    <section class="relative overflow-hidden border-b hairline bg-ink-50 py-16 sm:py-20">
+    <section @class(['relative overflow-hidden border-b hairline bg-ink-50', 'partners-subdued py-20 sm:py-24' => $subdued, 'py-16 sm:py-20' => ! $subdued])>
         <div class="container-rich">
             <div class="grid items-center gap-10 lg:grid-cols-[0.38fr_0.62fr] lg:gap-14">
 

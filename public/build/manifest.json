@@ -1,7 +1,7 @@
 {
-  "_fonts-DcUKl_Uh.css": {
-    "file": "assets/fonts-DcUKl_Uh.css",
-    "src": "_fonts-DcUKl_Uh.css"
+  "_fonts-sLvepx2P.css": {
+    "file": "assets/fonts-sLvepx2P.css",
+    "src": "_fonts-sLvepx2P.css"
   },
   "_inter-400-normal-C38fXH4l.woff2": {
     "file": "assets/inter-400-normal-C38fXH4l.woff2",
@@ -67,32 +67,40 @@
     "file": "assets/noto-sans-bengali-700-normal-DXVjD8fr.woff",
     "src": "_noto-sans-bengali-700-normal-DXVjD8fr.woff"
   },
-  "_space-grotesk-500-normal-CNSSEhBt.woff": {
-    "file": "assets/space-grotesk-500-normal-CNSSEhBt.woff",
-    "src": "_space-grotesk-500-normal-CNSSEhBt.woff"
+  "_plus-jakarta-sans-500-normal-Bf-nb4oT.woff2": {
+    "file": "assets/plus-jakarta-sans-500-normal-Bf-nb4oT.woff2",
+    "src": "_plus-jakarta-sans-500-normal-Bf-nb4oT.woff2"
   },
-  "_space-grotesk-500-normal-lFbtlQH6.woff2": {
-    "file": "assets/space-grotesk-500-normal-lFbtlQH6.woff2",
-    "src": "_space-grotesk-500-normal-lFbtlQH6.woff2"
+  "_plus-jakarta-sans-500-normal-DYtqi0QS.woff": {
+    "file": "assets/plus-jakarta-sans-500-normal-DYtqi0QS.woff",
+    "src": "_plus-jakarta-sans-500-normal-DYtqi0QS.woff"
   },
-  "_space-grotesk-600-normal-BflQw4A9.woff": {
-    "file": "assets/space-grotesk-600-normal-BflQw4A9.woff",
-    "src": "_space-grotesk-600-normal-BflQw4A9.woff"
+  "_plus-jakarta-sans-600-normal-BR_Ojra4.woff": {
+    "file": "assets/plus-jakarta-sans-600-normal-BR_Ojra4.woff",
+    "src": "_plus-jakarta-sans-600-normal-BR_Ojra4.woff"
   },
-  "_space-grotesk-600-normal-DjKNqYRj.woff2": {
-    "file": "assets/space-grotesk-600-normal-DjKNqYRj.woff2",
-    "src": "_space-grotesk-600-normal-DjKNqYRj.woff2"
+  "_plus-jakarta-sans-600-normal-DLTa1BUW.woff2": {
+    "file": "assets/plus-jakarta-sans-600-normal-DLTa1BUW.woff2",
+    "src": "_plus-jakarta-sans-600-normal-DLTa1BUW.woff2"
   },
-  "_space-grotesk-700-normal-CwsQ-cCU.woff": {
-    "file": "assets/space-grotesk-700-normal-CwsQ-cCU.woff",
-    "src": "_space-grotesk-700-normal-CwsQ-cCU.woff"
+  "_plus-jakarta-sans-700-normal-CfpNZvy6.woff2": {
+    "file": "assets/plus-jakarta-sans-700-normal-CfpNZvy6.woff2",
+    "src": "_plus-jakarta-sans-700-normal-CfpNZvy6.woff2"
   },
-  "_space-grotesk-700-normal-RjhwGPKo.woff2": {
-    "file": "assets/space-grotesk-700-normal-RjhwGPKo.woff2",
-    "src": "_space-grotesk-700-normal-RjhwGPKo.woff2"
+  "_plus-jakarta-sans-700-normal-DqEcQeE5.woff": {
+    "file": "assets/plus-jakarta-sans-700-normal-DqEcQeE5.woff",
+    "src": "_plus-jakarta-sans-700-normal-DqEcQeE5.woff"
+  },
+  "_plus-jakarta-sans-800-normal-BRNHt2w0.woff": {
+    "file": "assets/plus-jakarta-sans-800-normal-BRNHt2w0.woff",
+    "src": "_plus-jakarta-sans-800-normal-BRNHt2w0.woff"
+  },
+  "_plus-jakarta-sans-800-normal-CusIZhrK.woff2": {
+    "file": "assets/plus-jakarta-sans-800-normal-CusIZhrK.woff2",
+    "src": "_plus-jakarta-sans-800-normal-CusIZhrK.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-etjaOdZU.css",
+    "file": "assets/app-BT8Ln8sr.css",
     "name": "app",
     "names": [
       "app.css"
@@ -101,7 +109,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-0S-nhIli.js",
+    "file": "assets/app-BZD2bDfk.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

@@ -28,6 +28,7 @@ class StatsTable
                 TextColumn::make('icon')->badge()->color('gray')->placeholder('--'),
 
                 IconColumn::make('is_active')->label('Visible')->boolean(),
+                IconColumn::make('show_on_home')->label('Home page')->boolean(),
             ])
             ->recordActions([
                 EditAction::make(),

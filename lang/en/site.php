@@ -19,7 +19,7 @@ return [
         'research' => 'Research',
         'innovation' => 'Innovation Wing',
         'consultancy' => 'Consultancy',
-        'team' => 'Team',
+        'team' => 'Experts',
         'about' => 'About RICH',
         'startup' => 'Startup & Incubation',
         'news' => 'News & Events',
@@ -77,10 +77,12 @@ return [
         'explore_innovation' => 'Explore Innovation',
         'glance' => 'RICH at a glance',
         'glance_note' => '· Live numbers from the RICH office',
+        'glance_live' => 'Live numbers from the RICH office',
+        'glance_title' => 'RICH <span class="text-highlight-ink">at a glance</span>',
         'view_all_projects' => 'View all projects',
 
-        'about_eyebrow' => 'About UGV RICH',
-        'about_title' => 'Research, Innovation &amp; <span class="text-accent">Consultation Hub</span>',
+        'about_eyebrow' => 'About RICH',
+        'about_title' => 'Research, Innovation &amp; <span class="text-highlight-ink">Consultation Hub</span>',
         'chip_research' => 'Research',
         'chip_innovation' => 'Innovation',
         'chip_industry' => 'Industry services',
@@ -143,10 +145,28 @@ return [
         'why_eyebrow' => 'Why choose UGV RICH',
         'why_title' => 'Academic rigour, delivered like <span class="text-brand-300">professional practice</span>',
         'why_lead' => 'Six reasons organisations bring their hardest questions to a university platform rather than a generalist firm.',
+        'rotate_lead' => 'From idea to',
+        'rotate_words' => ['Research', 'Innovation', 'Consultancy', 'Impact'],
+        'glass_faculties' => 'Faculties',
+        'glass_funded' => 'Funded research a year',
+
+        'wings_eyebrow' => 'The RICH ecosystem',
+        'wings_title' => 'One hub, <span class="text-highlight">three ways in</span>',
+        'wings_lead' => 'Research, innovation and consultancy — connected, so an idea travels from a question all the way to real-world impact.',
+        'wings_explore' => 'Explore',
+        'wings' => [
+            'research' => ['title' => 'Research Wing', 'body' => 'Faculty-led research across four faculties, with yearly funding for the strongest proposals.'],
+            'innovation' => ['title' => 'Innovation Wing', 'body' => 'Ideas turned into prototypes, tested and protected as intellectual property.'],
+            'consultancy' => ['title' => 'Consultancy', 'body' => 'University expertise, scoped and delivered for industry, government and NGOs.'],
+        ],
+
+        'cta_eyebrow' => 'Start a conversation',
+        'cta_title' => 'Work with <span class="text-highlight">UGV RICH</span>',
+        'cta_body' => 'Bring us a research question or a consultancy requirement and we will match it to the right expertise.',
     ],
 
     'about' => [
-        'meta_title' => 'About',
+        'meta_title' => 'About RICH',
         'hero_title' => 'An institutional platform for research, innovation and <span class="text-accent">professional consultancy</span>',
         'view_services' => 'View services',
 
@@ -241,7 +261,7 @@ return [
     ],
 
     'patents' => [
-        'meta_title' => 'IP & Technology Transfer',
+        'meta_title' => 'Patents & IP',
         'meta_description' => 'Patent applications, granted patents, copyright, industrial design, technology available for licensing and commercialization at UGV RICH.',
         'hero_title' => 'IP and <span class="text-accent">technology transfer</span>',
         'hero_lead' => 'Novel work coming out of the Innovation Wing is protected before it is shown publicly, then licensed or taken to market. This is the register, kept up to date by the Innovation Wing.',

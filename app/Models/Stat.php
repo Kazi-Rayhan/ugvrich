@@ -20,6 +20,7 @@ class Stat extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'show_on_home' => 'boolean',
     ];
 
     public function scopeActive(Builder $q): Builder

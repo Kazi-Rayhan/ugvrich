@@ -222,6 +222,190 @@ Alpine.data('counter', (target = 0, duration = 1500) => ({
     },
 }));
 
+/* ---------------------------------------------------------------------
+ | Home hero: the research network, the cursor light and card parallax
+ |
+ | Everything here is decorative. With reduced motion the network is drawn
+ | once and left still, and nothing follows the pointer. On touch screens
+ | the pointer effects are skipped entirely.
+ --------------------------------------------------------------------- */
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+const startNetwork = (canvas, host) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const still = reducedMotion();
+    let width = 0;
+    let height = 0;
+    let nodes = [];
+    let reach = 135;
+    let frame = null;
+    let visible = true;
+
+    const seed = () => {
+        const small = width < 640;
+        reach = small ? 95 : 135;
+        const count = small ? 16 : Math.min(60, Math.round((width * height) / 17000));
+
+        nodes = Array.from({ length: count }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.16,
+            vy: (Math.random() - 0.5) * 0.16,
+            r: 0.8 + Math.random() * 1.3,
+            phase: Math.random() * Math.PI * 2,
+            gold: Math.random() < 0.12,
+        }));
+    };
+
+    const draw = (time) => {
+        ctx.clearRect(0, 0, width, height);
+
+        if (!still) {
+            for (const node of nodes) {
+                node.x += node.vx;
+                node.y += node.vy;
+                if (node.x < 0 || node.x > width) node.vx *= -1;
+                if (node.y < 0 || node.y > height) node.vy *= -1;
+            }
+        }
+
+        ctx.lineWidth = 0.6;
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const dx = nodes[i].x - nodes[j].x;
+                const dy = nodes[i].y - nodes[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > reach) continue;
+
+                ctx.strokeStyle = `rgba(189, 220, 185, ${((1 - distance / reach) * 0.2).toFixed(3)})`;
+                ctx.beginPath();
+                ctx.moveTo(nodes[i].x, nodes[i].y);
+                ctx.lineTo(nodes[j].x, nodes[j].y);
+                ctx.stroke();
+            }
+        }
+
+        for (const node of nodes) {
+            const alpha = still ? 0.6 : 0.45 + 0.35 * Math.sin(time * 0.0008 + node.phase);
+            const colour = node.gold ? '242, 205, 107' : '189, 220, 185';
+
+            ctx.fillStyle = `rgba(${colour}, ${alpha.toFixed(3)})`;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (node.gold) {
+                ctx.fillStyle = `rgba(${colour}, ${(alpha * 0.15).toFixed(3)})`;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.r * 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    };
+
+    const loop = (time) => {
+        draw(time);
+        frame = requestAnimationFrame(loop);
+    };
+    const play = () => {
+        if (still || frame || !visible || document.hidden) return;
+        frame = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = null;
+    };
+
+    // Re-seed only when the width really changes, so a phone's address bar
+    // sliding away does not scatter the network.
+    const resize = () => {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        const newWidth = canvas.clientWidth;
+        const reseed = Math.abs(newWidth - width) > 40 || !nodes.length;
+
+        width = newWidth;
+        height = canvas.clientHeight;
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+        if (reseed) seed();
+        draw(performance.now());
+    };
+
+    resize();
+    new ResizeObserver(resize).observe(canvas);
+
+    // Only animate while the hero is on screen and the tab is in front.
+    new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        visible ? play() : stop();
+    }).observe(host);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : play()));
+
+    play();
+};
+
+Alpine.data('heroScene', () => ({
+    init() {
+        if (this.$refs.network) startNetwork(this.$refs.network, this.$el);
+        if (reducedMotion() || !finePointer.matches) return;
+
+        const hero = this.$el;
+        let frame = null;
+        let x = 0;
+        let y = 0;
+
+        // One write per frame: the light's position and a -1…1 offset the
+        // glass cards turn into parallax at their own depth.
+        const apply = () => {
+            frame = null;
+            const rect = hero.getBoundingClientRect();
+            hero.style.setProperty('--hx', `${x - rect.left}px`);
+            hero.style.setProperty('--hy', `${y - rect.top}px`);
+            hero.style.setProperty('--px', (((x - rect.left) / rect.width) * 2 - 1).toFixed(3));
+            hero.style.setProperty('--py', (((y - rect.top) / rect.height) * 2 - 1).toFixed(3));
+        };
+
+        hero.addEventListener('pointermove', (event) => {
+            x = event.clientX;
+            y = event.clientY;
+            hero.dataset.pointer = 'in';
+            frame ??= requestAnimationFrame(apply);
+        }, { passive: true });
+
+        hero.addEventListener('pointerleave', () => {
+            delete hero.dataset.pointer;
+            hero.style.setProperty('--px', '0');
+            hero.style.setProperty('--py', '0');
+        });
+    },
+}));
+
+/* A word that cycles in place: the next one slides up as the last leaves.
+   All words share one grid cell, so the line never changes width. */
+Alpine.data('rotatingWord', (count = 1) => ({
+    current: 0,
+    previous: null,
+    timer: null,
+
+    play() {
+        if (this.timer || count < 2 || reducedMotion()) return;
+        this.timer = setInterval(() => {
+            this.previous = this.current;
+            this.current = (this.current + 1) % count;
+        }, 2800);
+    },
+
+    pause() {
+        clearInterval(this.timer);
+        this.timer = null;
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 
@@ -322,3 +506,60 @@ document.addEventListener(
     },
     { passive: true },
 );
+
+/* ---------------------------------------------------------------------
+ | Tilt and magnetic pull
+ |
+ | [data-tilt] cards lean a couple of degrees toward the pointer;
+ | [data-magnetic] buttons drift a few pixels after it. Same delegated
+ | listener idea as the spotlight. Fine pointers only, never under
+ | reduced motion. The pull uses `transform`, which composes with the
+ | buttons' own hover `translate` instead of replacing it.
+ --------------------------------------------------------------------- */
+let tilted = null;
+let pulled = null;
+
+const releaseTilt = (el) => {
+    el?.style.removeProperty('--rx');
+    el?.style.removeProperty('--ry');
+};
+const releasePull = (el) => el?.style.removeProperty('transform');
+
+document.addEventListener(
+    'pointermove',
+    (event) => {
+        if (!finePointer.matches || reducedMotion()) return;
+
+        const tile = event.target.closest?.('[data-tilt]');
+        if (tilted && tilted !== tile) releaseTilt(tilted);
+        tilted = tile;
+
+        if (tile) {
+            const rect = tile.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+            tile.style.transitionDelay = '0s'; // drop the reveal stagger once it is live
+            tile.style.setProperty('--ry', `${(x * 5).toFixed(2)}deg`);
+            tile.style.setProperty('--rx', `${(-y * 5).toFixed(2)}deg`);
+        }
+
+        const button = event.target.closest?.('[data-magnetic]');
+        if (pulled && pulled !== button) releasePull(pulled);
+        pulled = button;
+
+        if (button) {
+            const rect = button.getBoundingClientRect();
+            const x = event.clientX - (rect.left + rect.width / 2);
+            const y = event.clientY - (rect.top + rect.height / 2);
+            button.style.transform = `translate3d(${(x * 0.18).toFixed(1)}px, ${(y * 0.25).toFixed(1)}px, 0)`;
+        }
+    },
+    { passive: true },
+);
+
+document.addEventListener('pointerout', (event) => {
+    if (event.relatedTarget) return; // still inside the page
+    releaseTilt(tilted);
+    releasePull(pulled);
+    tilted = pulled = null;
+});

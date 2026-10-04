@@ -168,7 +168,7 @@ class ManageSiteSettings extends Page implements HasSchemas
                                             ->directory('hero')
                                             ->acceptedFileTypes(['video/mp4', 'video/webm'])
                                             ->maxSize(204800)
-                                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the banner text, in place of the photo. Leave empty to keep the photo.'),
+                                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the Services page banner, and on the Consultancy tile on the home page. Leave empty to keep the photos.'),
                                     ]),
                             ]),
 

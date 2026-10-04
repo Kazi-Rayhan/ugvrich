@@ -9,8 +9,8 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Space Grotesk', {
-                    weights: [500, 600, 700],
+                bunny('Plus Jakarta Sans', {
+                    weights: [500, 600, 700, 800],
                     preload: [{ weight: 700, style: 'normal' }],
                 }),
                 bunny('Inter', {
@@ -22,7 +22,7 @@ export default defineConfig({
                    back to whatever the reader's system happens to have. These two
                    cover it: Hind Siliguri for text, Anek Bangla for display.
                    Only the bengali subset is downloaded — Latin still comes from
-                   Inter and Space Grotesk, chosen per glyph by the browser.
+                   Inter and Plus Jakarta Sans, chosen per glyph by the browser.
                    Noto draws the Bengali digits the conventional way, which
                    matters: ১ in some faces is easily read as ৲. */
                 bunny('Noto Sans Bengali', {
