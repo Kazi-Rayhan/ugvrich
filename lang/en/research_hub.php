@@ -18,7 +18,7 @@ return [
         'lead' => 'RICH is the place where researchers, students, ideas, collaboration, funding, publication and research impact meet — one hub for the whole of UGV research.',
         'primary' => 'Start your research journey',
         'secondary' => 'Explore research areas',
-        'note' => 'The research ecosystem of UGV in one place: the research areas, the support desk, the annual funding call and the path from an idea to its impact.',
+        'note' => 'All of UGV research, in one place.',
     ],
 
     'calls' => [

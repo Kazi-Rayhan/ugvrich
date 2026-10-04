@@ -98,8 +98,8 @@
                 </a>
             </div>
 
-            <p class="reveal mt-9 inline-flex max-w-2xl items-start gap-2.5 rounded-2xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[13px] leading-relaxed text-white/70 backdrop-blur-sm">
-                <x-ui-icon name="compass" class="mt-0.5 h-4 w-4 shrink-0 text-brand-300" />
+            <p class="reveal mt-8 inline-flex max-w-2xl items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-[13px] text-white/70 backdrop-blur-sm">
+                <x-ui-icon name="compass" class="h-4 w-4 shrink-0 text-brand-300" />
                 {{ __('research_hub.hero.note') }}
             </p>
         </div>
