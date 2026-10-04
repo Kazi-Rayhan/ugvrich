@@ -32,7 +32,14 @@
                 {{-- The headline figures (Stats marked "Show on the home page"), in
                      one panel divided by hairlines. Each cell rises in on a stagger,
                      counts up, and draws a brand-to-gold line under itself. --}}
-                @php($homeStats = $stats->where('show_on_home', true)->values())
+                @php
+                    // A stat without the flag (a database the show_on_home migration
+                    // has not reached yet) counts as shown, and if nothing is marked
+                    // for the home page the first six stand in, so the panel is
+                    // never left empty.
+                    $homeStats = $stats->filter(fn ($stat) => $stat->show_on_home ?? true)->values();
+                    $homeStats = $homeStats->isNotEmpty() ? $homeStats : $stats->take(6)->values();
+                @endphp
                 <div class="overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_60px_-40px_rgba(7,20,38,0.35)] ring-1 ring-ink-100">
                 <div class="-mb-px -mr-px grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                     @foreach ($homeStats as $i => $stat)
