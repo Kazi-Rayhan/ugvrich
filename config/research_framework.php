@@ -68,7 +68,7 @@ return [
         'kpis' => '8.1 Monitoring, Evaluation  KPIs',
         'roadmap' => '8.2 Three-Year Strategic Roadmap',
         'section_9' => 'Section 9',
-        'achievements' => '9. Expected Outcome',
+        'achievements' => '9. Expected Outcomes',
     ],
 
     'title' => 'Research, Innovation and Consultancy Hub',
