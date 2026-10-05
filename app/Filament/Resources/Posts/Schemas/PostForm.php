@@ -86,6 +86,17 @@ class PostForm
                                 ->imageEditor()
                                 ->columnSpanFull(),
 
+                            FileUpload::make('rulebook')
+                                ->label('Rulebook (PDF, optional)')
+                                ->disk('public')
+                                ->directory('posts/rulebooks')
+                                ->acceptedFileTypes(['application/pdf'])
+                                ->maxSize(20480)
+                                ->downloadable()
+                                ->openable()
+                                ->helperText('PDF, up to 20 MB. Shown on the page as a highlighted "Download rulebook" button.')
+                                ->columnSpanFull(),
+
                             FileUpload::make('hero_video')
                                 ->label('Hero video (optional)')
                                 ->disk('public')

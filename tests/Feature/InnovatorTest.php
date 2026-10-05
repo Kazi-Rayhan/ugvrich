@@ -48,6 +48,20 @@ class InnovatorTest extends TestCase
         $this->assertSame('engineering', IdeaSubmission::sole()->category);
         $this->assertSame($user->id, IdeaSubmission::sole()->user_id);
         Notification::assertSentTo($user, SetInnovatorPassword::class);
+
+        // Signed in by the submission itself, and the thank-you page opens the dashboard.
+        $this->assertAuthenticatedAs($user);
+        $this->get(route('ideas.thanks'))->assertOk()->assertSee(route('innovator.dashboard'), false);
+    }
+
+    public function test_knowing_an_existing_innovators_email_does_not_sign_you_in(): void
+    {
+        $this->submit();
+        auth()->logout();
+
+        $this->submit(['title' => 'Somebody else using the same email'])->assertRedirect(route('ideas.thanks'));
+
+        $this->assertGuest();
     }
 
     public function test_the_link_sets_the_password_and_opens_the_dashboard(): void
@@ -91,6 +105,37 @@ class InnovatorTest extends TestCase
         $this->assertSame(1, User::where('email', 'green@example.com')->count());
         $this->assertSame(2, User::where('email', 'green@example.com')->sole()->ideaSubmissions()->count());
         Notification::assertSentTimes(SetInnovatorPassword::class, 1);
+    }
+
+    public function test_the_same_email_in_other_capitals_or_with_spaces_is_still_one_account(): void
+    {
+        $this->submit();
+        $this->submit(['email' => '  Green@EXAMPLE.com ', 'title' => 'Second idea']);
+        $this->submit(['email' => 'GREEN@example.COM', 'title' => 'Third idea']);
+
+        $this->assertSame(1, User::count());
+        $this->assertSame('green@example.com', User::sole()->email);
+        $this->assertSame(3, User::sole()->ideaSubmissions()->count());
+        Notification::assertSentTimes(SetInnovatorPassword::class, 1);
+    }
+
+    public function test_an_account_made_by_a_racing_submit_is_reused_not_duplicated(): void
+    {
+        // The account appears between the lookup and the insert (a double
+        // click): the second insert must fall back to it, not fail.
+        User::creating(function (User $user) {
+            if ($user->email === 'green@example.com' && ! User::where('email', 'green@example.com')->exists()) {
+                User::withoutEvents(fn () => User::forceCreate([
+                    'name' => 'Team Green Campus', 'email' => 'green@example.com',
+                    'password' => 'x', 'role' => User::INNOVATOR,
+                ]));
+            }
+        });
+
+        $this->submit()->assertRedirect(route('ideas.thanks'));
+
+        $this->assertSame(1, User::where('email', 'green@example.com')->count());
+        $this->assertSame(User::sole()->id, IdeaSubmission::sole()->user_id);
     }
 
     public function test_a_staff_or_researcher_email_is_never_turned_into_an_innovator(): void

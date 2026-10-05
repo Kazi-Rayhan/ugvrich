@@ -36,7 +36,7 @@
             <form action="{{ route('ideas.store') }}" method="POST" enctype="multipart/form-data"
                   class="reveal overflow-hidden rounded-[2rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]"
                   x-data="{
-                      step: {{ $errors->hasAny(['document', 'category']) && ! $errors->hasAny(['name', 'email', 'phone', 'title']) ? 2 : 1 }},
+                      step: {{ $errors->hasAny(['title', 'category', 'document']) && ! $errors->hasAny(['name', 'email', 'phone']) ? 2 : 1 }},
                       last: 2,
                       fields: {
                           name: @js(old('name', $innovator?->name ?? '')),
@@ -132,13 +132,11 @@
                         <p class="font-display text-[19px] font-bold text-ink-950">{{ __('site.ideas.step_register') }}</p>
                         <p class="mt-1.5 text-[14px] muted">{{ __('site.ideas.register_note') }}</p>
 
-                        <div class="mt-7 grid gap-5 sm:grid-cols-2">
+                        <div class="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             <x-form.field name="name" :label="__('site.ideas.name_label')" icon="users" required autocomplete="name" x-model="fields.name" />
                             <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" required autocomplete="email" x-model="fields.email"
                                           :readonly="(bool) $innovator" />
                             <x-form.field name="phone" :label="__('site.forms.phone')" type="tel" icon="phone" required autocomplete="tel" x-model="fields.phone" />
-                            <x-form.field name="title" :label="__('site.ideas.title_label')" icon="lightbulb" required
-                                          :placeholder="__('site.ideas.title_placeholder')" maxlength="200" x-model="fields.title" />
                         </div>
                     </fieldset>
 
@@ -148,38 +146,44 @@
                         <p class="font-display text-[19px] font-bold text-ink-950">{{ __('site.ideas.step_submit') }}</p>
                         <p class="mt-1.5 text-[14px] muted">{{ __('site.ideas.submit_note') }}</p>
 
-                        {{-- The category the idea belongs to --}}
-                        <div class="mt-7 max-w-md">
-                            <label for="category" class="mb-2 block text-[13px] font-semibold text-ink-700">
-                                {{ __('site.ideas.category_label') }} <span class="text-brand-600">*</span>
-                            </label>
-                            <div class="relative">
-                                <x-ui-icon name="grid" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-400" />
-                                <select id="category" name="category" required x-model="category"
-                                        @class([
-                                            'w-full appearance-none rounded-2xl border bg-ink-50/60 py-3.5 pl-11 pr-10 text-[15px] text-ink-900 transition focus:bg-white focus:outline-none focus:ring-4',
-                                            'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('category'),
-                                            'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('category'),
-                                        ])>
-                                    <option value="">{{ __('site.ideas.category_placeholder') }}</option>
-                                    @foreach (\App\Support\Vocabulary::all('idea_categories') as $value => $label)
-                                        <option value="{{ $value }}" @selected(old('category') === $value)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                <x-ui-icon name="chevron-down" class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-                            </div>
-                        </div>
-                        @error('category')
-                            <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
-                        @enderror
-
                         <div class="mt-7 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
                             <div>
+                                {{-- The title, then the category, then the file: one column, one width --}}
+                                <div class="mb-5">
+                                    <x-form.field name="title" :label="__('site.ideas.title_label')" icon="lightbulb" required
+                                                  :placeholder="__('site.ideas.title_placeholder')" maxlength="200" x-model="fields.title" />
+                                </div>
+
+                                {{-- The category, the same width as the drop zone below it --}}
+                                <div>
+                                    <label for="category" class="mb-2 block text-[13px] font-semibold text-ink-700">
+                                        {{ __('site.ideas.category_label') }} <span class="text-brand-600">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <x-ui-icon name="grid" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-400" />
+                                        <select id="category" name="category" required x-model="category"
+                                                @class([
+                                                    'w-full appearance-none rounded-2xl border bg-ink-50/60 py-3.5 pl-11 pr-10 text-[15px] text-ink-900 transition focus:bg-white focus:outline-none focus:ring-4',
+                                                    'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('category'),
+                                                    'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('category'),
+                                                ])>
+                                            <option value="">{{ __('site.ideas.category_placeholder') }}</option>
+                                            @foreach (\App\Support\Vocabulary::all('idea_categories') as $value => $label)
+                                                <option value="{{ $value }}" @selected(old('category') === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <x-ui-icon name="chevron-down" class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                                    </div>
+                                </div>
+                                @error('category')
+                                    <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
+                                @enderror
+
                                 <label for="document"
                                        @dragover.prevent="dragging = true" @dragenter.prevent="dragging = true"
                                        @dragleave.prevent="dragging = false"
                                        @drop.prevent="dragging = false; take($event.dataTransfer.files)"
-                                       class="group relative flex min-h-[17rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-[1.75rem] border-2 border-dashed px-6 py-10 text-center transition duration-300"
+                                       class="group relative mt-5 flex min-h-[17rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-[1.75rem] border-2 border-dashed px-6 py-10 text-center transition duration-300"
                                        :class="dragging
                                            ? 'scale-[1.01] border-brand-500 bg-brand-50 ring-8 ring-brand-100'
                                            : (file ? 'border-brand-300 bg-brand-50/60' : 'border-ink-200 bg-ink-50/40 hover:border-brand-300 hover:bg-brand-50/40')">

@@ -401,6 +401,38 @@ Alpine.data('rotatingWord', (count = 1) => ({
     },
 }));
 
+/* A live countdown to an event's start: days, hours, minutes, seconds.
+   Bangla pages write the figures in Bangla digits. */
+Alpine.data('eventCountdown', (end = 0, bangla = false) => ({
+    left: { d: 0, h: 0, m: 0, s: 0 },
+    timer: null,
+
+    digits(n) {
+        const value = String(n).padStart(2, '0');
+        return bangla ? value.replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]) : value;
+    },
+
+    tick() {
+        const ms = Math.max(0, end - Date.now());
+        this.left = {
+            d: Math.floor(ms / 864e5),
+            h: Math.floor(ms / 36e5) % 24,
+            m: Math.floor(ms / 6e4) % 60,
+            s: Math.floor(ms / 1e3) % 60,
+        };
+        if (ms === 0) clearInterval(this.timer);
+    },
+
+    init() {
+        this.tick();
+        this.timer = setInterval(() => this.tick(), 1000);
+    },
+
+    destroy() {
+        clearInterval(this.timer);
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

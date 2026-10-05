@@ -53,6 +53,9 @@ Route::get('/services/{serviceCategory}/{service}', [ServiceController::class, '
     ->scopeBindings()
     ->name('services.detail');
 
+// The Innovation Wing's inauguration: curtains, a ribbon and one button.
+Route::view('/udbodhon', 'pages.udbodhon')->name('udbodhon');
+
 Route::get('/innovation', [InnovationController::class, 'index'])->name('innovation.index');
 Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('innovation.areas');
 // One innovation area on a page of its own, the way a service category has one.

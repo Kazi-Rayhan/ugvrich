@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\IdeaSubmission;
 use App\Models\User;
 use App\Notifications\SetInnovatorPassword;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -66,6 +68,13 @@ class IdeaSubmissionController extends Controller
             } catch (Throwable $e) {
                 report($e);
             }
+
+            // The account was made by this very submission, so its owner is the
+            // person here: sign them in, and the thank-you page can open their
+            // dashboard straight away. (An existing account is never signed in
+            // this way — knowing an email must not open somebody's dashboard.)
+            Auth::login($user);
+            $request->session()->regenerate();
         }
 
         return redirect()
@@ -100,18 +109,29 @@ class IdeaSubmissionController extends Controller
             return [$request->user(), false];
         }
 
-        $existing = User::where('email', $data['email'])->first();
+        // One account per address, whatever the capitals: compared and stored lowercase.
+        $email = Str::lower($data['email']);
+
+        $existing = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($existing) {
             return [$existing->isInnovator() ? $existing : null, false];
         }
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Str::random(40),
-            'role' => User::INNOVATOR,
-        ]);
+        try {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $email,
+                'password' => Str::random(40),
+                'role' => User::INNOVATOR,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // A second submit raced this one (a double click) and made the
+            // account first: use that account, never a second one.
+            $existing = User::whereRaw('LOWER(email) = ?', [$email])->first();
+
+            return [$existing?->isInnovator() ? $existing : null, false];
+        }
 
         return [$user, true];
     }

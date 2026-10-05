@@ -20,7 +20,8 @@ class PostController extends Controller
         return view('pages.news.index', [
             'posts' => $posts,
             'type' => $type,
-            'upcoming' => Post::published()->events()->where('event_at', '>=', now())->orderBy('event_at')->take(3)->get(),
+            // The next event only; the news page features it on its own.
+            'upcoming' => Post::published()->events()->where('event_at', '>=', now())->orderBy('event_at')->take(1)->get(),
         ]);
     }
 

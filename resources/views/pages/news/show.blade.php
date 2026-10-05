@@ -26,6 +26,14 @@
             ?: ($post->external_url ? preg_replace('/^www\./', '', (string) parse_url($post->external_url, PHP_URL_HOST)) : null);
 
         $cover = $post->image ? Storage::url($post->image) : null;
+
+        // The rulebook, and how big a download it is.
+        $rulebookUrl = $post->rulebook ? Storage::url($post->rulebook) : null;
+        $rulebookSize = null;
+        if ($post->rulebook && Storage::disk('public')->exists($post->rulebook)) {
+            $bytes = Storage::disk('public')->size($post->rulebook);
+            $rulebookSize = $bytes < 1048576 ? max(1, round($bytes / 1024)).' KB' : number_format($bytes / 1048576, 1).' MB';
+        }
         $num = fn ($value) => \App\Support\Numerals::localize((string) $value);
 
         // An event can go straight into the reader's calendar (two hours, by default).
@@ -218,7 +226,32 @@
             {{-- The side card: the date as a tile, the place, the facts, sharing,
                  and one highlighted action: Register & Submit Idea. Sticky while
                  the article scrolls. --}}
-            <aside class="lg:sticky lg:top-32 lg:self-start">
+            <aside class="space-y-5 lg:sticky lg:top-32 lg:self-start">
+                @if ($rulebookUrl)
+                    {{-- The rulebook, highlighted: read the rules before registering --}}
+                    <div class="reveal relative isolate overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-gold-200 via-gold-300 to-gold-400 p-6 text-navy-900 shadow-[0_30px_60px_-36px_rgba(195,136,26,0.7)]">
+                        <div class="pointer-events-none absolute -right-8 -top-8 -z-10 h-32 w-32 rounded-full bg-white/40 blur-2xl" aria-hidden="true"></div>
+                        <div class="flex items-center gap-4">
+                            <span class="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-white text-[10px] font-bold uppercase tracking-wider text-rose-600 shadow-[0_10px_24px_-14px_rgba(7,20,38,0.6)]">
+                                <x-ui-icon name="document" class="h-5 w-5 text-navy-800" />
+                                PDF
+                            </span>
+                            <div class="min-w-0">
+                                <p class="font-display text-[18px] font-bold leading-tight">{{ __('site.news.rulebook') }}</p>
+                                <p class="mt-0.5 text-[13px] text-navy-900/70">{{ __('site.news.rulebook_note') }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ $rulebookUrl }}" download target="_blank" rel="noopener"
+                           class="group mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-navy-900 px-5 py-3.5 text-[14.5px] font-bold text-white transition hover:bg-navy-800">
+                            <x-ui-icon name="arrow-right" class="h-4 w-4 rotate-90 transition-transform duration-300 group-hover:translate-y-0.5" />
+                            {{ __('site.news.rulebook_download') }}
+                            @if ($rulebookSize)
+                                <span class="text-[12px] font-semibold text-white/60">· {{ $rulebookSize }}</span>
+                            @endif
+                        </a>
+                    </div>
+                @endif
+
                 <div class="reveal overflow-hidden rounded-[1.75rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]">
 
                     @if ($isEvent && $post->event_at)
@@ -254,15 +287,6 @@
                                     <div>
                                         <dt class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">{{ __('site.news.category') }}</dt>
                                         <dd class="mt-0.5 font-medium text-ink-900">{{ $post->category }}</dd>
-                                    </div>
-                                </div>
-                            @endif
-                            @if ($post->author)
-                                <div class="flex items-start gap-3">
-                                    <x-ui-icon name="users" class="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                                    <div>
-                                        <dt class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">{{ __('site.news.organiser') }}</dt>
-                                        <dd class="mt-0.5 font-medium text-ink-900">{{ $post->author }}</dd>
                                     </div>
                                 </div>
                             @endif

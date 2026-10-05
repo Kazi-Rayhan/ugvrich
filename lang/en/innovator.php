@@ -13,6 +13,14 @@ return [
     'lead' => 'Every idea you submit is here, with where it has got to on the journey from idea to market.',
     'submit_another' => 'Submit another idea',
     'back_to_site' => 'Back to the website',
+    'role' => 'Innovator',
+    'nav_overview' => 'Overview',
+    'filter_all' => 'All',
+    'furthest' => 'Furthest stage',
+    'next' => 'Next: :stage',
+    'final' => 'The last stage of the journey',
+    'journey_title' => 'The journey from idea to market',
+    'journey_lead' => 'Every idea moves through these eight stages. The Innovation Wing moves yours on as it is reviewed and supported.',
     'logout' => 'Sign out',
 
     'stats' => [
@@ -57,7 +65,7 @@ return [
     ],
 
     'thanks' => [
-        'new' => 'We have emailed :email a link to set your password. Use it to sign in and follow this idea from your innovator dashboard.',
+        'new' => 'You are signed in to your new innovator account. We have also emailed :email a link to set your password, so you can sign in again later.',
         'existing' => 'This idea has been added to your innovator dashboard.',
         'dashboard' => 'Go to my dashboard',
     ],
