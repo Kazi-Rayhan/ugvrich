@@ -2,7 +2,7 @@
  | The RICH inauguration — /inaugurate (formerly /udbodhon, which redirects here).
  |
  | A page of its own, outside the site layout, and in English only: a closed
- | stage of green velvet with a satin ribbon and one button. Pressing it
+ | stage of royal-blue velvet with a satin ribbon and one button. Pressing it
  | rolls the drums, cuts the ribbon, opens the curtains on a white stage and
  | unveils RICH — Research, Innovation and Consultancy Hub — with petals,
  | marigolds, gold confetti and music. If there is an opening film, the
@@ -29,7 +29,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#1a371a">
+    <meta name="theme-color" content="#021634">
     <title>Grand Opening — UGV RICH</title>
     <meta name="description" content="The grand opening of RICH — the Research, Innovation and Consultancy Hub of the University of Global Village.">
     <meta property="og:title" content="Grand Opening — UGV RICH">
@@ -53,6 +53,13 @@
             --brand-800: #204520;
             --brand-900: #1a371a;
             --brand-950: #10240f;
+            --navy-400: #5183bd;
+            --navy-500: #2a5f9c;
+            --navy-600: #0f4280;
+            --navy-700: #022251;
+            --navy-800: #021c42;
+            --navy-900: #021634;
+            --navy-950: #010c1f;
             --gold-100: #fdf3d7;
             --gold-200: #f8e3a3;
             --gold-300: #f2cd6b;
@@ -72,7 +79,7 @@
 
         * { box-sizing: border-box; margin: 0; }
         html, body { height: 100%; }
-        body { overflow: hidden; background: var(--brand-950); color: var(--ink-950); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+        body { overflow: hidden; background: var(--navy-950); color: var(--ink-950); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
         button { font: inherit; cursor: pointer; }
 
         .stage { position: fixed; inset: 0; overflow: hidden; }
@@ -190,15 +197,15 @@
         /* Full width and full height on every screen, phones included. */
         .film video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-        /* ---------- The curtains: velvet in the brand green ---------- */
+        /* ---------- The curtains: royal-blue velvet in the site's navy ---------- */
 
         .curtain {
             position: absolute; top: 0; bottom: 0; z-index: 5; width: 50.5vw;
             background:
                 linear-gradient(180deg, rgba(0, 0, 0, .35), transparent 20%, transparent 75%, rgba(0, 0, 0, .5)),
                 repeating-linear-gradient(90deg,
-                    var(--brand-950) 0, var(--brand-900) 1.4vw, var(--brand-700) 2.6vw,
-                    var(--brand-500) 3.05vw, var(--brand-700) 3.5vw, var(--brand-900) 4.8vw, var(--brand-950) 6.4vw);
+                    var(--navy-950) 0, var(--navy-900) 1.2vw, var(--navy-700) 2.3vw, var(--navy-600) 2.8vw,
+                    var(--navy-500) 3.1vw, #4f7fb8 3.25vw, var(--navy-600) 3.6vw, var(--navy-700) 4.2vw, var(--navy-900) 5.2vw, var(--navy-950) 6.4vw);
             transition: transform 3.2s cubic-bezier(.66, 0, .25, 1);
             will-change: transform;
         }
@@ -209,7 +216,7 @@
         }
         .curtain::after { /* velvet sheen */
             content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse 65% 40% at 50% 38%, rgba(221, 238, 218, .10), transparent 70%);
+            background: radial-gradient(ellipse 65% 40% at 50% 38%, rgba(170, 200, 240, .12), transparent 70%);
         }
         .curtain-left { left: 0; transform-origin: 0 50%; box-shadow: inset -34px 0 40px -20px rgba(0, 0, 0, .7); }
         .curtain-right { right: 0; transform-origin: 100% 50%; box-shadow: inset 34px 0 40px -20px rgba(0, 0, 0, .7); }
@@ -253,48 +260,26 @@
         [data-state="cut"] .intro .text, [data-state="open"] .intro .text { opacity: 0; transform: translateY(-18px); }
         [data-state="open"] .intro { opacity: 0; pointer-events: none; transition-delay: 1.3s; }
 
+        /* The logo is the hero of the closed stage: large, on a white tile with a
+           gold ring, lit from behind by a slow halo. */
         .logo {
-            display: inline-flex; width: clamp(72px, 10vmin, 96px); aspect-ratio: 1;
-            padding: 10px; border-radius: 24px; background: #fff;
-            box-shadow: 0 0 0 6px rgba(255, 255, 255, .12), 0 22px 40px -14px rgba(0, 0, 0, .8);
+            position: relative; display: inline-flex; width: clamp(150px, 24vmin, 210px); aspect-ratio: 1;
+            padding: clamp(14px, 2.2vmin, 20px); border-radius: 36px; background: #fff;
+            box-shadow:
+                0 0 0 2px var(--gold-300),
+                0 0 0 10px rgba(255, 255, 255, .07),
+                0 0 70px rgba(120, 165, 225, .35),
+                0 34px 60px -22px rgba(0, 0, 0, .85);
+        }
+        .logo::before {             /* halo */
+            content: ''; position: absolute; inset: -45%; z-index: -1; border-radius: 50%;
+            background: radial-gradient(circle, rgba(140, 180, 235, .35), transparent 62%);
+            animation: halo 4.5s ease-in-out infinite;
         }
         .logo img { width: 100%; height: 100%; object-fit: contain; }
-        .intro .eyebrow-invert { margin-top: 24px; }
-        /* The name on one line: "UGV" in pearl silver, "RICH" in pearl-to-emerald
-           foil, with a sheen that passes across both now and then. */
-        .intro .title {
-            position: relative; margin-top: 22px;
-            display: flex; flex-direction: column; align-items: center;
-            font-family: var(--display);
-        }
-        .intro .title::before {     /* soft green light behind the name */
-            content: ''; position: absolute; left: 50%; top: 45%; z-index: -1;
-            width: 120%; height: 140%; transform: translate(-50%, -50%);
-            background: radial-gradient(ellipse at center, rgba(143, 191, 139, .26), transparent 65%);
-            filter: blur(10px);
-        }
-        .title-name {
-            display: flex; align-items: baseline; justify-content: center; gap: .26em;
-            font-weight: 800; line-height: .95; letter-spacing: .01em; white-space: nowrap;
-            font-size: clamp(50px, 12.5vw, 176px);
-            filter: drop-shadow(0 2px 0 rgba(16, 36, 15, .55)) drop-shadow(0 22px 34px rgba(0, 0, 0, .5));
-        }
-        .title-name .w {
-            position: relative;
-            -webkit-background-clip: text; background-clip: text; color: transparent;
-        }
-        .title-name .ugv { background-image: linear-gradient(176deg, #ffffff 0%, #f5f7f8 30%, #d5dde2 58%, #b9c4cb 72%, #f3f6f7 100%); }
-        .title-name .rich { background-image: linear-gradient(176deg, #ffffff 0%, #f1f8f0 26%, #c9e4c5 48%, var(--brand-300) 64%, #b9dbb4 80%, #f4faf2 100%); }
-        .title-name .w::after {     /* the passing sheen, carried from one word into the next */
-            content: attr(data-text); position: absolute; inset: 0;
-            background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%) no-repeat;
-            background-size: 260% 100%; background-position: 160% 0;
-            -webkit-background-clip: text; background-clip: text; color: transparent;
-            animation: sheen 5.5s var(--ease) 1.2s infinite;
-        }
-        .title-name .rich::after { animation-delay: 1.55s; }
+        .intro .eyebrow-invert { margin-top: clamp(26px, 4vh, 36px); }
         .title-rule {
-            display: flex; align-items: center; gap: 10px; margin-top: clamp(12px, 2vh, 20px);
+            display: flex; align-items: center; gap: 10px; margin-top: clamp(14px, 2.2vh, 20px);
         }
         .title-rule::before, .title-rule::after {
             content: ''; width: clamp(60px, 12vw, 150px); height: 1px;
@@ -322,18 +307,34 @@
         [data-state="cut"] .ribbon-right, [data-state="open"] .ribbon-right { transform: rotate(-78deg); }
         [data-state="open"] .ribbon { opacity: 0; }
 
-        .btn-cut { z-index: 1; }
+        /* The one button: the site's green, made unmistakable — a gold hairline,
+           a green glow, a pulse ring and a light that sweeps across it. */
+        .btn-cut {
+            z-index: 1; overflow: visible; padding: 20px 44px; font-size: clamp(16px, 1.6vw, 18px); color: #fff;
+            background: linear-gradient(180deg, var(--brand-500), var(--brand-600) 55%, var(--brand-700));
+            box-shadow:
+                0 0 0 1px rgba(242, 205, 107, .75),
+                0 0 0 6px rgba(65, 132, 63, .22),
+                0 0 44px rgba(93, 158, 89, .55),
+                0 24px 44px -14px rgba(0, 0, 0, .75),
+                inset 0 1px 0 rgba(255, 255, 255, .25);
+        }
+        .btn-cut:hover { background: linear-gradient(180deg, var(--brand-400), var(--brand-500) 55%, var(--brand-600)); }
+        .btn-cut .sweep { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+        .btn-cut .sweep::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, .45) 48%, transparent 70%);
+            transform: translateX(-130%); animation: sweep 3.6s var(--ease) 1s infinite;
+        }
+        .btn-cut::after { display: none; }      /* replaced by the timed sweep above */
         .btn-cut::before {
             content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-            box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); animation: pulse 2.2s ease-out infinite;
+            box-shadow: 0 0 0 0 rgba(93, 158, 89, .7); animation: pulse 2.2s ease-out infinite;
         }
         [data-state="rolling"] .btn-cut { animation: drum .12s linear infinite; }
         [data-state="rolling"] .btn-cut svg { animation: snip .3s ease-in-out infinite alternate; }
         [data-state="rolling"] .btn-cut::before, [data-state="cut"] .btn-cut::before, [data-state="open"] .btn-cut::before { display: none; }
         [data-state="cut"] .btn-cut, [data-state="open"] .btn-cut { transform: scale(.4); opacity: 0; pointer-events: none; }
-        .intro .hint { flex-direction: row; }
-        .hint { margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255, 255, 255, .6); }
-        .hint svg { width: 16px; height: 16px; }
 
         /* ---------- Effects, finale veil, controls ---------- */
 
@@ -371,15 +372,16 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes rise { to { opacity: 1; transform: none; } }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); } 100% { box-shadow: 0 0 0 18px rgba(255, 255, 255, 0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(93, 158, 89, .7); } 100% { box-shadow: 0 0 0 22px rgba(93, 158, 89, 0); } }
         @keyframes drum { 25% { transform: translate(-1px, 1px) rotate(-.6deg); } 75% { transform: translate(1px, -1px) rotate(.6deg); } }
         @keyframes snip { to { transform: rotate(-22deg); } }
         @keyframes shiver { 30%, 70% { transform: scaleX(.985); } }
-        @keyframes sheen { 0% { background-position: 160% 0; } 45%, 100% { background-position: -60% 0; } }
+        @keyframes halo { 50% { opacity: .55; transform: scale(.92); } }
+        @keyframes sweep { 0% { transform: translateX(-130%); } 40%, 100% { transform: translateX(130%); } }
 
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
-            .rays, .btn-cut::before, .title-name .w::after { animation: none; }
+            .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before { animation: none; }
         }
     </style>
 </head>
@@ -422,31 +424,21 @@
         <div class="text">
             <span class="logo"><img src="{{ asset('media/logo-mark.png') }}" alt="UGV RICH" width="256" height="249"></span>
             <p class="eyebrow-invert">University of Global Village</p>
-            <p class="title" aria-label="UGV RICH">
-                <span class="title-name" aria-hidden="true">
-                    <span class="w ugv" data-text="UGV">UGV</span>
-                    <span class="w rich" data-text="RICH">RICH</span>
-                </span>
-                <span class="title-rule" aria-hidden="true"><i></i></span>
-            </p>
+            <span class="title-rule" aria-hidden="true"><i></i></span>
             <p class="subtitle">Research, Innovation and Consultancy Hub</p>
         </div>
 
         <div class="cut">
             <span class="ribbon ribbon-left" aria-hidden="true"></span>
             <span class="ribbon ribbon-right" aria-hidden="true"></span>
-            <button type="button" class="btn-invert btn-cut" id="inaugurate">
+            <button type="button" class="btn-lead btn-cut" id="inaugurate">
+                <span class="sweep" aria-hidden="true"></span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>
                 </svg>
                 Inaugurate RICH
             </button>
         </div>
-
-        <p class="hint text">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-            Best enjoyed with sound on
-        </p>
     </section>
 
     <canvas id="fx" aria-hidden="true"></canvas>
