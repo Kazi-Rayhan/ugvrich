@@ -33,7 +33,7 @@
                     @php $on = $activeArea?->is($area); @endphp
                     <a href="{{ route('innovation.areas', ['area' => $area->slug]) }}#areas" role="tab"
                        aria-selected="{{ $on ? 'true' : 'false' }}"
-                       title="{{ $area->name }} — {{ $area->department_name }}"
+                       title="{{ $area->name }}"
                        @class(['area-tab', 'is-on' => $on])>
                         @if ($area->department)
                             <span class="area-tab-dept">{{ $area->department }}</span>
@@ -52,12 +52,6 @@
                             <x-ui-icon :name="$activeArea->icon ?? 'lightbulb'" class="h-5 w-5" />
                         </span>
                         <div>
-                            @if ($activeArea->department)
-                                <span class="inline-flex items-center gap-2 rounded-full bg-navy-700 px-3 py-1 font-display text-[11px] font-bold tracking-[0.12em] text-white">
-                                    {{ $activeArea->department }}
-                                    <span class="font-sans text-[11px] font-medium tracking-normal text-white/70">{{ $activeArea->department_name }}</span>
-                                </span>
-                            @endif
                             <h3 class="mt-2 font-display text-[20px] font-bold leading-tight text-ink-950">{{ $activeArea->name }}</h3>
                         </div>
                     </div>
@@ -66,13 +60,6 @@
                         <p class="mt-5 max-w-3xl text-[15px] leading-relaxed muted">{{ $activeArea->description }}</p>
                     @endif
 
-                    @if ($activeArea->focus)
-                        <div class="mt-5 flex flex-wrap gap-1.5">
-                            @foreach ($activeArea->focus as $focus)
-                                <span class="rounded-full border border-ink-200 bg-white px-3 py-1 text-[12px] font-medium text-ink-600">{{ $focus }}</span>
-                            @endforeach
-                        </div>
-                    @endif
                 </div>
             @endif
 

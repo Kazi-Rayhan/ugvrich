@@ -15,7 +15,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -57,22 +56,21 @@ class InnovationAreaResource extends Resource
 
                         TextInput::make('slug')->required()->maxLength(150)->unique(ignoreRecord: true),
 
-                        Select::make('department')
-                            ->options(config('rich.departments'))
-                            ->native(false)
-                            ->searchable(),
 
                         Select::make('icon')
                             ->options(ServiceCategoryForm::ICONS)
                             ->native(false)
                             ->searchable(),
 
+                        TextInput::make('tagline')
+                            ->label('Short description')
+                            ->maxLength(160)
+                            ->placeholder('e.g. Smart software, AI and automation for real problems')
+                            ->helperText('One line. Shown under the area in the menu and above its title on its page.')
+                            ->columnSpanFull(),
+
                         Textarea::make('description')->rows(3)->columnSpanFull(),
 
-                        TagsInput::make('focus')
-                            ->label('Focus areas')
-                            ->placeholder('Add a focus area and press Enter')
-                            ->columnSpanFull(),
 
                         FileUpload::make('image')
                             ->label('Cover image (optional)')
@@ -125,7 +123,6 @@ class InnovationAreaResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('name')->searchable()->weight('semibold')->wrap(),
-                TextColumn::make('department')->badge()->color('primary'),
                 TextColumn::make('innovations_count')->counts('innovations')->label('Innovations'),
                 TextColumn::make('projects_count')->counts('projects')->label('Projects'),
                 IconColumn::make('is_active')->label('Visible')->boolean(),

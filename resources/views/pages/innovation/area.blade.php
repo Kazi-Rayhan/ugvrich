@@ -1,8 +1,6 @@
 <x-layouts.app :title="$area->name" :description="$area->description">
 
     @php
-        $focus = collect($area->focus ?: []);
-
         // Numbers the page counts out are written in the digits of the language being read.
         $num = fn ($value) => \App\Support\Numerals::localize((string) $value);
     @endphp
@@ -11,9 +9,9 @@
          category page is: the banner, what the area covers beside its picture,
          the projects running in it, and the other areas. --}}
     <x-page-hero
-        :eyebrow="$area->department_name"
+        :eyebrow="__('site.innovation.hero_eyebrow')"
         :title="$area->name"
-        :lead="$area->description"
+        :lead="$area->summary"
         :image="$area->hero_image"
         :video="$area->hero_video"
         :breadcrumbs="[__('site.nav.innovation') => route('innovation.index'), $area->name => null]">
@@ -41,18 +39,15 @@
                     </h2>
 
                     <div class="mt-4 flex flex-wrap items-center gap-2.5">
-                        @if ($area->department_name)
-                            <p class="inline-flex items-center gap-2 rounded-full border border-ink-200 px-3.5 py-1.5 text-[12.5px] text-ink-600">
-                                <x-ui-icon name="building" class="h-3.5 w-3.5 text-brand-600" />
-                                <span class="font-semibold text-ink-800">{{ __('site.innovation.department') }}:</span>
-                                {{ $area->department_name }}
-                            </p>
-                        @endif
 
                         <span class="rounded-full bg-brand-50 px-3 py-1.5 font-numeric text-[12.5px] font-bold tabular-nums text-brand-700">
                             {{ trans_choice('site.innovation.innovation_count', $area->innovations->count(), ['count' => $num($area->innovations->count())]) }}
                         </span>
                     </div>
+
+                    @if ($area->description)
+                        <p class="mt-5 text-[15px] leading-[1.9] text-ink-600">{{ $area->description }}</p>
+                    @endif
                 </div>
 
                 {{-- The image (or a video in its place) holds the top-right corner across two rows --}}
@@ -81,9 +76,8 @@
                 </div>
 
                 {{-- The innovations, numbered, filling every cell the image leaves
-                     (as a service category lists its services). An area with
-                     none yet lists its focus topics instead. --}}
-                @forelse ($area->innovations as $j => $innovation)
+                     (as a service category lists its services). --}}
+                @foreach ($area->innovations as $j => $innovation)
                     <article class="reveal group" style="transition-delay: {{ min($j * 45, 300) }}ms">
                         <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
                             {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
@@ -101,17 +95,7 @@
                             <p class="mt-2.5 text-[13.5px] leading-[1.9] text-ink-600">{{ $innovation->tagline }}</p>
                         @endif
                     </article>
-                @empty
-                    @foreach ($focus as $j => $topic)
-                        <article class="reveal group" style="transition-delay: {{ min($j * 45, 300) }}ms">
-                            <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
-                                {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
-                            </p>
-
-                            <h3 class="mt-3 font-display text-[17px] font-bold leading-snug text-ink-950">{{ $topic }}</h3>
-                        </article>
-                    @endforeach
-                @endforelse
+                @endforeach
             </div>
 
             {{-- What this area can be asked for --}}
@@ -174,8 +158,8 @@
                                 <x-ui-icon :name="$sibling->icon ?? 'lightbulb'" class="h-5 w-5" />
                             </span>
                             <span class="mt-5 font-display text-[16.5px] font-bold leading-snug text-ink-950 transition-colors group-hover:text-brand-700">{{ $sibling->name }}</span>
-                            @if ($sibling->department_name)
-                                <span class="mt-1.5 text-[13px] text-ink-500">{{ $sibling->department_name }}</span>
+                            @if ($sibling->summary)
+                                <span class="mt-1.5 text-[13px] leading-snug text-ink-500">{{ $sibling->summary }}</span>
                             @endif
                             <span class="mt-auto inline-flex items-center gap-1.5 pt-5 text-[13px] font-semibold text-brand-700">
                                 {{ __('site.innovation.area_detail') }}

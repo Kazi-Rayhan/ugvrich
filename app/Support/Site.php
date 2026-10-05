@@ -60,7 +60,7 @@ class Site
     {
         return $this->innovationAreas ??= InnovationArea::active()
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'name_bn', 'slug', 'icon', 'department']);
+            ->get(['id', 'name', 'name_bn', 'slug', 'icon', 'department', 'tagline', 'tagline_bn', 'description', 'description_bn']);
     }
 
     public function socials(): array

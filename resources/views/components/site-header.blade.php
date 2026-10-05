@@ -15,7 +15,7 @@
             'text' => __('site.nav.innovation_panel_text'),
             'children' => array_merge(
                 $site->innovationAreas()->map(fn ($area) => [
-                    $area->name, route('innovation.area', $area), $area->icon ?? 'lightbulb', $area->department_name,
+                    $area->name, route('innovation.area', $area), $area->icon ?? 'lightbulb', $area->summary,
                 ])->all(),
                 [[__('site.nav.startup'), route('startup'), 'rocket', __('site.innovation.menu_startup_note')]],
             ),
@@ -299,9 +299,15 @@
 
                             <div x-show="sub" x-collapse>
                                 <div class="grid gap-0.5 pb-4 ps-1">
-                                    @foreach ($link['panel']['children'] as [$childLabel, $childUrl, $childIcon])
-                                        <a href="{{ $childUrl }}" class="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] text-white/70 transition hover:bg-white/5 hover:text-white">
-                                            <x-ui-icon :name="$childIcon" class="h-4 w-4 shrink-0 text-brand-300" /> {{ $childLabel }}
+                                    @foreach ($link['panel']['children'] as [$childLabel, $childUrl, $childIcon, $childText])
+                                        <a href="{{ $childUrl }}" class="flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-[14.5px] text-white/70 transition hover:bg-white/5 hover:text-white">
+                                            <x-ui-icon :name="$childIcon" class="mt-0.5 h-4 w-4 shrink-0 text-brand-300" />
+                                            <span class="min-w-0">
+                                                <span class="block">{{ $childLabel }}</span>
+                                                @if ($childText)
+                                                    <span class="mt-0.5 block text-[12.5px] leading-snug text-white/45">{{ $childText }}</span>
+                                                @endif
+                                            </span>
                                         </a>
                                     @endforeach
                                 </div>

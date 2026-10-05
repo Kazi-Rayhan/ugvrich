@@ -15,6 +15,7 @@ class InnovationArea extends Model
     /** Fields with a `_bn` twin; see the HasTranslations trait. */
     protected array $translatable = [
         'name',
+        'tagline',
         'description',
         'focus',
     ];
@@ -46,6 +47,21 @@ class InnovationArea extends Model
     public function getDepartmentNameAttribute(): ?string
     {
         return Vocabulary::label('departments', $this->department);
+    }
+
+    /**
+     * The short description, or, until one is written, the opening of the
+     * description, so the menu and the banner always have a line to show.
+     */
+    public function getSummaryAttribute(): ?string
+    {
+        if (filled($this->tagline)) {
+            return $this->tagline;
+        }
+
+        return filled($this->description)
+            ? \Illuminate\Support\Str::limit(trim((string) $this->description), 80)
+            : null;
     }
 
     public function getRouteKeyName(): string

@@ -131,9 +131,6 @@
 
             <div class="mt-14 space-y-20 sm:space-y-28">
                 @foreach ($areas as $area)
-                    @php
-                        $focus = collect($area->focus ?: []);
-                    @endphp
                     <section id="area-{{ $area->slug }}" class="scroll-mt-28 border-t border-ink-100 pt-12 first:border-0 first:pt-0">
                         <div class="grid gap-x-10 gap-y-10 lg:grid-cols-4 lg:[grid-auto-flow:dense]">
 
@@ -148,13 +145,6 @@
                                 </h2>
 
                                 <div class="mt-4 flex flex-wrap items-center gap-2.5">
-                                    @if ($area->department_name)
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-ink-200 px-3.5 py-1.5 text-[12.5px] text-ink-600">
-                                            <x-ui-icon name="building" class="h-3.5 w-3.5 text-brand-600" />
-                                            <span class="font-semibold text-ink-800">{{ __('site.innovation.department') }}:</span>
-                                            {{ $area->department_name }}
-                                        </span>
-                                    @endif
 
                                     <span class="rounded-full bg-brand-50 px-3 py-1.5 font-numeric text-[12.5px] font-bold tabular-nums text-brand-700">
                                         {{ trans_choice('site.innovation.innovation_count', $area->innovations->count(), ['count' => $num($area->innovations->count())]) }}
@@ -198,9 +188,8 @@
                             </div>
 
                             {{-- The innovations, numbered, filling every cell the image leaves
-                                 (as a service category lists its services). An area with
-                                 none yet lists its focus topics instead. --}}
-                            @forelse ($area->innovations as $j => $innovation)
+                                 (as a service category lists its services). --}}
+                            @foreach ($area->innovations as $j => $innovation)
                                 <article class="reveal group" style="transition-delay: {{ min($j * 40, 280) }}ms">
                                     <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
                                         {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
@@ -218,17 +207,7 @@
                                         <p class="mt-2.5 text-[13.5px] leading-[1.9] text-ink-600">{{ $innovation->tagline }}</p>
                                     @endif
                                 </article>
-                            @empty
-                                @foreach ($focus as $j => $topic)
-                                    <article class="reveal group" style="transition-delay: {{ min($j * 40, 280) }}ms">
-                                        <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
-                                            {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
-                                        </p>
-
-                                        <h3 class="mt-3 font-display text-[16.5px] font-bold leading-snug text-ink-950">{{ $topic }}</h3>
-                                    </article>
-                                @endforeach
-                            @endforelse
+                            @endforeach
                         </div>
 
                         <div class="reveal mt-10 flex flex-wrap items-center gap-4">

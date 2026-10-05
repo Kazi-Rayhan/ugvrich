@@ -27,8 +27,8 @@ return [
         'lead' => 'There is no limit on proposals. Every year, the top :min to :max proposals in each faculty are announced, and :funded project from each faculty receives funding.',
         'funnel' => [
             'proposals' => ['Unlimited proposals', 'Open to every researcher, all year round. Send as many as you like.'],
-            'shortlist' => ['Top proposals per faculty', 'Selected on merit and announced every year.'],
-            'funded' => ['Per-year funding for each faculty', ':total research projects are funded every year.'],
+            'shortlist' => ['Top proposals in is faculty', 'Selected on merit and announced every year.'],
+            'funded' => ['Annual funding for each faculty', ':total research projects are funded every year.'],
         ],
         'shortlist_label' => 'Top proposals announced each year',
         'shortlist_range' => ':min minimum · up to :max',
