@@ -1321,10 +1321,9 @@
     /* =====================================================================
      | Ribbon (ফিতা) — a satin ribbon as a hanging rope of points.
      |
-     | Tied at both sides of the screen and knotted under the button, it sags
-     | a little under its own weight, ripples in the same breeze as the
-     | curtains, and twists so the satin catches the light. Cutting it lets
-     | both halves fall and swing from the sides. Without motion, the CSS
+     | Tied at both sides of the screen and knotted under the button, it is
+     | held perfectly straight, its satin twisting so it catches the light.
+     | Cutting it lets both halves fall and swing from the sides as cloth. Without motion, the CSS
      | ribbon stays in its place.
      * ===================================================================== */
     const Ribbon = (() => {
@@ -1348,7 +1347,7 @@
             const box = knot.getBoundingClientRect();
             const y = box.top + box.height / 2, cx = box.left + box.width / 2;
             const n = Math.max(30, Math.round(W / 24));
-            rest = (W / n) * 1.0015;                      // pulled almost taut: it runs nearly straight
+            rest = W / n;                                 // pulled taut: it runs perfectly straight
             pts = [];
             for (let i = 0; i <= n; i++) {
                 const x = (i / n) * W;
@@ -1360,6 +1359,7 @@
 
         function simulate() {
             clock += 1;
+            if (!cut) return;              // held taut until it is cut; only the satin shimmers
             for (const p of pts) {
                 if (p.pin) continue;
                 const vx = (p.x - p.px) * DAMPING, vy = (p.y - p.py) * DAMPING;

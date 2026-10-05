@@ -82,10 +82,14 @@ class InnovationDetailTest extends TestCase
         foreach ($doc['current_slugs'] as $i => $slug) {
             [$name, $lead, $highlights] = $doc['current'][$i];
 
-            $this->get(route('innovation.show', $slug))
+            $page = $this->get(route('innovation.show', $slug))
                 ->assertOk()
-                ->assertSee($name)
-                ->assertSee($lead);
+                ->assertSee($name);
+
+            // The lead line is shown as one chip per department.
+            foreach (preg_split('/\s*[,;+]\s*/u', rtrim($lead, '।. ')) as $part) {
+                $page->assertSee(trim($part));
+            }
         }
     }
 
