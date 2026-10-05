@@ -124,9 +124,21 @@
                                 @endif
                             </div>
 
-                            {{-- The image holds the top-right corner across two rows --}}
+                            {{-- The image (or a video in its place) holds the top-right corner across two rows --}}
                             <div class="reveal lg:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1">
-                                @if ($category->image)
+                                @if ($category->video)
+                                    {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
+                                    <div class="relative aspect-[16/11] h-full overflow-hidden rounded-[1.5rem] bg-brand-50">
+                                        <video class="h-full w-full object-cover"
+                                               autoplay muted loop playsinline preload="auto"
+                                               @if ($category->image) poster="{{ Storage::url($category->image) }}" @endif
+                                               x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                                               aria-label="{{ __('site.projects.video_title', ['title' => $category->name]) }}">
+                                            <source src="{{ Storage::url($category->video) }}"
+                                                    type="{{ str_ends_with(strtolower($category->video), '.webm') ? 'video/webm' : 'video/mp4' }}">
+                                        </video>
+                                    </div>
+                                @elseif ($category->image)
                                     <x-media-frame :src="$category->image" :alt="$category->name"
                                                    ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
                                 @else
