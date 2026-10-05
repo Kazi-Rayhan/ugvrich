@@ -46,7 +46,7 @@
         $fieldIcons = ['concept' => 'lightbulb', 'how' => 'cog', 'why' => 'chart'];
         $focusIcons = ['target', 'compass', 'users', 'chart', 'globe'];
 
-        $sections = ['focus', 'process', 'summary', 'purpose', 'current', 'proposed', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
+        $sections = ['focus', 'process', 'areas', 'funding', 'summary', 'purpose', 'current', 'proposed', 'organization', 'kpis', 'abbreviations', 'conclusion'];
     @endphp
 
     @php
@@ -101,14 +101,10 @@
         {{-- The sections, by name --}}
         <nav class="border-t border-white/10" aria-label="{{ $doc['title'] }}">
             <div class="container-rich flex gap-1 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <a href="#areas"
-                   class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-medium text-white/55 transition hover:bg-white/10 hover:text-white">
-                    {{ __('site.innovation.catalogue_eyebrow') }}
-                </a>
                 @foreach ($sections as $anchor)
                     <a href="#{{ $anchor }}"
                        class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-medium text-white/55 transition hover:bg-white/10 hover:text-white">
-                        {{ $title($anchor) }}
+                        {{ $anchor === 'areas' ? __('site.innovation.catalogue_eyebrow') : $title($anchor) }}
                     </a>
                 @endforeach
             </div>
@@ -288,7 +284,7 @@
     <section id="areas" class="scroll-mt-28 bg-white py-20 sm:py-28">
         <div class="container-rich">
             <div class="flex flex-wrap items-center justify-between gap-4">
-                <x-section-heading :eyebrow="__('site.innovation.catalogue_eyebrow')" />
+                <x-section-heading :eyebrow="__('site.innovation.catalogue_eyebrow')" :title="__('site.innovation.catalogue_heading')" size="lg" />
 
                 <a href="{{ route('ideas.create') }}" class="btn-primary reveal shrink-0">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
@@ -370,6 +366,74 @@
                         @endif
                     </section>
                 @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- ---------------- Funding & Sustainability ----------------
+         Straight after the areas: where the money for an innovation comes
+         from, each source as its own card, and how revenue is shared. --}}
+    @php
+        $fundingParts = collect($doc['funding'])->map(function ($paragraph) {
+            $split = explode(':', $paragraph, 2);
+
+            return count($split) === 2
+                ? ['heading' => trim($split[0]), 'body' => trim($split[1])]
+                : ['heading' => null, 'body' => trim($paragraph)];
+        });
+        $sources = $fundingParts->first();
+        $sourceItems = $sources ? collect(explode(',', rtrim($sources['body'], '।. ')))->map(fn ($x) => trim($x))->filter()->values() : collect();
+        $fundingNotes = $fundingParts->slice(1)->values();
+        $sourceIcons = ['building', 'academic', 'cpu', 'rocket', 'briefcase', 'handshake', 'globe'];
+    @endphp
+
+    <section id="funding" class="relative isolate scroll-mt-28 overflow-hidden bg-ink-50 py-20 sm:py-24">
+        <div class="pointer-events-none absolute inset-0 -z-10 text-brand-700 grid-overlay opacity-20 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden="true"></div>
+
+        <div class="container-rich">
+            <x-section-heading :eyebrow="__('site.innovation.funding_sources')" :title="$title('funding')" />
+
+            <div class="mt-12 grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+                {{-- The sources --}}
+                <ul class="grid gap-3 sm:grid-cols-2">
+                    @foreach ($sourceItems as $i => $source)
+                        <li class="reveal group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-[0_18px_36px_-26px_rgba(7,20,38,0.45)]"
+                            style="{{ $delay($i, 50) }}">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 transition duration-300 group-hover:bg-brand-600 group-hover:text-white">
+                                <x-ui-icon :name="$sourceIcons[$i] ?? 'briefcase'" class="h-5 w-5" />
+                            </span>
+                            <span class="font-display text-[15.5px] font-bold leading-snug text-ink-900">{{ $source }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+
+                {{-- How revenue is shared, and any other note the document adds --}}
+                <div class="space-y-5">
+                    @foreach ($fundingNotes as $note)
+                        <div class="reveal relative isolate overflow-hidden rounded-[1.75rem] bg-navy-800 p-7 text-white sm:p-8">
+                            <div class="pointer-events-none absolute -right-12 -top-12 -z-10 h-40 w-40 rounded-full bg-gold-400/20 blur-3xl" aria-hidden="true"></div>
+                            <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-gold-300 text-navy-900">
+                                <x-ui-icon name="chart" class="h-5 w-5" />
+                            </span>
+                            @if ($note['heading'])
+                                <p class="mt-5 font-display text-[19px] font-bold !text-white">{{ $note['heading'] }}</p>
+                            @endif
+                            @php $shares = collect(explode('+', $note['body']))->map(fn ($x) => trim($x))->filter(); @endphp
+                            @if ($shares->count() > 1)
+                                <ul class="mt-4 space-y-2">
+                                    @foreach ($shares as $share)
+                                        <li class="flex items-start gap-2.5 text-[14.5px] leading-relaxed text-white/85">
+                                            <x-ui-icon name="check" class="mt-1 h-4 w-4 shrink-0 text-gold-300" stroke="2.4" />
+                                            {{ rtrim($share, '।. ') }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="mt-3 text-[14.5px] leading-relaxed text-white/80">{{ $note['body'] }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     </section>
@@ -656,43 +720,6 @@
                     </div>
                 @endforeach
             </dl>
-        </div>
-    </section>
-
-    {{-- ---------------- Funding & Sustainability ---------------- --}}
-    <section id="funding" class="scroll-mt-28 border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
-        <div class="container-rich">
-            <span class="{{ $rule }}" aria-hidden="true"></span>
-            <h2 class="{{ $h2 }}">{{ $title('funding') }}</h2>
-
-            <div class="mt-12 grid gap-5 lg:grid-cols-2">
-                @foreach ($doc['funding'] as $i => $paragraph)
-                    @php
-                        // Each line opens with its own label, then a list.
-                        $split = explode(':', $paragraph, 2);
-                        [$heading, $body] = count($split) === 2 ? [trim($split[0]), trim($split[1])] : [null, $paragraph];
-                        $items = $body ? collect(explode(',', rtrim($body, '।. ')))->map(fn ($x) => trim($x))->filter() : collect();
-                    @endphp
-
-                    <div class="reveal rounded-[1.75rem] border border-ink-100 bg-white p-8" style="{{ $delay($i, 60) }}">
-                        @if ($heading)
-                            <p class="{{ $label }}">{{ $heading }}</p>
-                        @endif
-
-                        @if ($items->count() > 1)
-                            <ul class="mt-5 flex flex-wrap gap-2">
-                                @foreach ($items as $item)
-                                    <li class="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-ink-50 px-4 py-2 text-[13.5px] font-medium text-ink-700 transition duration-300 hover:border-brand-300 hover:bg-white hover:text-brand-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-brand-600"></span>{{ $item }}
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="mt-4 text-[15px] leading-[1.8] text-ink-700">{{ $body }}</p>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
         </div>
     </section>
 

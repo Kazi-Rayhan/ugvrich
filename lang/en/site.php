@@ -356,6 +356,8 @@ return [
 
     'innovation' => [
         'catalogue_eyebrow' => 'Innovation areas',
+        'catalogue_heading' => 'Innovation <span class="text-highlight-ink">Areas</span>',
+        'funding_sources' => 'Sources',
         'catalogue_title' => 'Every department, its own <span class="text-accent">innovation area</span>',
         'catalogue_lead' => 'Each area turns a department\'s expertise into prototypes, products and ventures. Open one to see what it covers and the projects running in it.',
         'focus_eyebrow' => 'What this area covers',

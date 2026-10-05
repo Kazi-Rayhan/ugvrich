@@ -250,7 +250,7 @@ return [
 
     // 10. Funding & Sustainability
     'funding' => [
-        'Sources: UGV Internal Innovation Fund, UGC/World Bank, ICT Division Innovation Fund, Industry Sponsorship, CSR.',
+        'Sources: UGV Internal Innovation Fund, UGC / HEAT, ICT Division – iDEA, Startup Bangladesh, Bangladesh Bank UDYOG, Industry Sponsorship & CSR, JICA / International.',
         'Revenue Sharing: Student Innovators + Contributing Departments + RICH Fund as per university policy.',
     ],
 
