@@ -46,7 +46,7 @@
         $fieldIcons = ['concept' => 'lightbulb', 'how' => 'cog', 'why' => 'chart'];
         $focusIcons = ['target', 'compass', 'users', 'chart', 'globe'];
 
-        $sections = ['focus', 'summary', 'purpose', 'current', 'proposed', 'process', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
+        $sections = ['focus', 'process', 'summary', 'purpose', 'current', 'proposed', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
     @endphp
 
     @php
@@ -282,6 +282,79 @@
                         <p class="mt-4 text-[15px] leading-[1.8] text-ink-700">{{ $item[1] }}</p>
                     </article>
                 @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- ---------------- Innovation Process Framework ----------------
+         Right after vision and mission: how an idea is taken from ideation to
+         market, stage by stage with its TRL, in interlocking chevrons. --}}
+    <section id="process" class="scroll-mt-28 bg-white py-20 sm:py-24">
+        <div class="container-rich">
+            <span class="{{ $rule }}" aria-hidden="true"></span>
+            <h2 class="{{ $h2 }}">{{ $title('process') }}</h2>
+
+            @php
+                // One icon per stage, in the document's order.
+                $stageIcons = ['search', 'document', 'cog', 'target', 'key', 'rocket', 'briefcase'];
+
+                // One soft, friendly colour per stage: pastel block, bright icon tile.
+                // Listed in full so Tailwind keeps every class.
+                $tones = [
+                    'bg-sky-50 text-ink-950',
+                    'bg-indigo-50 text-ink-950',
+                    'bg-violet-50 text-ink-950',
+                    'bg-pink-50 text-ink-950',
+                    'bg-amber-50 text-ink-950',
+                    'bg-emerald-50 text-ink-950',
+                    'bg-blue-50 text-ink-950',
+                ];
+                $iconTones = [
+                    'bg-sky-500 text-white', 'bg-indigo-500 text-white', 'bg-violet-500 text-white',
+                    'bg-pink-500 text-white', 'bg-amber-500 text-white', 'bg-emerald-500 text-white',
+                    'bg-blue-600 text-white',
+                ];
+            @endphp
+
+            <div class="reveal relative isolate mt-10 overflow-hidden rounded-[2rem] border border-ink-100 bg-white p-6 shadow-[0_24px_60px_-44px_rgba(11,15,24,0.4)] sm:p-10">
+                <div class="pointer-events-none absolute inset-0 -z-10 text-brand-700 grid-overlay opacity-25 [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" aria-hidden="true"></div>
+
+                {{-- From the first stage to the last, as the document names them --}}
+                <div class="flex flex-wrap items-center justify-end gap-2 text-[13px] font-medium text-ink-500">
+                    <span class="h-2 w-2 rounded-full bg-sky-500"></span> {{ $unnumbered($doc['process'][0][0]) }}
+                    <x-ui-icon name="arrow-right" class="h-3.5 w-3.5" />
+                    <span class="h-2 w-2 rounded-full bg-blue-600"></span> {{ $unnumbered($doc['process'][count($doc['process']) - 1][0]) }}
+                </div>
+
+                <ol class="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-3">
+                    @foreach ($doc['process'] as $i => [$stage, $what, $output])
+                        <li class="group relative">
+                            <div @class([
+                                'relative flex h-full flex-col justify-between gap-5 rounded-2xl p-5 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 group-hover:shadow-[0_22px_40px_-24px_rgba(11,15,24,0.35)] lg:rounded-none lg:py-6 lg:pl-10 lg:pr-9',
+                                $tones[$i] ?? 'bg-sky-50 text-ink-950',
+                                // Chevron shape on desktop: notch on the left (except the first of a row), point on the right.
+                                'lg:[clip-path:polygon(0_0,calc(100%-22px)_0,100%_50%,calc(100%-22px)_100%,0_100%)] lg:pl-6' => $i % 4 === 0,
+                                'lg:[clip-path:polygon(0_0,calc(100%-22px)_0,100%_50%,calc(100%-22px)_100%,0_100%,22px_50%)]' => $i % 4 !== 0,
+                            ])>
+                                <span class="flex h-12 w-12 items-center justify-center rounded-xl transition duration-500 group-hover:scale-110 group-hover:rotate-[-6deg] {{ $iconTones[$i] ?? 'bg-sky-500 text-white' }}">
+                                    <x-ui-icon :name="$stageIcons[$i] ?? 'check'" class="h-6 w-6" stroke="1.7" />
+                                </span>
+                                <div>
+                                    <p class="font-display text-[17px] font-bold leading-tight">{{ $unnumbered($stage) }}</p>
+                                    <p class="mt-1.5 text-[13px] leading-snug text-ink-600">{{ $what }}</p>
+                                    <p class="mt-3 inline-flex rounded-lg bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-ink-700">{{ $output }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Mobile connector --}}
+                            @unless ($loop->last)
+                                <span class="flex justify-center py-1 text-ink-300 sm:hidden" aria-hidden="true">
+                                    <x-ui-icon name="chevron-down" class="h-4 w-4" />
+                                </span>
+                            @endunless
+                        </li>
+                    @endforeach
+                </ol>
             </div>
         </div>
     </section>
@@ -569,79 +642,6 @@
                         </div>
                     </article>
                 @endforeach
-            </div>
-        </div>
-    </section>
-
-    {{-- ---------------- Innovation Process Framework ----------------
-         The same journey the home page draws: interlocking chevrons, one soft
-         colour per stage, following an idea from ideation to market. --}}
-    <section id="process" class="scroll-mt-28 border-y border-ink-100 bg-ink-50 py-20 sm:py-24">
-        <div class="container-rich">
-            <span class="{{ $rule }}" aria-hidden="true"></span>
-            <h2 class="{{ $h2 }}">{{ $title('process') }}</h2>
-
-            @php
-                // One icon per stage, in the document's order.
-                $stageIcons = ['search', 'document', 'cog', 'target', 'key', 'rocket', 'briefcase'];
-
-                // One soft, friendly colour per stage: pastel block, bright icon tile.
-                // Listed in full so Tailwind keeps every class.
-                $tones = [
-                    'bg-sky-50 text-ink-950',
-                    'bg-indigo-50 text-ink-950',
-                    'bg-violet-50 text-ink-950',
-                    'bg-pink-50 text-ink-950',
-                    'bg-amber-50 text-ink-950',
-                    'bg-emerald-50 text-ink-950',
-                    'bg-blue-50 text-ink-950',
-                ];
-                $iconTones = [
-                    'bg-sky-500 text-white', 'bg-indigo-500 text-white', 'bg-violet-500 text-white',
-                    'bg-pink-500 text-white', 'bg-amber-500 text-white', 'bg-emerald-500 text-white',
-                    'bg-blue-600 text-white',
-                ];
-            @endphp
-
-            <div class="reveal relative isolate mt-10 overflow-hidden rounded-[2rem] border border-ink-100 bg-white p-6 shadow-[0_24px_60px_-44px_rgba(11,15,24,0.4)] sm:p-10">
-                <div class="pointer-events-none absolute inset-0 -z-10 text-brand-700 grid-overlay opacity-25 [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" aria-hidden="true"></div>
-
-                {{-- From the first stage to the last, as the document names them --}}
-                <div class="flex flex-wrap items-center justify-end gap-2 text-[13px] font-medium text-ink-500">
-                    <span class="h-2 w-2 rounded-full bg-sky-500"></span> {{ $unnumbered($doc['process'][0][0]) }}
-                    <x-ui-icon name="arrow-right" class="h-3.5 w-3.5" />
-                    <span class="h-2 w-2 rounded-full bg-blue-600"></span> {{ $unnumbered($doc['process'][count($doc['process']) - 1][0]) }}
-                </div>
-
-                <ol class="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-3">
-                    @foreach ($doc['process'] as $i => [$stage, $what, $output])
-                        <li class="group relative">
-                            <div @class([
-                                'relative flex h-full flex-col justify-between gap-5 rounded-2xl p-5 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 group-hover:shadow-[0_22px_40px_-24px_rgba(11,15,24,0.35)] lg:rounded-none lg:py-6 lg:pl-10 lg:pr-9',
-                                $tones[$i] ?? 'bg-sky-50 text-ink-950',
-                                // Chevron shape on desktop: notch on the left (except the first of a row), point on the right.
-                                'lg:[clip-path:polygon(0_0,calc(100%-22px)_0,100%_50%,calc(100%-22px)_100%,0_100%)] lg:pl-6' => $i % 4 === 0,
-                                'lg:[clip-path:polygon(0_0,calc(100%-22px)_0,100%_50%,calc(100%-22px)_100%,0_100%,22px_50%)]' => $i % 4 !== 0,
-                            ])>
-                                <span class="flex h-12 w-12 items-center justify-center rounded-xl transition duration-500 group-hover:scale-110 group-hover:rotate-[-6deg] {{ $iconTones[$i] ?? 'bg-sky-500 text-white' }}">
-                                    <x-ui-icon :name="$stageIcons[$i] ?? 'check'" class="h-6 w-6" stroke="1.7" />
-                                </span>
-                                <div>
-                                    <p class="font-display text-[17px] font-bold leading-tight">{{ $unnumbered($stage) }}</p>
-                                    <p class="mt-1.5 text-[13px] leading-snug text-ink-600">{{ $what }}</p>
-                                    <p class="mt-3 inline-flex rounded-lg bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-ink-700">{{ $output }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Mobile connector --}}
-                            @unless ($loop->last)
-                                <span class="flex justify-center py-1 text-ink-300 sm:hidden" aria-hidden="true">
-                                    <x-ui-icon name="chevron-down" class="h-4 w-4" />
-                                </span>
-                            @endunless
-                        </li>
-                    @endforeach
-                </ol>
             </div>
         </div>
     </section>
