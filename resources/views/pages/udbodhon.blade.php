@@ -271,8 +271,8 @@
         /* The logo is the hero of the closed stage: large, on a white tile with a
            gold ring, lit from behind by a slow halo. */
         .logo {
-            position: relative; display: inline-flex; width: clamp(118px, 18vmin, 170px); aspect-ratio: 1;
-            padding: clamp(14px, 2.2vmin, 20px); border-radius: 36px; background: #fff;
+            position: relative; display: inline-flex; width: clamp(92px, 13vmin, 128px); aspect-ratio: 1;
+            padding: clamp(11px, 1.7vmin, 15px); border-radius: 28px; background: #fff;
             box-shadow:
                 0 0 0 2px var(--gold-300),
                 0 0 0 10px rgba(255, 255, 255, .07),
@@ -327,19 +327,27 @@
             -webkit-background-clip: text; background-clip: text; color: transparent;
             animation: letter-sheen 6s var(--ease) infinite; animation-delay: calc(2s + var(--i) * .12s);
         }
+        /* Each word: bold, in title case, sliding up from behind its gold line,
+           then lit by a light that keeps travelling through it. */
         .acronym .word {
-            position: relative; margin-top: clamp(10px, 1.6vh, 16px); padding-top: clamp(8px, 1.2vh, 12px);
-            font-family: var(--display); font-weight: 600; white-space: nowrap;
-            font-size: clamp(9.5px, 1.1vw, 14px); letter-spacing: clamp(.06em, .26vw, .2em); text-transform: uppercase;
-            color: rgba(255, 255, 255, .86);
-            opacity: 0; transform: translateY(8px);
-            animation: rise .8s var(--ease) forwards; animation-delay: calc(.95s + var(--i) * .14s);
+            position: relative; margin-top: clamp(10px, 1.6vh, 16px); padding: clamp(9px, 1.4vh, 14px) 2px 4px;
+            overflow: hidden;
+            font-family: var(--display); font-weight: 700; white-space: nowrap; letter-spacing: -.005em;
+            font-size: clamp(14px, 1.85vw, 26px);
         }
-        .acronym .word b { font-weight: 800; color: var(--gold-300); }
-        .acronym .word::before {    /* gold line drawn in above each word */
-            content: ''; position: absolute; top: 0; left: 50%; width: 28px; height: 2px; margin-left: -14px; border-radius: 2px;
-            background: linear-gradient(90deg, var(--gold-300), var(--gold-400));
-            transform: scaleX(0); animation: draw .7s var(--ease) forwards; animation-delay: calc(1.25s + var(--i) * .14s);
+        .acronym .word .in {
+            display: inline-block;
+            background: linear-gradient(90deg, #ffffff 0%, #d7e4f4 35%, #ffffff 50%, #d7e4f4 65%, #ffffff 100%) 0 0 / 200% 100%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            transform: translateY(115%);
+            animation: word-up .9s var(--ease) forwards, shimmer 5s linear infinite;
+            animation-delay: calc(1s + var(--i) * .15s), calc(2.4s + var(--i) * .3s);
+        }
+        .acronym .word b { font-weight: 800; color: var(--gold-300); text-shadow: 0 0 18px rgba(242, 205, 107, .45); }
+        .acronym .word::before {    /* gold line, drawn out to the word's full width */
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-300) 20%, var(--gold-400) 80%, transparent);
+            transform: scaleX(0); animation: draw .8s var(--ease) forwards; animation-delay: calc(.8s + var(--i) * .15s);
         }
 
         .cut { position: relative; margin-top: 38px; }
@@ -428,6 +436,8 @@
         @keyframes halo { 50% { opacity: .55; transform: scale(.92); } }
         @keyframes letter-sheen { 0% { background-position: 160% 0; } 40%, 100% { background-position: -60% 0; } }
         @keyframes draw { to { transform: scaleX(1); } }
+        @keyframes word-up { to { transform: none; } }
+        @keyframes shimmer { to { background-position: -200% 0; } }
         @keyframes billow {
             0%   { background-position: 0 0, 0 0;      background-size: 100% 100%, 6.4vw 100%; }
             50%  { background-position: 0 0, .9vw 0;   background-size: 100% 100%, 6.9vw 100%; }
@@ -442,6 +452,7 @@
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
             .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before, .curtain, .curtain::after, .acronym .letter::after { animation: none; }
+            .acronym .word .in { animation: word-up .01s forwards; }
         }
     </style>
 </head>
@@ -489,7 +500,7 @@
                 @foreach ([['R', 'Research', 'pearl'], ['I', 'Innovation', 'pearl'], ['C', 'Consultancy', 'green'], ['H', 'Hub', 'green']] as $i => [$letter, $word, $tone])
                     <span class="col" aria-hidden="true">
                         <span class="letter {{ $tone }}" data-l="{{ $letter }}" style="--i: {{ $i }}">{{ $letter }}</span>
-                        <span class="word" style="--i: {{ $i }}"><b>{{ $letter }}</b>{{ substr($word, 1) }}</span>
+                        <span class="word" style="--i: {{ $i }}"><span class="in"><b>{{ $letter }}</b>{{ substr($word, 1) }}</span></span>
                     </span>
                 @endforeach
             </h1>

@@ -116,9 +116,8 @@
     </section>
 
     {{-- ---------------- Vision, Mission & Focus ----------------
-         Straight after the hero, each part drawn for what it is: the vision
-         and mission as statements, the development path as a stepper, the
-         culture shift as a before and after, and the impact as SDG goals. --}}
+         Straight after the hero: the vision and the mission. (The document's
+         culture, development path and impact lines are not shown here.) --}}
     @php
         $focusItems = collect($doc['focus'])->values();
         $isArrowPath = function (string $text) {
@@ -195,85 +194,6 @@
                         </div>
                     </article>
                 @endforeach
-
-                {{-- Development path: a stepper --}}
-                @if ($path && ($steps = $isArrowPath($path[1])))
-                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-12" style="{{ $delay(2, 90) }}">
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
-                                <x-ui-icon name="rocket" class="h-5 w-5" />
-                            </span>
-                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $path[0] }}</h3>
-                        </div>
-
-                        <ol class="relative mt-9 grid gap-6" style="grid-template-columns: repeat({{ $steps->count() }}, minmax(0, 1fr))">
-                            <span class="absolute left-[10%] right-[10%] top-6 hidden h-0.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-brand-200 via-brand-400 to-gold-400 sm:block" aria-hidden="true"></span>
-                            @foreach ($steps as $step)
-                                <li class="relative flex flex-col items-center text-center">
-                                    <span @class([
-                                        'flex h-12 w-12 items-center justify-center rounded-full font-display text-[15px] font-bold ring-[6px] ring-white transition duration-500',
-                                        'bg-brand-600 text-white' => ! $loop->last,
-                                        'bg-gold-400 text-navy-900 shadow-[0_0_0_10px_var(--color-gold-100)]' => $loop->last,
-                                    ])>
-                                        @if ($loop->last)
-                                            <x-ui-icon name="star" class="h-5 w-5" />
-                                        @else
-                                            {{ $num($loop->iteration) }}
-                                        @endif
-                                    </span>
-                                    <span class="mt-3 font-display text-[14px] font-bold leading-tight text-ink-900 sm:text-[16px]">{{ $step }}</span>
-                                </li>
-                            @endforeach
-                        </ol>
-                    </article>
-                @endif
-
-                {{-- Innovation culture: from → to --}}
-                @if ($shift)
-                    @php [$from, $to] = array_map('trim', explode('→', $shift[1], 2)); @endphp
-                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-6" style="{{ $delay(3, 90) }}">
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
-                                <x-ui-icon name="users" class="h-5 w-5" />
-                            </span>
-                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $shift[0] }}</h3>
-                        </div>
-                        <div class="mt-7 grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-                            <p class="rounded-2xl border border-dashed border-ink-200 bg-ink-50 p-4 text-[14px] leading-relaxed text-ink-500">{{ \Illuminate\Support\Str::ucfirst(preg_replace('/^(From|থেকে)\s+/iu', '', $from)) }}</p>
-                            <span class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gold-300 text-navy-900">
-                                <x-ui-icon name="arrow-right" class="h-4 w-4 rotate-90 sm:rotate-0" />
-                            </span>
-                            <p class="rounded-2xl border border-brand-200 bg-brand-50 p-4 text-[14px] font-semibold leading-relaxed text-brand-800">{{ \Illuminate\Support\Str::ucfirst(rtrim($to, '।. ')) }}</p>
-                        </div>
-                    </article>
-                @endif
-
-                {{-- Impact: the SDGs as goal chips --}}
-                @if ($impact)
-                    @php
-                        [$goalsPart, $themes] = array_pad(array_map('trim', explode(':', $impact[1], 2)), 2, '');
-                        preg_match_all('/\d+/', $ascii($goalsPart), $m);
-                        $goals = $m[0];
-                    @endphp
-                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-6" style="{{ $delay(4, 90) }}">
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
-                                <x-ui-icon name="globe" class="h-5 w-5" />
-                            </span>
-                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $impact[0] }}</h3>
-                        </div>
-                        <div class="mt-7 flex flex-wrap gap-2">
-                            @foreach ($goals as $goal)
-                                <span class="inline-flex h-11 min-w-11 items-center justify-center rounded-xl bg-navy-800 px-2.5 font-display text-[13px] font-bold text-white">
-                                    <span class="mr-1 text-[10px] font-semibold text-gold-300">SDG</span>{{ $num($goal) }}
-                                </span>
-                            @endforeach
-                        </div>
-                        @if ($themes)
-                            <p class="mt-5 text-[14px] leading-relaxed text-ink-600">{{ rtrim($themes, '।. ') }}</p>
-                        @endif
-                    </article>
-                @endif
 
                 {{-- Anything else the document adds later, as a plain card --}}
                 @foreach ($others as $item)
