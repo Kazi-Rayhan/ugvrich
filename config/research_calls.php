@@ -17,6 +17,14 @@ return [
     'shortlist_max' => 4,
     'funded_per_faculty' => 1,
 
+    /* The external cycle, for researchers and partners outside UGV. Shown as
+       its own funnel under the faculty one. */
+    'external' => [
+        'shortlist_min' => 2,
+        'shortlist_max' => 4,
+        'funded_per_year' => 1,
+    ],
+
     'faculties' => [
         'engineering' => 'cpu',
         'business' => 'briefcase',

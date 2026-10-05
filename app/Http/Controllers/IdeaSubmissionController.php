@@ -19,24 +19,18 @@ class IdeaSubmissionController extends Controller
 
     public function store(Request $request)
     {
+        // Two steps on the form: register (who, how to reach them, a working
+        // title), then the idea itself as one uploaded file.
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],          // a person or a team
             'email' => ['required', 'email:rfc', 'max:180'],
-            'phone' => ['nullable', 'string', 'max:40'],
-            'role' => ['required', Rule::in(array_keys(config('rich.idea_roles')))],
-            'department' => ['nullable', Rule::in(array_keys(config('rich.departments')))],
-            'programme' => ['nullable', 'string', 'max:150'],
+            'phone' => ['required', 'string', 'max:40'],
             'title' => ['required', 'string', 'max:200'],
-            'problem' => ['required', 'string', 'min:20', 'max:5000'],
-            'solution' => ['required', 'string', 'min:20', 'max:5000'],
-            'beneficiaries' => ['nullable', 'string', 'max:2000'],
-            'resources_needed' => ['nullable', 'string', 'max:2000'],
-            'team_size' => ['nullable', 'string', 'max:40'],
-            'document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,ppt,pptx,zip,png,jpg,jpeg'],
+            'document' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,zip,png,jpg,jpeg'],
+            'role' => ['nullable', Rule::in(array_keys(config('rich.idea_roles')))],
             'website' => ['nullable', 'size:0'], // honeypot
         ], [
-            'problem.min' => 'Please describe the problem in a little more detail (at least 20 characters).',
-            'solution.min' => 'Please describe your solution in a little more detail (at least 20 characters).',
+            'document.required' => __('site.ideas.file_required'),
             'website.size' => 'Submission rejected.',
         ]);
 

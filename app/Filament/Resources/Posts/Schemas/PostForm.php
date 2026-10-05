@@ -85,6 +85,15 @@ class PostForm
                                 ->directory('posts')
                                 ->imageEditor()
                                 ->columnSpanFull(),
+
+                            FileUpload::make('hero_video')
+                                ->label('Hero video (optional)')
+                                ->disk('public')
+                                ->directory('posts/videos')
+                                ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                ->maxSize(204800)
+                                ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the banner; the cover image shows while it loads. Without it, the cover image is the banner.')
+                                ->columnSpanFull(),
                         ]),
 
                     Section::make('Source & video')

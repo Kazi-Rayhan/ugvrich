@@ -54,6 +54,18 @@
         $funded = $calls['funded_per_faculty'];
         $callVars = ['min' => $num($min), 'max' => $num($max), 'funded' => $num($funded), 'total' => $num($funded * $faculties->count())];
 
+        /* The external cycle, for researchers and partners outside UGV. */
+        $external = $calls['external'];
+        $externalVars = ['funded' => $num($external['funded_per_year'])];
+
+        $range = fn ($from, $to) => $from === $to ? $num($from) : $num($from).'–'.$num($to);
+
+        /* Fills :placeholders in a [title, body] pair from the lang file. */
+        $fill = fn (array $pair, array $vars) => array_map(
+            fn ($text) => strtr($text, collect($vars)->mapWithKeys(fn ($v, $k) => [':'.$k => $v])->all()),
+            $pair,
+        );
+
     @endphp
 
     {{-- ---------------- 1. Hero ---------------- --}}
@@ -125,40 +137,31 @@
                 </a>
             </div>
 
-            {{-- The funnel: each stage narrower than the last --}}
-            <ol class="mt-12 grid gap-4 lg:grid-cols-3 lg:gap-6">
-                @foreach ([
-                    ['proposals', '∞', 'document', 'bg-ink-50/70 border border-ink-100', 'text-ink-950', 'text-ink-600'],
-                    ['shortlist', $min === $max ? $num($min) : $num($min).'–'.$num($max), 'chart', 'bg-brand-50 border border-brand-100', 'text-brand-800', 'text-brand-900/70'],
-                    ['funded', $num($funded), 'star', 'bg-brand-600 text-white shadow-[0_24px_50px_-28px_var(--color-brand-600)]', '!text-white', 'text-white/85'],
-                ] as $i => [$stage, $value, $icon, $box, $valueColour, $textColour])
-                    @php [$title, $body] = __('research_hub.calls.funnel.'.$stage); @endphp
-                    <li class="reveal relative flex flex-col rounded-[1.5rem] p-7 {{ $box }}" style="{{ $delay($i, 90) }}">
-                        <div class="flex items-center justify-between gap-4">
-                            <span class="font-display text-[48px] font-bold leading-none tabular-nums {{ $valueColour }}">{{ $value }}</span>
-                            <span @class([
-                                    'flex h-11 w-11 items-center justify-center rounded-xl',
-                                    'bg-white text-brand-600 ring-1 ring-ink-100' => ! $loop->last,
-                                    'bg-white/15 text-white' => $loop->last,
-                                  ])>
-                                <x-ui-icon :name="$icon" class="h-5 w-5" />
-                            </span>
-                        </div>
-                        <p class="mt-5 font-display text-[17px] font-bold {{ $valueColour }}">{{ $title }}</p>
-                        <p class="mt-1.5 text-[13.5px] leading-relaxed {{ $textColour }}">{{ strtr($body, [':total' => $callVars['total']]) }}</p>
+            {{-- The faculty funnel: each stage narrower than the last --}}
+            <p class="reveal mt-12 {{ $label }}">{{ __('research_hub.calls.faculty_label') }}</p>
+            @include('partials.research.funnel', [
+                'stages' => collect(['proposals' => '∞', 'shortlist' => $range($min, $max), 'funded' => $num($funded)])
+                    ->map(fn ($value, $stage) => [$value, ...$fill(__('research_hub.calls.funnel.'.$stage), $callVars)])
+                    ->values()->all(),
+                'perks' => __('research_hub.calls.perks'),
+            ])
 
-                        @unless ($loop->last)
-                            {{-- Arrow into the next stage --}}
-                            <span class="absolute -bottom-[1.625rem] left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-white text-brand-600 shadow-md ring-1 ring-ink-100 lg:-right-[1.875rem] lg:bottom-auto lg:left-auto lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2" aria-hidden="true">
-                                <x-ui-icon name="arrow-right" class="h-4 w-4 rotate-90 lg:rotate-0" />
-                            </span>
-                        @endunless
-                    </li>
-                @endforeach
-            </ol>
+
+            {{-- The external funnel: the same three stages, for work from outside UGV --}}
+            <p class="reveal mt-14 {{ $label }}">{{ __('research_hub.calls.external.label') }}</p>
+            @include('partials.research.funnel', [
+                'stages' => collect([
+                    'proposals' => '∞',
+                    'shortlist' => $range($external['shortlist_min'], $external['shortlist_max']),
+                    'funded' => $num($external['funded_per_year']),
+                ])
+                    ->map(fn ($value, $stage) => [$value, ...$fill(__('research_hub.calls.external.funnel.'.$stage), $externalVars)])
+                    ->values()->all(),
+                'perks' => __('research_hub.calls.perks'),
+            ])
 
             {{-- One card per faculty: its top proposals, and what it funds --}}
-            <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ul class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @foreach ($faculties as $key => $icon)
                     <li class="reveal flex flex-col rounded-[1.5rem] border border-ink-100 bg-white p-6 shadow-[0_20px_50px_-40px_rgba(7,20,38,0.45)]" style="{{ $delay($loop->index) }}">
                         <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">

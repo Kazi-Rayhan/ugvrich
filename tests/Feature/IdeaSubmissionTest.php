@@ -41,15 +41,12 @@ class IdeaSubmissionTest extends TestCase
     {
         Storage::fake('public');
 
+        // Step one registers (name or team, email, phone, title); step two is the file.
         $this->post(route('ideas.store'), [
-            'name' => 'Rafiq Islam',
+            'name' => 'Team Green Campus',
             'email' => 'rafiq@example.com',
-            'role' => 'student',
-            'department' => 'CSE',
-            'programme' => 'BSc in CSE, 3rd year',
+            'phone' => '01700000000',
             'title' => 'Campus waste sorting assistant',
-            'problem' => 'Waste on campus is mixed together, so almost none of it is recycled.',
-            'solution' => 'A bin that identifies what is thrown in and sorts it into the right compartment.',
             'document' => UploadedFile::fake()->create('sketch.pdf', 80, 'application/pdf'),
         ])->assertRedirect(route('ideas.thanks'));
 
@@ -62,16 +59,13 @@ class IdeaSubmissionTest extends TestCase
         Storage::disk('public')->assertExists($idea->document);
     }
 
-    public function test_an_idea_needs_a_problem_and_a_solution(): void
+    public function test_an_idea_needs_the_registration_details_and_a_file(): void
     {
         $this->post(route('ideas.store'), [
             'name' => '',
             'email' => 'not-an-email',
-            'role' => 'student',
-            'title' => 'Something',
-            'problem' => 'too short',
-            'solution' => 'also short',
-        ])->assertSessionHasErrors(['name', 'email', 'problem', 'solution']);
+            'title' => '',
+        ])->assertSessionHasErrors(['name', 'email', 'phone', 'title', 'document']);
 
         $this->assertSame(0, IdeaSubmission::count());
     }
@@ -81,10 +75,9 @@ class IdeaSubmissionTest extends TestCase
         $this->post(route('ideas.store'), [
             'name' => 'Spam Bot',
             'email' => 'spam@example.com',
-            'role' => 'student',
+            'phone' => '01700000000',
             'title' => 'Buy cheap things',
-            'problem' => 'This is a spam submission with enough characters to pass.',
-            'solution' => 'This is a spam submission with enough characters to pass.',
+            'document' => UploadedFile::fake()->create('spam.pdf', 10, 'application/pdf'),
             'website' => 'http://spam.example',
         ])->assertSessionHasErrors('website');
 

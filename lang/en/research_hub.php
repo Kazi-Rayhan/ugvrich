@@ -27,7 +27,7 @@ return [
         'lead' => 'There is no limit on proposals. Every year, the top :min to :max proposals in each faculty are announced, and :funded project from each faculty receives funding.',
         'funnel' => [
             'proposals' => ['Unlimited proposals', 'Open to every researcher, all year round. Send as many as you like.'],
-            'shortlist' => ['Top proposals in is faculty', 'Selected on merit and announced every year.'],
+            'shortlist' => ['Top proposals in each faculty', 'Selected on merit and announced every year.'],
             'funded' => ['Annual funding for each faculty', ':total research projects are funded every year.'],
         ],
         'shortlist_label' => 'Top proposals announced each year',
@@ -42,6 +42,16 @@ return [
             ['Funding', ':funded project from each faculty receives funding.'],
         ],
         'cta' => 'Submit a proposal',
+        'faculty_label' => 'Faculty research',
+        'perks' => ['Publication', 'Research support opportunity'],
+        'external' => [
+            'label' => 'External research',
+            'funnel' => [
+                'proposals' => ['Unlimited external proposals', 'Open to researchers and partners outside UGV, all year round.'],
+                'shortlist' => ['Top external proposals', 'Selected on merit and announced every year.'],
+                'funded' => ['Annual external funding', ':funded external project is funded every year.'],
+            ],
+        ],
         'faculties' => [
             'engineering' => 'Faculty of Engineering & Technology',
             'business' => 'Faculty of Business & Economics',
