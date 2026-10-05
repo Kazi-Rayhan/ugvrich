@@ -357,7 +357,7 @@ return [
 
     'innovation' => [
         'catalogue_eyebrow' => 'উদ্ভাবনের ক্ষেত্র',
-        'catalogue_heading' => 'উদ্ভাবনের <span class="text-highlight-ink">ক্ষেত্র</span>',
+        'catalogue_heading' => 'আমাদের <span class="text-highlight-ink">উদ্ভাবন</span>',
         'funding_sources' => 'উৎস',
         'catalogue_title' => 'প্রতিটি বিভাগ, নিজস্ব <span class="text-accent">উদ্ভাবন ক্ষেত্র</span>',
         'catalogue_lead' => 'প্রতিটি ক্ষেত্র একটি বিভাগের দক্ষতাকে প্রোটোটাইপ, পণ্য ও উদ্যোগে রূপ দেয়। কোনো ক্ষেত্র খুলে দেখুন সেটি কী নিয়ে কাজ করে এবং সেখানে কোন প্রকল্প চলছে।',
