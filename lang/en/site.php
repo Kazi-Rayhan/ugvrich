@@ -371,6 +371,8 @@ return [
         'others_link' => 'All innovation areas',
         'menu_startup_note' => 'From idea to enterprise',
         'read_full' => 'Read the full proposal',
+        'type' => ['current' => 'Prototype', 'proposed' => 'Proposed'],
+        'view_innovation' => 'View innovation',
         'back_to_current' => 'All current innovations',
         'back_to_proposals' => 'All proposed innovations',
         'previous' => 'Previous',
@@ -801,6 +803,48 @@ return [
         'research_innovation' => 'Research & Innovation',
         'experts' => 'Our Experts',
         'copyright' => '© :year :name · University of Global Village. All rights reserved.',
+    ],
+
+    // Application & Screening: who may apply and how a submitted idea is reviewed.
+    'screening' => [
+        'nav' => 'Application & Screening',
+        'meta_description' => 'Who can apply to the RICH Innovation Wing, and how every submitted idea is screened and approved within 21 working days.',
+        'hero_eyebrow' => 'Innovation Wing',
+        'hero_title' => 'Application & <span class="text-highlight">Screening</span>',
+        'hero_lead' => 'Anyone with an idea can apply. Every submission passes through the same four-tier review, with a clear decision inside 21 working days.',
+        'see_pipeline' => 'See the pipeline',
+
+        'who_title' => 'Who Can Apply',
+        'who_note' => 'Open to all innovators',
+        'eligible' => 'Eligible',
+        'applicants' => [
+            ['icon' => 'academic', 'title' => 'UGV 9 Departments', 'text' => 'Faculty & Students'],
+            ['icon' => 'building', 'title' => 'Other Institutions', 'text' => 'University Students'],
+            ['icon' => 'users', 'title' => 'General Public', 'text' => '& Entrepreneurs'],
+        ],
+
+        'outcomes_title' => 'Screening Outcomes',
+        'outcomes' => [
+            ['key' => 'approved', 'label' => 'Approved', 'note' => 'Moves to TRL plan'],
+            ['key' => 'revision', 'label' => 'Revision Required', 'note' => 'Resubmit in 15 days'],
+            ['key' => 'rejected', 'label' => 'Rejected', 'note' => 'With written feedback'],
+        ],
+        'outcomes_footnote' => 'Ideas not selected may apply again in the next cycle, with no penalty.',
+
+        'pipeline_title' => 'Screening & Approval Pipeline',
+        'pipeline_badge' => '21 Working Days',
+        'pipeline_lead' => 'Transparent & sequential review',
+        'pipeline_note' => 'Counted from the date of submission',
+        'tier' => 'Tier :n',
+        'tiers' => [
+            ['days' => 'Day 1–3', 'title' => 'Initial Verification', 'by' => 'RICH Coordinator', 'text' => 'Eligibility, completeness and duplicate check.'],
+            ['days' => 'Day 4–7', 'title' => 'Primary Screening', 'by' => 'Deputy Director + Dept. Coordinators', 'text' => 'Problem relevance, novelty and basic feasibility.'],
+            ['days' => 'Day 8–14', 'title' => 'Technical & Ethics', 'by' => 'Expert Panel + MPH + Islamic Studies', 'text' => 'Technical soundness, safety, ethics and IP potential.'],
+            ['days' => 'Day 15–21', 'title' => 'Final Approval Board', 'by' => 'Director + Industry Mentor', 'text' => 'Funding, team, mentor and TRL roadmap confirmed.'],
+        ],
+
+        'cta_title' => 'Ready to put your idea forward?',
+        'cta_text' => 'Submit it today and the review clock starts.',
     ],
 
 ];

@@ -6,4 +6,7 @@
     @include('partials.home.about')
     @include('partials.home.marquee', ['subdued' => true])
     @include('partials.home.cta')
+
+    {{-- Flowers that follow a visitor here from the inauguration at /udbodhon --}}
+    @include('partials.welcome-petals')
 </x-layouts.app>

@@ -75,26 +75,10 @@
                     @endif
                 </div>
 
-                {{-- The innovations, numbered, filling every cell the image leaves
-                     (as a service category lists its services). --}}
+                {{-- The innovations, as small cards (photo, type, name), filling every
+                     cell the image leaves, as a service category lists its services. --}}
                 @foreach ($area->innovations as $j => $innovation)
-                    <article class="reveal group" style="transition-delay: {{ min($j * 45, 300) }}ms">
-                        <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
-                            {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
-                        </p>
-
-                        <h3 class="mt-3 font-display text-[17px] font-bold leading-snug text-ink-950">
-                            @if ($slug = $innovationSlugs[$innovation->id] ?? null)
-                                <a href="{{ route('innovation.show', $slug) }}" class="transition-colors group-hover:text-brand-700">{{ $innovation->name }}</a>
-                            @else
-                                {{ $innovation->name }}
-                            @endif
-                        </h3>
-
-                        @if ($innovation->tagline)
-                            <p class="mt-2.5 text-[13.5px] leading-[1.9] text-ink-600">{{ $innovation->tagline }}</p>
-                        @endif
-                    </article>
+                    <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
                 @endforeach
             </div>
 

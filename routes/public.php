@@ -61,6 +61,8 @@ Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('i
 // One innovation area on a page of its own, the way a service category has one.
 Route::get('/innovation/areas/{innovationArea}', [InnovationController::class, 'area'])->name('innovation.area');
 Route::redirect('/innovation/plan', '/innovation')->name('innovation.plan');
+// Who can apply, and how a submitted idea is screened.
+Route::view('/innovation/application-screening', 'pages.innovation.screening')->name('innovation.screening');
 // Last of the three: a bare segment would otherwise swallow `areas` and `plan`.
 Route::get('/innovation/{slug}', [InnovationController::class, 'show'])->name('innovation.show');
 

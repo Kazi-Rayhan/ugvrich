@@ -13,12 +13,9 @@
         ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*'], 'panel' => [
             'title' => __('site.nav.innovation'),
             'text' => __('site.nav.innovation_panel_text'),
-            'children' => array_merge(
-                $site->innovationAreas()->map(fn ($area) => [
-                    $area->name, route('innovation.area', $area), $area->icon ?? 'lightbulb', $area->summary,
-                ])->all(),
-                [[__('site.nav.startup'), route('startup'), 'rocket', __('site.innovation.menu_startup_note')]],
-            ),
+            'children' => $site->innovationAreas()->map(fn ($area) => [
+                $area->name, route('innovation.area', $area), $area->icon ?? 'lightbulb', $area->summary,
+            ])->all(),
         ]],
         ['key' => 'consultancy', 'label' => __('site.nav.consultancy'), 'route' => 'services.index', 'match' => ['services.*', 'consultancy.*'], 'panel' => [
             'title' => __('site.nav.consultancy'),

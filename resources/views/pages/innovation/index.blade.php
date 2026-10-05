@@ -83,12 +83,17 @@
             <p class="reveal mt-7 max-w-2xl text-[17.5px] leading-[1.8] text-white/75">{{ __('site.innovation.hero_lead') }}</p>
 
             <div class="reveal mt-10 flex flex-wrap gap-3">
+                <a href="#areas" class="btn-invert px-7 py-4 text-[15px]">
+                    {{ __('site.innovation.explore_areas') }}
+                </a>
+                <a href="{{ route('innovation.screening') }}"
+                   class="group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border-2 border-brand-400 bg-transparent px-7 py-[14px] text-[15px] font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:border-brand-500 hover:bg-brand-600">
+                    {{ __('site.screening.nav') }}
+                    <x-ui-icon name="arrow-up-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
                 <a href="{{ route('ideas.create') }}" class="btn-lead group">
                     <span class="relative">{{ __('site.actions.submit_idea') }}</span>
                     <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
-                </a>
-                <a href="#areas" class="btn-invert px-7 py-4 text-[15px]">
-                    {{ __('site.innovation.explore_areas') }}
                 </a>
             </div>
         </div>
@@ -118,11 +123,8 @@
          corner. --}}
     <section id="areas" class="scroll-mt-28 bg-white py-20 sm:py-28">
         <div class="container-rich">
-            <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <x-section-heading
-                    :eyebrow="__('site.innovation.catalogue_eyebrow')"
-                    :title="__('site.innovation.catalogue_title')"
-                    :lead="__('site.innovation.catalogue_lead')" />
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <x-section-heading :eyebrow="__('site.innovation.catalogue_eyebrow')" />
 
                 <a href="{{ route('ideas.create') }}" class="btn-primary reveal shrink-0">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
@@ -187,26 +189,10 @@
                                 @endif
                             </div>
 
-                            {{-- The innovations, numbered, filling every cell the image leaves
-                                 (as a service category lists its services). --}}
+                            {{-- The innovations, as small cards (photo, type, name), filling every
+                                 cell the image leaves, as a service category lists its services. --}}
                             @foreach ($area->innovations as $j => $innovation)
-                                <article class="reveal group" style="transition-delay: {{ min($j * 40, 280) }}ms">
-                                    <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
-                                        {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
-                                    </p>
-
-                                    <h3 class="mt-3 font-display text-[16.5px] font-bold leading-snug text-ink-950">
-                                        @if ($slug = $innovationSlugs[$innovation->id] ?? null)
-                                            <a href="{{ route('innovation.show', $slug) }}" class="transition-colors group-hover:text-brand-700">{{ $innovation->name }}</a>
-                                        @else
-                                            {{ $innovation->name }}
-                                        @endif
-                                    </h3>
-
-                                    @if ($innovation->tagline)
-                                        <p class="mt-2.5 text-[13.5px] leading-[1.9] text-ink-600">{{ $innovation->tagline }}</p>
-                                    @endif
-                                </article>
+                                <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
                             @endforeach
                         </div>
 
