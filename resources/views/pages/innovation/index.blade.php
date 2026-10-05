@@ -198,7 +198,7 @@
 
                         {{-- The innovations, as compact cards in a row under the area --}}
                         @if ($area->innovations->isNotEmpty())
-                            <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div class="mt-8 grid gap-5 md:grid-cols-2">
                                 @foreach ($area->innovations as $j => $innovation)
                                     <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
                                 @endforeach

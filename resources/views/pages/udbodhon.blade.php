@@ -265,16 +265,58 @@
         }
         .logo img { width: 100%; height: 100%; object-fit: contain; }
         .intro .eyebrow-invert { margin-top: 24px; }
+        /* The name: a quiet, widely spaced "UGV" crest over a monumental "RICH"
+           in pearl-to-emerald foil, with a sheen that passes over it now and then. */
         .intro .title {
-            position: relative; margin-top: 14px;
-            font-family: var(--display); font-weight: 800; line-height: 1; letter-spacing: -.02em;
-            font-size: clamp(64px, 12vw, 150px); color: #fff;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+            position: relative; margin-top: 22px;
+            display: flex; flex-direction: column; align-items: center;
+            font-family: var(--display);
         }
-        .intro .title span { color: var(--brand-300); }   /* the home hero's highlight colour */
+        .intro .title::before {     /* soft green light behind the name */
+            content: ''; position: absolute; left: 50%; top: 55%; z-index: -1;
+            width: 130%; height: 120%; transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at center, rgba(143, 191, 139, .28), transparent 65%);
+            filter: blur(10px);
+        }
+        .title-crest {
+            display: inline-flex; align-items: center; gap: clamp(12px, 2vw, 22px);
+            font-weight: 600; font-size: clamp(15px, 2vw, 24px); letter-spacing: .85em; margin-right: -.85em;
+            color: rgba(255, 255, 255, .9);
+        }
+        .title-crest::before, .title-crest::after {
+            content: ''; width: clamp(34px, 6vw, 80px); height: 1px; margin-right: .85em;
+            background: linear-gradient(90deg, transparent, var(--gold-300));
+        }
+        .title-crest::after { margin: 0 .85em 0 0; transform: scaleX(-1); }
+
+        .title-name {
+            position: relative; display: block; margin-top: clamp(2px, .6vh, 8px);
+            font-weight: 800; line-height: .92; letter-spacing: .015em;
+            font-size: clamp(92px, 17vw, 214px);
+            background: linear-gradient(176deg, #ffffff 0%, #f1f8f0 26%, #c9e4c5 48%, var(--brand-300) 64%, #b9dbb4 80%, #f4faf2 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 2px 0 rgba(16, 36, 15, .55)) drop-shadow(0 22px 34px rgba(0, 0, 0, .5));
+        }
+        .title-name::after {        /* the passing sheen */
+            content: attr(data-text); position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%) no-repeat;
+            background-size: 260% 100%; background-position: 160% 0;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: sheen 5.5s var(--ease) 1.2s infinite;
+        }
+        .title-rule {
+            display: flex; align-items: center; gap: 10px; margin-top: clamp(12px, 2vh, 20px);
+        }
+        .title-rule::before, .title-rule::after {
+            content: ''; width: clamp(60px, 12vw, 150px); height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-300));
+        }
+        .title-rule::after { transform: scaleX(-1); }
+        .title-rule i { width: 7px; height: 7px; transform: rotate(45deg); background: var(--gold-300); box-shadow: 0 0 12px rgba(242, 205, 107, .8); }
+
         .intro .subtitle {
-            margin-top: 14px; font-family: var(--display); font-weight: 600; color: rgba(255, 255, 255, .85);
-            font-size: clamp(14px, 1.6vw, 18px);
+            margin-top: 14px; font-family: var(--display); font-weight: 600; color: rgba(255, 255, 255, .88);
+            font-size: clamp(13px, 1.4vw, 16px); letter-spacing: .22em; text-transform: uppercase;
         }
         .intro .lead { color: rgba(255, 255, 255, .72); margin-top: 8px; font-size: clamp(15px, 1.5vw, 17px); }
 
@@ -345,10 +387,11 @@
         @keyframes drum { 25% { transform: translate(-1px, 1px) rotate(-.6deg); } 75% { transform: translate(1px, -1px) rotate(.6deg); } }
         @keyframes snip { to { transform: rotate(-22deg); } }
         @keyframes shiver { 30%, 70% { transform: scaleX(.985); } }
+        @keyframes sheen { 0% { background-position: 160% 0; } 45%, 100% { background-position: -60% 0; } }
 
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
-            .rays, .btn-cut::before { animation: none; }
+            .rays, .btn-cut::before, .title-name::after { animation: none; }
         }
     </style>
 </head>
@@ -391,7 +434,11 @@
         <div class="text">
             <span class="logo"><img src="{{ asset('media/logo-mark.png') }}" alt="UGV RICH" width="256" height="249"></span>
             <p class="eyebrow-invert">University of Global Village</p>
-            <p class="title">UGV <span>RICH</span></p>
+            <p class="title" aria-label="UGV RICH">
+                <span class="title-crest" aria-hidden="true">UGV</span>
+                <span class="title-name" data-text="RICH" aria-hidden="true">RICH</span>
+                <span class="title-rule" aria-hidden="true"><i></i></span>
+            </p>
             <p class="subtitle">Research, Innovation and Consultancy Hub</p>
             <p class="lead">An evening of new beginnings. Cut the ribbon to open its doors.</p>
         </div>
