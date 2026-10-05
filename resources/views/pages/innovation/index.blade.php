@@ -178,7 +178,20 @@
 
                         <div class="relative z-10 mt-10 flex gap-5">
                             <span class="w-1 shrink-0 rounded-full bg-gradient-to-b from-gold-300 via-gold-400 to-transparent" aria-hidden="true"></span>
-                            <p class="font-display font-semibold leading-[1.45] tracking-[-0.01em] !text-white {{ $size }}">{{ $statement[1] }}</p>
+
+                            @if ($statement === $mission)
+                                {{-- The mission, item by item --}}
+                                <ol class="space-y-3.5">
+                                    @foreach (collect(preg_split('/;\s*/u', rtrim($statement[1], '।. ')))->map(fn ($p) => trim($p))->filter() as $point)
+                                        <li class="flex items-start gap-3.5">
+                                            <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold-300 font-numeric text-[12px] font-bold text-navy-900">{{ $num($loop->iteration) }}</span>
+                                            <span class="font-display text-[16px] font-semibold leading-[1.5] !text-white sm:text-[17px]">{{ \Illuminate\Support\Str::ucfirst($point) }}</span>
+                                        </li>
+                                    @endforeach
+                                </ol>
+                            @else
+                                <p class="font-display font-semibold leading-[1.45] tracking-[-0.01em] !text-white {{ $size }}">{{ $statement[1] }}</p>
+                            @endif
                         </div>
                     </article>
                 @endforeach
