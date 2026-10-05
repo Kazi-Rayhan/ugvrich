@@ -376,6 +376,7 @@ return [
         'type' => ['current' => 'Prototype', 'proposed' => 'Proposed'],
         'view_innovation' => 'View innovation',
         'back_to_current' => 'All current innovations',
+        'back_to_innovations' => 'All innovations',
         'back_to_proposals' => 'All proposed innovations',
         'previous' => 'Previous',
         'next' => 'Next',

@@ -60,6 +60,7 @@ class InnovationRecordTest extends TestCase
             'highlights' => 'Turns husk into cooking gas for a village kitchen.',
             'sort_order' => 99,
         ]);
+        $this->listUnderAnArea();
 
         $this->get(route('innovation.index'))
             ->assertOk()
@@ -81,16 +82,18 @@ class InnovationRecordTest extends TestCase
     public function test_each_language_reads_its_own_text(): void
     {
         $this->seed(InnovationRecordSeeder::class);
+        $this->listUnderAnArea();
 
+        // Each innovation's card under its area is written in the page's language.
         $this->get(route('en.innovation.index'))
             ->assertOk()
-            ->assertSee('Solar Scooty')
-            ->assertSee('সোলার স্কুটি');   // the Bangla name, in brackets
+            ->assertSee('Solar Scooty');
 
-        $this->get(route('innovation.index'))
+        // The Bangla address itself: route() answers in the language last read,
+        // which after the request above would be the /en one.
+        $this->get('/innovation')
             ->assertOk()
-            ->assertSee('সোলার স্কুটি')
-            ->assertSee('Solar Scooty');   // and the English one, the other way round
+            ->assertSee('সোলার স্কুটি');
     }
 
     public function test_re_seeding_keeps_an_uploaded_photograph_and_the_chosen_order(): void
@@ -132,5 +135,15 @@ class InnovationRecordTest extends TestCase
             ->get('/admin')
             ->assertOk()
             ->assertSee('/admin/innovations', escape: false);
+    }
+
+    /**
+     * The Innovation page lists innovations under their areas, as cards, so a
+     * test that looks for them there first gives them an area.
+     */
+    protected function listUnderAnArea(): void
+    {
+        $area = \App\Models\InnovationArea::create(['name' => 'Mechanical & Mobility Innovation', 'slug' => 'mechanical-mobility', 'is_active' => true]);
+        \App\Models\Innovation::query()->update(['innovation_area_id' => $area->id]);
     }
 }

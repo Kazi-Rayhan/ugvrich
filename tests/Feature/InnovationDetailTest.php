@@ -41,6 +41,7 @@ class InnovationDetailTest extends TestCase
     public function test_the_innovation_page_links_to_each_of_them(): void
     {
         $this->seed(InnovationRecordSeeder::class);
+        $this->listUnderAnArea();
 
         $page = $this->get(route('innovation.index'))->assertOk();
 
@@ -91,6 +92,7 @@ class InnovationDetailTest extends TestCase
     public function test_the_innovation_page_links_to_each_current_innovation(): void
     {
         $this->seed(InnovationRecordSeeder::class);
+        $this->listUnderAnArea();
 
         $page = $this->get(route('innovation.index'))->assertOk();
 
@@ -113,5 +115,15 @@ class InnovationDetailTest extends TestCase
             ->assertOk()
             ->assertSee($doc['headings']['lead_support'])
             ->assertDontSee($doc['headings']['sdg']);
+    }
+
+    /**
+     * The Innovation page lists innovations under their areas, as cards, so a
+     * test that looks for them there first gives them an area.
+     */
+    protected function listUnderAnArea(): void
+    {
+        $area = \App\Models\InnovationArea::create(['name' => 'Mechanical & Mobility Innovation', 'slug' => 'mechanical-mobility', 'is_active' => true]);
+        \App\Models\Innovation::query()->update(['innovation_area_id' => $area->id]);
     }
 }

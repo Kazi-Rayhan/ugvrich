@@ -47,10 +47,10 @@
 
         <div class="absolute inset-0 flex items-end">
             <div class="container-rich pb-10 sm:pb-14">
-                <a href="{{ route('innovation.index') }}#{{ $isProposed ? 'proposed' : 'current' }}"
+                <a href="{{ route('innovation.index') }}#areas"
                    class="inline-flex items-center gap-2 text-[13px] font-semibold text-white/70 transition hover:text-white">
                     <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 rotate-180" />
-                    {{ $isProposed ? __('site.innovation.back_to_proposals') : __('site.innovation.back_to_current') }}
+                    {{ __('site.innovation.back_to_innovations') }}
                 </a>
 
                 <p class="mt-5 flex flex-wrap items-center gap-3">

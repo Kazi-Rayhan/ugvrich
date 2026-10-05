@@ -377,6 +377,7 @@ return [
         'type' => ['current' => 'প্রোটোটাইপ', 'proposed' => 'প্রস্তাবিত'],
         'view_innovation' => 'উদ্ভাবনটি দেখুন',
         'back_to_current' => 'সব বর্তমান উদ্ভাবন',
+        'back_to_innovations' => 'সব উদ্ভাবন',
         'back_to_proposals' => 'সব প্রস্তাবিত উদ্ভাবন',
         'previous' => 'পূর্ববর্তী',
         'next' => 'পরবর্তী',
