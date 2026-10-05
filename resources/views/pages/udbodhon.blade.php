@@ -2,32 +2,27 @@
  | The RICH inauguration — /udbodhon.
  |
  | A page of its own, outside the site layout, and in English only: a closed
- | stage of emerald velvet with a satin ribbon and one button. Pressing it
- | rolls the drums, cuts the ribbon, opens the curtains on an ivory stage and
+ | stage of green velvet with a satin ribbon and one button. Pressing it
+ | rolls the drums, cuts the ribbon, opens the curtains on a white stage and
  | unveils RICH — Research, Innovation and Consultancy Hub — with petals,
- | marigolds, gold confetti and music. An opening video plays if one is
- | there, and the evening ends by carrying the flowers on to the home page.
+ | marigolds, gold confetti and music. If there is an opening film, the
+ | curtains open on it first. The evening ends by carrying the flowers on
+ | to the home page.
  |
  | Everything is drawn and played in the browser — the confetti on a canvas,
  | the music with the Web Audio API — so the page needs no front-end build.
  |
  | Optional files, picked up on their own when present:
- |   public/media/udbodhon.mp4   the opening video (a WhatsApp video works as is)
+ |   public/media/udbodhon.mp4   the opening film the curtains open on (a WhatsApp video works as is)
  |   public/media/udbodhon.jpg   a still shown before the video starts
- |   public/media/udbodhon.mp3   a recorded track in place of the generated tune
+ |   public/media/udbodhon.mp3   a recorded track, played from the unveiling in place of the
+ |                               generated fanfare and tune (it loops)
 --}}
 @php
     $media = fn (string $file) => file_exists(public_path('media/'.$file)) ? asset('media/'.$file) : null;
     $video = $media('udbodhon.mp4');
     $poster = $media('udbodhon.jpg');
     $track = $media('udbodhon.mp3');
-
-    $letters = [
-        ['R', 'Research'],
-        ['I', 'Innovation'],
-        ['C', 'Consultancy'],
-        ['H', 'Hub'],
-    ];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -155,45 +150,30 @@
             visibility: hidden;
             transition: opacity .8s ease, transform .8s ease, filter .8s ease;
         }
-        [data-state="open"] .reveal { visibility: visible; }
+        .stage.is-unveiled .reveal { visibility: visible; }
         .reveal > * { opacity: 0; transform: translateY(26px); }
-        [data-state="open"] .reveal > * { animation: rise 1.1s var(--ease) forwards; animation-delay: var(--d, 0s); }
-        .stage.has-video-open .reveal { opacity: .12; transform: scale(.96); filter: blur(3px); }
+        .stage.is-unveiled .reveal > * { animation: rise 1.1s var(--ease) forwards; animation-delay: var(--d, 0s); }
 
-        .monogram {
-            margin-top: clamp(14px, 2.4vh, 26px);
-            display: grid; grid-template-columns: repeat(4, auto); justify-content: center; column-gap: clamp(8px, 2.6vw, 44px);
+        /* "Welcome to", with the home page's gold stroke under "to" */
+        .welcome {
+            font-family: var(--display); font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+            font-size: clamp(32px, 5vw, 64px); color: var(--ink-950);
         }
-        .monogram .cell { display: flex; flex-direction: column; align-items: center; }
-        .monogram .letter {
-            font-family: var(--display); font-weight: 800; line-height: .9; letter-spacing: -.02em;
-            font-size: clamp(76px, 18vw, 220px);
-            background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-600) 45%, var(--brand-800) 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
-            filter: drop-shadow(0 18px 28px rgba(49, 109, 49, .22));
-            opacity: 0; transform: translateY(-.3em) scale(1.2);
+        .welcome span { position: relative; display: inline-block; color: var(--brand-600); }
+        .welcome span::after {
+            content: ''; position: absolute; left: -.08em; right: -.08em; bottom: .02em; height: .14em; border-radius: 999px;
+            background: linear-gradient(90deg, rgba(242, 205, 107, 0), rgba(242, 205, 107, .85) 12%, rgba(227, 171, 46, .95) 60%, rgba(242, 205, 107, 0));
+            transform: scaleX(0); transform-origin: left; transition: transform .9s var(--ease) 1.2s;
+            z-index: -1;
         }
-        /* The gold mark under each word — the home page's highlight stroke */
-        .monogram .word {
-            position: relative; margin-top: clamp(6px, 1.2vh, 14px); padding-bottom: 6px;
-            font-family: var(--sans); font-weight: 600; color: var(--ink-600);
-            font-size: clamp(9px, 1.15vw, 14px); letter-spacing: clamp(.06em, .3vw, .18em); text-transform: uppercase;
-            opacity: 0; transform: translateY(8px);
-        }
-        .monogram .word::after {
-            content: ''; position: absolute; left: 50%; bottom: 0; width: 70%; height: 3px; margin-left: -35%; border-radius: 999px;
-            background: linear-gradient(90deg, rgba(242, 205, 107, 0), var(--gold-300) 15%, var(--gold-400) 60%, rgba(242, 205, 107, 0));
-            transform: scaleX(0); transition: transform .9s var(--ease);
-        }
-        [data-state="open"] .monogram { opacity: 1; transform: none; }
-        [data-state="open"] .monogram .letter { animation: letter-in 1.2s var(--ease) forwards; animation-delay: var(--ld); }
-        [data-state="open"] .monogram .word { animation: rise .9s ease forwards; animation-delay: calc(var(--ld) + .7s); }
-        [data-state="open"] .monogram .word::after { transform: scaleX(1); transition-delay: calc(var(--ld) + 1.3s); }
+        .stage.is-unveiled .welcome span::after { transform: scaleX(1); }
 
-        .flourish { margin-top: clamp(14px, 2.6vh, 26px); display: flex; align-items: center; gap: 12px; }
-        .flourish span { width: clamp(50px, 12vw, 120px); height: 1px; background: linear-gradient(90deg, transparent, var(--brand-300)); }
-        .flourish span:last-child { transform: scaleX(-1); }
-        .flourish i { width: 8px; height: 8px; transform: rotate(45deg); background: var(--gold-400); }
+        .logo-full {
+            display: block; margin-top: clamp(16px, 3vh, 30px);
+            width: auto; height: clamp(240px, 52vh, 460px); max-width: 82vw; object-fit: contain;
+            filter: drop-shadow(0 26px 40px rgba(7, 20, 38, .14));
+        }
+        .reveal > .logo-full { transform: translateY(20px) scale(.88); }
 
         .lead {
             margin-top: clamp(12px, 2vh, 20px); max-width: 40rem;
@@ -204,26 +184,16 @@
         .actions { margin-top: clamp(20px, 4vh, 34px); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; }
         .countdown { font-size: 13px; color: var(--ink-500); min-height: 1em; }
 
-        /* ---------- The opening video ---------- */
+        /* ---------- The opening video: the logo reveal the curtains open on ---------- */
 
         .film {
             position: absolute; inset: 0; z-index: 4;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-            padding: 14vh 16px 6vh;
-            opacity: 0; visibility: hidden; transition: opacity .9s ease, visibility 0s linear .9s;
+            background: #e4ebee;              /* the video's own backdrop, for the bands on tall screens */
+            opacity: 0; visibility: hidden; transition: opacity 1.4s ease, visibility 0s linear 1.4s;
         }
-        .stage.has-video-open .film { opacity: 1; visibility: visible; transition: opacity .9s ease; }
-        .frame {
-            position: relative; padding: 8px; border-radius: 22px;
-            background: #fff; border: 1px solid var(--ink-200);
-            box-shadow: 0 40px 80px -30px rgba(7, 20, 38, .45), 0 0 0 6px rgba(49, 109, 49, .08);
-            transform: scale(.92); transition: transform 1s var(--ease);
-        }
-        .stage.has-video-open .frame { transform: none; }
-        .frame video {
-            display: block; border-radius: 15px; background: #000;
-            max-width: min(84vw, 1000px); max-height: 64vh; width: auto; height: auto;
-        }
+        .stage.is-playing .film { opacity: 1; visibility: visible; transition: opacity .5s ease; }
+        /* Full width and full height on every screen, phones included. */
+        .film video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
         /* ---------- The curtains: velvet in the brand green ---------- */
 
@@ -346,8 +316,13 @@
             opacity: 0; visibility: hidden; transition: opacity 1.6s ease, visibility 0s linear 1.6s;
         }
         .stage.is-leaving .veil { opacity: 1; visibility: visible; transition: opacity 1.6s ease; }
-        .veil p { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; font-size: clamp(34px, 5vw, 60px); color: var(--ink-950); }
-        .veil p span { color: var(--brand-600); }
+        .veil img {
+            height: clamp(150px, 30vh, 280px); width: auto;
+            filter: drop-shadow(0 18px 30px rgba(7, 20, 38, .18));
+            transform: scale(.92); opacity: 0;
+            transition: transform 1.8s var(--ease), opacity 1.2s ease;
+        }
+        .stage.is-leaving .veil img { transform: none; opacity: 1; transition-delay: .3s; }
 
         .controls { position: absolute; right: 18px; bottom: 18px; z-index: 12; }
         .ctl {
@@ -366,7 +341,6 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes rise { to { opacity: 1; transform: none; } }
-        @keyframes letter-in { to { opacity: 1; transform: none; } }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); } 100% { box-shadow: 0 0 0 18px rgba(255, 255, 255, 0); } }
         @keyframes drum { 25% { transform: translate(-1px, 1px) rotate(-.6deg); } 75% { transform: translate(1px, -1px) rotate(.6deg); } }
         @keyframes snip { to { transform: rotate(-22deg); } }
@@ -387,25 +361,12 @@
     <div class="rays" aria-hidden="true"></div>
 
     <section class="reveal" aria-live="polite">
-        <p class="eyebrow" style="--d: .2s">Grand opening</p>
+        <h1 class="welcome" style="--d: .2s">Welcome <span>to</span></h1>
 
-        <h1 class="monogram" style="--d: 0s" aria-label="RICH — Research, Innovation and Consultancy Hub">
-            @foreach ($letters as $i => [$letter, $word])
-                <span class="cell" aria-hidden="true">
-                    <span class="letter" style="--ld: {{ .45 + $i * .2 }}s">{{ $letter }}</span>
-                    <span class="word" style="--ld: {{ .45 + $i * .2 }}s">{{ $word }}</span>
-                </span>
-            @endforeach
-        </h1>
+        <img class="logo-full" style="--d: .55s" src="{{ asset('media/logo-full.png') }}"
+             alt="UGV RICH — Research, Innovation and Consultancy Hub" width="420" height="511">
 
-        <div class="flourish" style="--d: 1.9s" aria-hidden="true"><span></span><i></i><span></span></div>
-
-        <p class="lead" style="--d: 2.1s">
-            The <strong>University of Global Village</strong> proudly opens its Research, Innovation and Consultancy Hub —
-            where ideas become impact.
-        </p>
-
-        <div class="actions" style="--d: 2.5s">
+        <div class="actions" style="--d: 1.4s">
             <button type="button" class="btn-lead" data-enter>
                 Enter RICH
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -415,12 +376,8 @@
     </section>
 
     @if ($video)
-        <section class="film" aria-label="Opening video">
-            <p class="eyebrow">A message for the opening</p>
-            <div class="frame">
-                <video id="film" src="{{ $video }}" @if ($poster) poster="{{ $poster }}" @endif playsinline controls preload="auto"></video>
-            </div>
-            <button type="button" class="btn-ghost" data-enter>Skip &amp; enter RICH</button>
+        <section class="film" aria-label="RICH opening film">
+            <video id="film" src="{{ $video }}" @if ($poster) poster="{{ $poster }}" @endif playsinline preload="auto"></video>
         </section>
     @endif
 
@@ -459,8 +416,7 @@
     <canvas id="fx" aria-hidden="true"></canvas>
 
     <div class="veil" aria-hidden="true">
-        <span class="eyebrow">Welcome to</span>
-        <p>UGV <span>RICH</span></p>
+        <img src="{{ asset('media/logo-full.png') }}" alt="" width="420" height="511">
     </div>
 
     <div class="controls">
@@ -487,16 +443,16 @@
      | Music — synthesised with the Web Audio API: a drum roll, a cymbal and
      | timpani as the ribbon falls, a brass fanfare as the curtains open, then
      | a bright loop. A recorded track at public/media/udbodhon.mp3 replaces
-     | the loop. The music steps back while the video plays.
+     | the loop. While the opening film plays, its own sound has the stage.
      * ===================================================================== */
     const Music = (() => {
         const TRACK = @json($track);
         const VOLUME = 0.55;
         let ctx, master, reverb, noiseBuffer, timer, track;
-        let step = 0, nextTime = 0, muted = false, ducked = false;
+        let step = 0, nextTime = 0, muted = false;
 
         const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
-        const level = () => (muted ? 0 : ducked ? VOLUME * 0.12 : VOLUME);
+        const level = () => (muted ? 0 : VOLUME);
 
         function init() {
             ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -716,6 +672,7 @@
         }
 
         return {
+            // The drum roll while the ribbon is cut, and the crash as it falls.
             start() {
                 if (!ctx) init();
                 ctx.resume();
@@ -725,20 +682,24 @@
                 const t = ctx.currentTime + 0.05;
                 drumRoll(t, 1.45);
                 crash(t + 1.5);
-                const loopAt = fanfare(t + 1.9) + 0.25;
+            },
+            // The fanfare as RICH is unveiled, then the loop.
+            celebrate() {
+                if (!ctx || timer) return;
 
+                // A recorded track brings its own opening, so it starts at once in
+                // place of the generated fanfare and loop.
                 if (track) {
-                    timer = setTimeout(() => {
-                        track.currentTime = 0;
-                        track.volume = level();
-                        track.play().catch(() => {});
-                        timer = 'track';
-                    }, (loopAt - ctx.currentTime) * 1000);
-                } else {
-                    step = 0;
-                    nextTime = loopAt;
-                    timer = setInterval(scheduler, 25);
+                    track.currentTime = 0;
+                    track.volume = level();
+                    track.play().catch(() => {});
+                    timer = 'track';
+                    return;
                 }
+
+                step = 0;
+                nextTime = fanfare(ctx.currentTime + 0.05) + 0.25;
+                timer = setInterval(scheduler, 25);
             },
             fadeOut(seconds = 1.5) {
                 if (!ctx) return;
@@ -754,8 +715,8 @@
                     fade();
                 }
             },
-            duck(on) { ducked = on; apply(0.4); },
             toggleMute() { muted = !muted; apply(0.1); return muted; },
+            get muted() { return muted; },
         };
     })();
 
@@ -987,7 +948,13 @@
                 burstsFast = now + 9000;
                 wake();
             },
-            calm() { drizzle = 0.12; burstsAt = 0; },
+            // While the film plays: only a few petals and gold dust, nothing to cover the logo.
+            drift() {
+                active = true;
+                drizzle = 0.1;
+                dust = 0.18;
+                wake();
+            },
             finale() {
                 const now = performance.now();
                 cannon('left', 200);
@@ -1008,7 +975,7 @@
     const mute = document.getElementById('mute');
     const film = document.getElementById('film');
     const countdown = document.getElementById('countdown');
-    let leaving = false, ticker = null;
+    let leaving = false, unveiled = false, ticker = null;
 
     function startCountdown(seconds) {
         let left = seconds;
@@ -1020,13 +987,27 @@
         }, 1000);
     }
 
+    // The curtains open on the logo film; when it ends (or cannot
+    // play at all) the film fades away and RICH is unveiled on the stage.
     function playFilm() {
-        stage.classList.add('has-video-open');
-        Music.duck(true);
-        FX.calm();
+        stage.classList.add('is-playing');
+        FX.drift();
         film.currentTime = 0;
-        film.play().catch(() => { /* the visitor can press play on the controls */ });
-        film.addEventListener('ended', () => setTimeout(enter, 800), { once: true });
+        film.muted = Music.muted;
+        film.play().catch(unveil);
+        film.addEventListener('ended', unveil, { once: true });
+        setTimeout(unveil, 40000);       // never leave the visitor waiting on a stalled video
+    }
+
+    function unveil() {
+        if (unveiled || leaving) return;
+        unveiled = true;
+        if (film) film.pause();
+        stage.classList.remove('is-playing');
+        stage.classList.add('is-unveiled');
+        try { Music.celebrate(); } catch (e) { /* no audio */ }
+        FX.celebrate();
+        setTimeout(() => { if (!leaving) startCountdown(AUTO_ENTER_SECONDS); }, 2600);
     }
 
     // The finale: one last shower of flowers, an ivory veil, and on to the home page —
@@ -1055,10 +1036,10 @@
         if (film) film.play().then(() => film.pause()).catch(() => {});
 
         setTimeout(() => { stage.dataset.state = 'cut'; }, 1500);
-        setTimeout(() => { stage.dataset.state = 'open'; FX.celebrate(); }, 1900);
-
-        if (HAS_VIDEO) setTimeout(() => { if (!leaving) playFilm(); }, 7500);
-        else setTimeout(() => { if (!leaving) startCountdown(AUTO_ENTER_SECONDS); }, 4500);
+        setTimeout(() => {
+            stage.dataset.state = 'open';
+            if (HAS_VIDEO) playFilm(); else unveil();
+        }, 1900);
     });
 
     document.querySelectorAll('[data-enter]').forEach(el => el.addEventListener('click', enter));
