@@ -39,7 +39,7 @@ return [
         'close_menu' => 'Close menu',
         'more' => 'More',
         'innovation_panel' => 'Innovation areas',
-        'innovation_panel_text' => 'Every department brings its own discipline to the Innovation Wing.',
+        'innovation_panel_text' => 'Frugal, sustainable, and socially impactful innovations from ideation to community.',
         'consultancy_panel_text' => 'Expert services for industry, government and development partners.',
         'industry_note' => 'Ways to work with us',
         'home_aria' => ':name home',

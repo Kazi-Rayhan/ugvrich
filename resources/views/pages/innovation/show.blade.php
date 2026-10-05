@@ -30,6 +30,11 @@
 
         $isProposed = $phase === \App\Models\Innovation::PROPOSED;
 
+        // The banner title: the name, and its other-language name smaller beside it.
+        $heroTitle = e($item['name']).(isset($item['native'])
+            ? ' <span class="font-sans text-[0.55em] font-medium text-white/60">('.e($item['native']).')</span>'
+            : '');
+
         /* A current innovation's highlights paragraph carries what it does now
            and then what comes next, the same split the Innovation page makes. */
         if (! $isProposed) {
@@ -38,46 +43,39 @@
         }
     @endphp
 
-    {{-- ---------------- Hero: the cover, the name, the promise ---------------- --}}
-    <section class="relative isolate overflow-hidden bg-navy-700">
-        <x-media-frame :src="$cover" :alt="$item['name']" :seed="$item['name'].' '.($item['tagline'] ?? '')"
-                       ratio="aspect-[16/10] sm:aspect-[21/8]" class="opacity-40" />
+    {{-- ---------------- Hero: the usual page banner ---------------- --}}
+    <x-page-hero
+        :eyebrow="$isProposed ? __('site.innovation.type.proposed') : __('site.innovation.type.current')"
+        :title="$heroTitle"
+        :lead="$item['subtitle'] ?? ($isProposed ? $item['tagline'] : null)"
+        :breadcrumbs="[__('site.nav.innovation') => route('innovation.index').'#areas', $item['name'] => null]" />
 
-        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-700 via-navy-700/80 to-navy-700/40"></div>
+    {{-- ---------------- The innovation's photograph, in full ---------------- --}}
+    <section class="bg-white pt-12 sm:pt-16">
+        <div class="container-rich">
+            <figure class="reveal relative overflow-hidden rounded-[2rem] bg-ink-100 shadow-[0_40px_80px_-50px_rgba(7,20,38,0.55)]">
+                <x-media-frame :src="$cover" :alt="$item['name']" :seed="$item['name'].' '.($item['tagline'] ?? '')"
+                               icon="lightbulb" ratio="aspect-[16/10] sm:aspect-[21/9]" />
 
-        <div class="absolute inset-0 flex items-end">
-            <div class="container-rich pb-10 sm:pb-14">
-                <a href="{{ route('innovation.index') }}#areas"
-                   class="inline-flex items-center gap-2 text-[13px] font-semibold text-white/70 transition hover:text-white">
-                    <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 rotate-180" />
-                    {{ __('site.innovation.back_to_innovations') }}
-                </a>
-
-                <p class="mt-5 flex flex-wrap items-center gap-3">
-                    <span class="rounded-lg bg-white/15 px-2.5 py-1 font-numeric text-[12px] font-bold tabular-nums text-white backdrop-blur-sm">
+                <figcaption class="absolute left-5 top-5 flex flex-wrap items-center gap-2 sm:left-7 sm:top-7">
+                    <span class="rounded-lg bg-white/90 px-2.5 py-1 font-numeric text-[12px] font-bold tabular-nums text-ink-900 backdrop-blur-sm">
                         {{ $num(str_pad($index + 1, 2, '0', STR_PAD_LEFT)) }}
                     </span>
-                    <span class="rounded-full bg-white px-4 py-1.5 text-[13px] font-semibold text-ink-950">
-                        {{ $isProposed ? $item['tagline'] : $title('current') }}
+                    <span @class([
+                        'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold uppercase tracking-[0.08em] shadow-[0_8px_18px_-10px_rgba(7,20,38,0.6)]',
+                        'bg-brand-600 text-white' => ! $isProposed,
+                        'bg-gold-300 text-navy-900' => $isProposed,
+                    ])>
+                        <x-ui-icon :name="$isProposed ? 'lightbulb' : 'cog'" class="h-3.5 w-3.5" />
+                        {{ $isProposed ? __('site.innovation.type.proposed') : __('site.innovation.type.current') }}
                     </span>
-                </p>
-
-                <h1 class="mt-4 font-display text-[30px] font-bold leading-[1.1] !text-white sm:text-[46px]">
-                    {{ $item['name'] }}
-                    @isset($item['native'])
-                        <span class="font-sans text-[18px] font-medium text-white/60 sm:text-[22px]">({{ $item['native'] }})</span>
-                    @endisset
-                </h1>
-
-                @isset($item['subtitle'])
-                    <p class="mt-3 text-[15px] font-semibold text-brand-200 sm:text-[17px]">{{ $item['subtitle'] }}</p>
-                @endisset
-            </div>
+                </figcaption>
+            </figure>
         </div>
     </section>
 
     {{-- ---------------- The write-up ---------------- --}}
-    <section class="bg-white py-16 sm:py-20">
+    <section class="bg-white pb-16 pt-12 sm:pb-20 sm:pt-14">
         <div class="container-rich">
             <div class="grid gap-x-12 gap-y-10 lg:grid-cols-[1.3fr_0.7fr]">
 
