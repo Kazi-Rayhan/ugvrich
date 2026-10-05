@@ -37,6 +37,17 @@ class IdeaSubmissionForm
                     ->columns(2)
                     ->schema([
                         TextInput::make('title')->disabled()->columnSpanFull(),
+
+                        TextInput::make('category')
+                            ->disabled()
+                            ->formatStateUsing(fn (?string $state) => config('rich.idea_categories.'.$state, $state))
+                            ->placeholder('Not given'),
+
+                        TextInput::make('user_id')
+                            ->label('Innovator account')
+                            ->disabled()
+                            ->formatStateUsing(fn ($state, $record) => $record?->user?->email)
+                            ->placeholder('No account'),
                         Textarea::make('problem')->rows(5)->disabled()->columnSpanFull(),
                         Textarea::make('solution')->rows(5)->disabled()->columnSpanFull(),
                         Textarea::make('beneficiaries')->rows(3)->disabled()->columnSpanFull(),

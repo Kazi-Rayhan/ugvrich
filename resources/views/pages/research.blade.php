@@ -17,6 +17,7 @@
         $h2 = 'reveal mt-4 max-w-3xl font-display text-[30px] font-bold leading-[1.08] tracking-[-0.02em] text-ink-950 sm:text-[42px]';
         $lead = 'reveal mt-6 max-w-2xl text-[16.5px] leading-[1.8] text-ink-600';
         $label = 'text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-400';
+        $funnelHeading = 'flex items-center gap-3 font-display text-[22px] font-bold leading-tight text-ink-950 sm:text-[26px]';
         $delay = fn ($i, $step = 45, $max = 320) => 'transition-delay: '.min($i * $step, $max).'ms';
 
         $num = fn ($value) => app()->getLocale() === 'bn'
@@ -138,7 +139,10 @@
             </div>
 
             {{-- The faculty funnel: each stage narrower than the last --}}
-            <p class="reveal mt-12 {{ $label }}">{{ __('research_hub.calls.faculty_label') }}</p>
+            <h3 class="reveal mt-12 {{ $funnelHeading }}">
+                <span class="h-6 w-1.5 rounded-full bg-brand-600" aria-hidden="true"></span>
+                {{ __('research_hub.calls.faculty_label') }}
+            </h3>
             @include('partials.research.funnel', [
                 'stages' => collect(['proposals' => '∞', 'shortlist' => $range($min, $max), 'funded' => $num($funded)])
                     ->map(fn ($value, $stage) => [$value, ...$fill(__('research_hub.calls.funnel.'.$stage), $callVars)])
@@ -148,7 +152,10 @@
 
 
             {{-- The external funnel: the same three stages, for work from outside UGV --}}
-            <p class="reveal mt-14 {{ $label }}">{{ __('research_hub.calls.external.label') }}</p>
+            <h3 class="reveal mt-14 {{ $funnelHeading }}">
+                <span class="h-6 w-1.5 rounded-full bg-brand-600" aria-hidden="true"></span>
+                {{ __('research_hub.calls.external.label') }}
+            </h3>
             @include('partials.research.funnel', [
                 'stages' => collect([
                     'proposals' => '∞',

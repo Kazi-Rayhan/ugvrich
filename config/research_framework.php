@@ -75,7 +75,7 @@ return [
     'wing' => 'Research Wing',
     'subtitle' => 'Comprehensive Institutional Research Plan',
     'institution' => 'University of Global Village (UGV)',
-    'strapline' => 'Proposed Strategic Framework | Research • Innovation • Consultancy • Impact',
+    'strapline' => 'Strategic Framework | Research • Innovation • Consultancy • Impact',
 
     // Planning pillars
     'pillars' => [
@@ -165,7 +165,7 @@ return [
     // 1.5.2 Objective 2
     'objective_two' => [
         'heading' => 'Objective 2: Strengthen Faculty Research Capacity',
-        'body' => 'The Research Wing will organize continuous capacity-building programmes in:',
+        'body' => 'The Research Wing organizes continuous capacity-building programmes in:',
         'areas' => [
             'Research Methodology', 'Quantitative Research',
             'Qualitative Research', 'Mixed Methods Research',
@@ -298,7 +298,7 @@ return [
     /*
      | 3. Interdisciplinary Research Clusters
      */
-    'clusters_intro' => 'This can become one of the signature features of the RICH Research Wing. Instead of keeping all departments isolated, the Research Wing can establish thematic research clusters that bring together expertise from multiple disciplines.',
+    'clusters_intro' => 'This is one of the signature features of the RICH Research Wing. Instead of keeping all departments isolated, the Research Wing establishes thematic research clusters that bring together expertise from multiple disciplines.',
 
     'clusters' => [
         [
@@ -356,7 +356,7 @@ return [
         ],
     ],
 
-    'living_lab' => 'UGV itself can be developed as a living laboratory for interdisciplinary research. Campus operations—energy, water, waste, safety, digital services, student wellbeing, classrooms and infrastructure—can become real-world research sites. Findings can then be converted into institutional improvements and scalable solutions for other organizations.',
+    'living_lab' => 'UGV itself serves as a living laboratory for interdisciplinary research. Campus operations—energy, water, waste, safety, digital services, student wellbeing, classrooms and infrastructure—become real-world research sites. Findings are then converted into institutional improvements and scalable solutions for other organizations.',
 
     /*
      | 4. Research Project Development Process
@@ -393,7 +393,7 @@ return [
     /*
      | 5. Research Funding System
      */
-    'funding_intro' => 'The Research Wing should establish a structured funding mechanism comprising internal funding and external grant development.',
+    'funding_intro' => 'The Research Wing runs a structured funding mechanism comprising internal funding and external grant development.',
 
     // 5.1 Internal Funding
     'internal_funding' => [
@@ -406,7 +406,7 @@ return [
 
     // 5.2 External Grant Development
     'external_funding' => [
-        'intro' => 'RICH can establish a Research Grant and Funding Desk.',
+        'intro' => 'RICH runs a Research Grant and Funding Desk.',
         'items' => [
             'Maintain a database of funding opportunities',
             'Identify suitable calls',
@@ -428,7 +428,7 @@ return [
 
     // 5.4 Student Research Ecosystem
     'student_ecosystem' => [
-        'intro' => 'Students should be integrated into the research culture from their undergraduate years.',
+        'intro' => 'Students are integrated into the research culture from their undergraduate years.',
         'programmes' => [
             ['UGV Undergraduate Research Programme', 'Faculty-mentored student research'],
             ['Student Research Club', 'Peer research community'],
@@ -455,7 +455,7 @@ return [
      */
     // 6.1 Monthly Research Seminar Series
     'seminar_series' => [
-        'intro' => 'Each month one department can host a research-focused programme. Possible sessions include:',
+        'intro' => 'Each month one department hosts a research-focused programme. Possible sessions include:',
         'sessions' => [
             'Research Methodology',
             'Publishing in International Journals',
@@ -470,7 +470,7 @@ return [
 
     // 6.2 Annual UGV Research Conference
     'conference' => [
-        'intro' => 'RICH can organize the UGV Annual Research Conference as a major annual academic event.',
+        'intro' => 'RICH organizes the UGV Annual Research Conference as a major annual academic event.',
         'components' => [
             ['Keynote Sessions', 'High-level scholarly engagement'],
             ['Paper Presentations', 'Research dissemination'],
@@ -507,7 +507,7 @@ return [
 
     // 6.5 Research Repository
     'repository' => [
-        'intro' => 'RICH can develop a UGV Institutional Research Repository containing:',
+        'intro' => 'RICH maintains a UGV Institutional Research Repository containing:',
         'items' => [
             'Faculty publications',
             'Student research',
@@ -518,7 +518,7 @@ return [
             'Datasets where appropriate',
             'Institutional research outputs',
         ],
-        'note' => 'The repository can increase the visibility and discoverability of UGV research while applying appropriate privacy, copyright and data-governance controls.',
+        'note' => 'The repository increases the visibility and discoverability of UGV research while applying appropriate privacy, copyright and data-governance controls.',
     ],
 
     /*

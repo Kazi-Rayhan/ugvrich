@@ -52,6 +52,14 @@ return [
         'market' => 'Market',
     ],
 
+    // The categories an idea is submitted under, on the Submit your idea form.
+    'idea_categories' => [
+        'engineering' => 'Engineering & Technology',
+        'business' => 'Business & Entrepreneurship',
+        'arts' => 'Arts, Humanities & Social Innovation',
+        'other' => 'Others',
+    ],
+
     // Who can submit an idea.
     'idea_roles' => [
         'student' => 'Student',

@@ -23,7 +23,7 @@ class EnsureResearcher
         }
 
         if (! $user->isResearcher()) {
-            return redirect('/admin');
+            return redirect(\App\Support\RoleRedirector::pathFor($user));
         }
 
         return $next($request);

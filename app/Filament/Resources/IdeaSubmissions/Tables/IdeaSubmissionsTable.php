@@ -28,6 +28,12 @@ class IdeaSubmissionsTable
                     ->limit(45)
                     ->description(fn ($record) => $record->name),
 
+                TextColumn::make('category')
+                    ->badge()
+                    ->color('primary')
+                    ->formatStateUsing(fn (?string $state) => config('rich.idea_categories.'.$state, $state))
+                    ->placeholder('—'),
+
                 TextColumn::make('role')
                     ->badge()
                     ->color('gray')
@@ -73,6 +79,7 @@ class IdeaSubmissionsTable
 
                 SelectFilter::make('stage')->label('Journey stage')->options(config('rich.startup_stages')),
 
+                SelectFilter::make('category')->options(config('rich.idea_categories')),
                 SelectFilter::make('role')->options(config('rich.idea_roles')),
 
                 SelectFilter::make('department')->options(config('rich.departments')),

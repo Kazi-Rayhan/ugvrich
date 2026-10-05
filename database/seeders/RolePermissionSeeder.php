@@ -290,7 +290,8 @@ class RolePermissionSeeder extends Seeder
     {
         $roles = Role::pluck('id', 'name');
 
-        $assigned = User::whereNull('role_id')->get()->filter(function (User $user) use ($roles) {
+        // Innovators are not staff or researchers; they keep no role row.
+        $assigned = User::whereNull('role_id')->where('role', '!=', User::INNOVATOR)->get()->filter(function (User $user) use ($roles) {
             $name = $user->role === User::ADMIN ? 'admin' : 'researcher';
 
             if (! isset($roles[$name])) {

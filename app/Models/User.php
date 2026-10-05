@@ -46,6 +46,12 @@ class User extends Authenticatable implements FilamentUser
     public const RESEARCHER = 'researcher';
 
     /**
+     * Innovators: an account is made for whoever submits an idea on the public
+     * form, and they follow their ideas from the innovator dashboard.
+     */
+    public const INNOVATOR = 'innovator';
+
+    /**
      * Researchers register themselves, so this can no longer let everybody in.
      *
      * Until the portal existed every row in `users` was a staff account and
@@ -76,6 +82,17 @@ class User extends Authenticatable implements FilamentUser
     public function isResearcher(): bool
     {
         return $this->role === self::RESEARCHER;
+    }
+
+    public function isInnovator(): bool
+    {
+        return $this->role === self::INNOVATOR;
+    }
+
+    /** The ideas submitted from this innovator account, newest first. */
+    public function ideaSubmissions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(IdeaSubmission::class)->latest();
     }
 
     /** The permission that opens the admin panel at all. */

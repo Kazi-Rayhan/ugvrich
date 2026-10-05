@@ -16,6 +16,10 @@ Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path(
 Route::middleware(SetLocale::class)->group(base_path('routes/researcher.php'));
 Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path('routes/researcher.php'));
 
+// The innovator dashboard, registered the same way.
+Route::middleware(SetLocale::class)->group(base_path('routes/innovator.php'));
+Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path('routes/innovator.php'));
+
 /* Signing in as another account.
    Outside the admin panel on purpose: while signed in as a researcher the panel
    is closed, and the way back has to stay open. */

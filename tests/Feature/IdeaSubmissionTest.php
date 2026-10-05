@@ -47,6 +47,7 @@ class IdeaSubmissionTest extends TestCase
             'email' => 'rafiq@example.com',
             'phone' => '01700000000',
             'title' => 'Campus waste sorting assistant',
+            'category' => 'engineering',
             'document' => UploadedFile::fake()->create('sketch.pdf', 80, 'application/pdf'),
         ])->assertRedirect(route('ideas.thanks'));
 

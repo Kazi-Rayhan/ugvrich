@@ -36,14 +36,15 @@
             <form action="{{ route('ideas.store') }}" method="POST" enctype="multipart/form-data"
                   class="reveal overflow-hidden rounded-[2rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]"
                   x-data="{
-                      step: {{ $errors->has('document') && ! $errors->hasAny(['name', 'email', 'phone', 'title']) ? 2 : 1 }},
+                      step: {{ $errors->hasAny(['document', 'category']) && ! $errors->hasAny(['name', 'email', 'phone', 'title']) ? 2 : 1 }},
                       last: 2,
                       fields: {
-                          name: @js(old('name', '')),
-                          email: @js(old('email', '')),
-                          phone: @js(old('phone', '')),
+                          name: @js(old('name', $innovator?->name ?? '')),
+                          email: @js(old('email', $innovator?->email ?? '')),
+                          phone: @js(old('phone', $innovatorPhone ?? '')),
                           title: @js(old('title', '')),
                       },
+                      category: @js(old('category', '')),
                       file: null,
                       dragging: false,
                       take(files) {
@@ -133,7 +134,8 @@
 
                         <div class="mt-7 grid gap-5 sm:grid-cols-2">
                             <x-form.field name="name" :label="__('site.ideas.name_label')" icon="users" required autocomplete="name" x-model="fields.name" />
-                            <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" required autocomplete="email" x-model="fields.email" />
+                            <x-form.field name="email" :label="__('site.forms.email')" type="email" icon="mail" required autocomplete="email" x-model="fields.email"
+                                          :readonly="(bool) $innovator" />
                             <x-form.field name="phone" :label="__('site.forms.phone')" type="tel" icon="phone" required autocomplete="tel" x-model="fields.phone" />
                             <x-form.field name="title" :label="__('site.ideas.title_label')" icon="lightbulb" required
                                           :placeholder="__('site.ideas.title_placeholder')" maxlength="200" x-model="fields.title" />
@@ -145,6 +147,28 @@
                         <legend class="sr-only">{{ __('site.ideas.step_submit') }}</legend>
                         <p class="font-display text-[19px] font-bold text-ink-950">{{ __('site.ideas.step_submit') }}</p>
                         <p class="mt-1.5 text-[14px] muted">{{ __('site.ideas.submit_note') }}</p>
+
+                        {{-- The category the idea belongs to --}}
+                        <p class="mb-3 mt-7 text-[13px] font-semibold text-ink-700">
+                            {{ __('site.ideas.category_label') }} <span class="text-brand-600">*</span>
+                        </p>
+                        <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                            @foreach (\App\Support\Vocabulary::all('idea_categories') as $value => $label)
+                                <label class="relative flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-600"
+                                       :class="category === '{{ $value }}' ? 'border-brand-400 bg-brand-50 ring-4 ring-brand-100' : 'border-ink-200 hover:border-ink-300 hover:bg-ink-50/60'">
+                                    <input type="radio" name="category" value="{{ $value }}" x-model="category" required class="sr-only"
+                                           @checked(old('category') === $value)>
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors"
+                                          :class="category === '{{ $value }}' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-brand-600'">
+                                        <x-ui-icon :name="['engineering' => 'cpu', 'business' => 'briefcase', 'arts' => 'users', 'other' => 'grid'][$value] ?? 'grid'" class="h-4 w-4" />
+                                    </span>
+                                    <span class="text-[13.5px] font-medium leading-snug text-ink-800">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('category')
+                            <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
+                        @enderror
 
                         <div class="mt-7 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
                             <div>

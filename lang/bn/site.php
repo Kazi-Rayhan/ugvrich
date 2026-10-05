@@ -685,6 +685,7 @@ return [
     ],
 
     'ideas' => [
+        'category_label' => 'ধরন',
         'step_register' => 'নিবন্ধন',
         'register_note' => 'আপনার — বা আপনার দলের — তথ্য এবং ধারণার একটি কার্যকরী শিরোনাম।',
         'name_label' => 'নাম / দলের নাম',

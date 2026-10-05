@@ -48,6 +48,13 @@ return [
         'market' => 'বাজার',
     ],
 
+    'idea_categories' => [
+        'engineering' => 'প্রকৌশল ও প্রযুক্তি',
+        'business' => 'ব্যবসায় ও উদ্যোক্তা',
+        'arts' => 'কলা, মানবিক ও সামাজিক উদ্ভাবন',
+        'other' => 'অন্যান্য',
+    ],
+
     'idea_roles' => [
         'student' => 'শিক্ষার্থী',
         'faculty' => 'শিক্ষক',

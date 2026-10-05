@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\IdeaSubmission;
+use App\Models\User;
+use App\Notifications\SetInnovatorPassword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 /**
  * Ideas submitted through the Startup & Incubation page. They enter the
@@ -12,9 +17,15 @@ use Illuminate\Validation\Rule;
  */
 class IdeaSubmissionController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        return view('pages.submit-idea');
+        // A signed-in innovator has registered already: their details are filled in.
+        $innovator = $request->user()?->isInnovator() ? $request->user() : null;
+
+        return view('pages.submit-idea', [
+            'innovator' => $innovator,
+            'innovatorPhone' => $innovator?->ideaSubmissions()->value('phone'),
+        ]);
     }
 
     public function store(Request $request)
@@ -26,6 +37,7 @@ class IdeaSubmissionController extends Controller
             'email' => ['required', 'email:rfc', 'max:180'],
             'phone' => ['required', 'string', 'max:40'],
             'title' => ['required', 'string', 'max:200'],
+            'category' => ['required', Rule::in(array_keys(config('rich.idea_categories')))],
             'document' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,zip,png,jpg,jpeg'],
             'role' => ['nullable', Rule::in(array_keys(config('rich.idea_roles')))],
             'website' => ['nullable', 'size:0'], // honeypot
@@ -40,15 +52,68 @@ class IdeaSubmissionController extends Controller
             $data['document'] = $request->file('document')->store('idea-submissions', 'public');
         }
 
-        $idea = IdeaSubmission::create($data);
+        [$user, $isNew] = $this->innovatorFor($request, $data);
+
+        $idea = IdeaSubmission::create($data + ['user_id' => $user?->id]);
+
+        // A new account gets the link to choose its password. Mail trouble is
+        // reported, never allowed to lose the idea that was just submitted.
+        $linkSent = false;
+        if ($isNew) {
+            try {
+                $user->notify(new SetInnovatorPassword(Password::broker('innovators')->createToken($user), $idea->title));
+                $linkSent = true;
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
 
         return redirect()
             ->route('ideas.thanks')
             ->with('idea_submission', [
-                'reference' => 'IDEA-'.str_pad((string) $idea->id, 5, '0', STR_PAD_LEFT),
+                'reference' => $idea->reference,
                 'name' => $idea->name,
                 'title' => $idea->title,
+                'email' => $idea->email,
+                'account' => match (true) {
+                    $linkSent => 'new',
+                    $user !== null => 'existing',
+                    default => null,
+                },
             ]);
+    }
+
+    /**
+     * The innovator account an idea belongs to, and whether it was just made.
+     *
+     * A signed-in innovator submits as themselves. Otherwise the email decides:
+     * an innovator already registered under it gets the idea; a new address
+     * becomes a new innovator account with a random password, replaced from
+     * the emailed link. An address that belongs to staff or a researcher is
+     * left alone, and the idea is kept without an account.
+     *
+     * @return array{0: ?User, 1: bool}
+     */
+    protected function innovatorFor(Request $request, array $data): array
+    {
+        if ($request->user()?->isInnovator()) {
+            return [$request->user(), false];
+        }
+
+        $existing = User::where('email', $data['email'])->first();
+
+        if ($existing) {
+            return [$existing->isInnovator() ? $existing : null, false];
+        }
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Str::random(40),
+            'role' => User::INNOVATOR,
+        ]);
+
+        return [$user, true];
     }
 
     public function thanks()

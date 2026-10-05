@@ -24,6 +24,21 @@
                     {{ __('site.thanks.idea_body') }}
                 </p>
 
+                {{-- The innovator account: a new one waits for its password, an existing one already has the idea --}}
+                @if (($submission['account'] ?? null) === 'new')
+                    <div class="mx-auto mt-8 flex max-w-xl items-start gap-3 rounded-2xl border border-brand-200 bg-white p-5 text-left shadow-[0_20px_40px_-32px_rgba(7,20,38,0.4)]">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                            <x-ui-icon name="mail" class="h-5 w-5" />
+                        </span>
+                        <p class="text-[14.5px] leading-relaxed text-ink-700">{{ __('innovator.thanks.new', ['email' => $submission['email'] ?? '']) }}</p>
+                    </div>
+                @elseif (($submission['account'] ?? null) === 'existing')
+                    <div class="mx-auto mt-8 flex max-w-xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-200 bg-white p-5 text-left">
+                        <p class="text-[14.5px] text-ink-700">{{ __('innovator.thanks.existing') }}</p>
+                        <a href="{{ auth()->user()?->isInnovator() ? route('innovator.dashboard') : route('login') }}" class="text-[14px] font-semibold text-brand-700 hover:underline">{{ __('innovator.thanks.dashboard') }} →</a>
+                    </div>
+                @endif
+
                 <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
                     <a href="{{ route('startup') }}" class="btn-primary group">
                         {!! __('site.thanks.back_to_startup') !!} <x-ui-icon name="arrow-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />

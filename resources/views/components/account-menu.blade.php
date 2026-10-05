@@ -28,7 +28,7 @@
                 <x-ui-icon name="grid" class="h-4 w-4 text-ink-400" />
                 {{ __('site.nav.dashboard') }}
             </a>
-            <form method="POST" action="{{ route('researcher.logout') }}">
+            <form method="POST" action="{{ auth()->user()->isInnovator() ? route('innovator.logout') : route('researcher.logout') }}">
                 @csrf
                 <button type="submit"
                         class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13.5px] font-semibold text-ink-600 transition hover:bg-rose-50 hover:text-rose-700">

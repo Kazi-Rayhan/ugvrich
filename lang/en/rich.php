@@ -51,6 +51,13 @@ return [
     ],
 
     // Who can submit an idea.
+    'idea_categories' => [
+        'engineering' => 'Engineering & Technology',
+        'business' => 'Business & Entrepreneurship',
+        'arts' => 'Arts, Humanities & Social Innovation',
+        'other' => 'Others',
+    ],
+
     'idea_roles' => [
         'student' => 'Student',
         'faculty' => 'Faculty member',
