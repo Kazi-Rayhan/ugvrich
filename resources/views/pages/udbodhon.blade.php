@@ -175,11 +175,6 @@
         }
         .reveal > .logo-full { transform: translateY(20px) scale(.88); }
 
-        .lead {
-            margin-top: clamp(12px, 2vh, 20px); max-width: 40rem;
-            font-family: var(--sans); font-size: clamp(16px, 1.6vw, 18.5px); line-height: 1.8; color: var(--ink-600);
-        }
-        .lead strong { font-weight: 600; color: var(--brand-700); }
 
         .actions { margin-top: clamp(20px, 4vh, 34px); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; }
         .countdown { font-size: 13px; color: var(--ink-500); min-height: 1em; }
@@ -265,45 +260,39 @@
         }
         .logo img { width: 100%; height: 100%; object-fit: contain; }
         .intro .eyebrow-invert { margin-top: 24px; }
-        /* The name: a quiet, widely spaced "UGV" crest over a monumental "RICH"
-           in pearl-to-emerald foil, with a sheen that passes over it now and then. */
+        /* The name on one line: "UGV" in pearl silver, "RICH" in pearl-to-emerald
+           foil, with a sheen that passes across both now and then. */
         .intro .title {
             position: relative; margin-top: 22px;
             display: flex; flex-direction: column; align-items: center;
             font-family: var(--display);
         }
         .intro .title::before {     /* soft green light behind the name */
-            content: ''; position: absolute; left: 50%; top: 55%; z-index: -1;
-            width: 130%; height: 120%; transform: translate(-50%, -50%);
-            background: radial-gradient(ellipse at center, rgba(143, 191, 139, .28), transparent 65%);
+            content: ''; position: absolute; left: 50%; top: 45%; z-index: -1;
+            width: 120%; height: 140%; transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at center, rgba(143, 191, 139, .26), transparent 65%);
             filter: blur(10px);
         }
-        .title-crest {
-            display: inline-flex; align-items: center; gap: clamp(12px, 2vw, 22px);
-            font-weight: 600; font-size: clamp(15px, 2vw, 24px); letter-spacing: .85em; margin-right: -.85em;
-            color: rgba(255, 255, 255, .9);
-        }
-        .title-crest::before, .title-crest::after {
-            content: ''; width: clamp(34px, 6vw, 80px); height: 1px; margin-right: .85em;
-            background: linear-gradient(90deg, transparent, var(--gold-300));
-        }
-        .title-crest::after { margin: 0 .85em 0 0; transform: scaleX(-1); }
-
         .title-name {
-            position: relative; display: block; margin-top: clamp(2px, .6vh, 8px);
-            font-weight: 800; line-height: .92; letter-spacing: .015em;
-            font-size: clamp(92px, 17vw, 214px);
-            background: linear-gradient(176deg, #ffffff 0%, #f1f8f0 26%, #c9e4c5 48%, var(--brand-300) 64%, #b9dbb4 80%, #f4faf2 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: baseline; justify-content: center; gap: .26em;
+            font-weight: 800; line-height: .95; letter-spacing: .01em; white-space: nowrap;
+            font-size: clamp(50px, 12.5vw, 176px);
             filter: drop-shadow(0 2px 0 rgba(16, 36, 15, .55)) drop-shadow(0 22px 34px rgba(0, 0, 0, .5));
         }
-        .title-name::after {        /* the passing sheen */
+        .title-name .w {
+            position: relative;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .title-name .ugv { background-image: linear-gradient(176deg, #ffffff 0%, #f5f7f8 30%, #d5dde2 58%, #b9c4cb 72%, #f3f6f7 100%); }
+        .title-name .rich { background-image: linear-gradient(176deg, #ffffff 0%, #f1f8f0 26%, #c9e4c5 48%, var(--brand-300) 64%, #b9dbb4 80%, #f4faf2 100%); }
+        .title-name .w::after {     /* the passing sheen, carried from one word into the next */
             content: attr(data-text); position: absolute; inset: 0;
             background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%) no-repeat;
             background-size: 260% 100%; background-position: 160% 0;
             -webkit-background-clip: text; background-clip: text; color: transparent;
             animation: sheen 5.5s var(--ease) 1.2s infinite;
         }
+        .title-name .rich::after { animation-delay: 1.55s; }
         .title-rule {
             display: flex; align-items: center; gap: 10px; margin-top: clamp(12px, 2vh, 20px);
         }
@@ -318,7 +307,6 @@
             margin-top: 14px; font-family: var(--display); font-weight: 600; color: rgba(255, 255, 255, .88);
             font-size: clamp(13px, 1.4vw, 16px); letter-spacing: .22em; text-transform: uppercase;
         }
-        .intro .lead { color: rgba(255, 255, 255, .72); margin-top: 8px; font-size: clamp(15px, 1.5vw, 17px); }
 
         .cut { position: relative; margin-top: 38px; }
         .ribbon {
@@ -391,7 +379,7 @@
 
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
-            .rays, .btn-cut::before, .title-name::after { animation: none; }
+            .rays, .btn-cut::before, .title-name .w::after { animation: none; }
         }
     </style>
 </head>
@@ -435,12 +423,13 @@
             <span class="logo"><img src="{{ asset('media/logo-mark.png') }}" alt="UGV RICH" width="256" height="249"></span>
             <p class="eyebrow-invert">University of Global Village</p>
             <p class="title" aria-label="UGV RICH">
-                <span class="title-crest" aria-hidden="true">UGV</span>
-                <span class="title-name" data-text="RICH" aria-hidden="true">RICH</span>
+                <span class="title-name" aria-hidden="true">
+                    <span class="w ugv" data-text="UGV">UGV</span>
+                    <span class="w rich" data-text="RICH">RICH</span>
+                </span>
                 <span class="title-rule" aria-hidden="true"><i></i></span>
             </p>
             <p class="subtitle">Research, Innovation and Consultancy Hub</p>
-            <p class="lead">An evening of new beginnings. Cut the ribbon to open its doors.</p>
         </div>
 
         <div class="cut">
