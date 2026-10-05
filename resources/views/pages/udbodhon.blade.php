@@ -271,7 +271,7 @@
         /* The logo is the hero of the closed stage: large, on a white tile with a
            gold ring, lit from behind by a slow halo. */
         .logo {
-            position: relative; display: inline-flex; width: clamp(150px, 24vmin, 210px); aspect-ratio: 1;
+            position: relative; display: inline-flex; width: clamp(118px, 18vmin, 170px); aspect-ratio: 1;
             padding: clamp(14px, 2.2vmin, 20px); border-radius: 36px; background: #fff;
             box-shadow:
                 0 0 0 2px var(--gold-300),
@@ -302,24 +302,45 @@
         .signature::after { transform: scaleX(-1); }
         [data-state="cut"] .signature, [data-state="open"] .signature { opacity: 0; transform: translateY(-12px); }
 
-        /* Research · Innovation · Consultancy  [Hub] — a glass capsule */
-        .tagline {
-            margin-top: clamp(28px, 4.5vh, 40px);
-            display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(9px, 1.3vw, 16px);
-            padding: 7px 7px 7px clamp(16px, 2vw, 24px); border-radius: 999px;
-            font-family: var(--display); font-weight: 600; font-size: clamp(13px, 1.45vw, 17px); color: #fff;
-            background: linear-gradient(180deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .04));
-            border: 1px solid rgba(255, 255, 255, .18);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 20px 44px -22px rgba(0, 0, 0, .8);
-            -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        /* R I C H, and under each letter the word it stands for. The letters take
+           the logo's two tones — R I in pearl white, C H in the brand green. */
+        .acronym {
+            margin-top: clamp(22px, 3.6vh, 34px);
+            display: grid; grid-template-columns: repeat(4, auto); justify-content: center;
+            column-gap: clamp(12px, 3vw, 46px);
         }
-        .tagline i { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-300); box-shadow: 0 0 10px rgba(242, 205, 107, .9); }
-        .tagline .hub {
-            padding: 8px 18px; border-radius: 999px; font-weight: 700; color: #fff;
-            background: linear-gradient(180deg, var(--brand-500), var(--brand-600) 60%, var(--brand-700));
-            box-shadow: 0 0 0 1px rgba(242, 205, 107, .6), 0 10px 22px -10px rgba(65, 132, 63, .95);
+        .acronym .col { display: flex; flex-direction: column; align-items: center; }
+        .acronym .letter {
+            position: relative; font-family: var(--display); font-weight: 800; line-height: .9;
+            font-size: clamp(66px, 10vw, 138px);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 2px 0 rgba(1, 12, 31, .6)) drop-shadow(0 18px 28px rgba(0, 0, 0, .5));
+            opacity: 0; transform: translateY(-.35em);
+            animation: rise .9s var(--ease) forwards; animation-delay: calc(.3s + var(--i) * .14s);
         }
-        .tagline > span { opacity: 0; transform: translateY(6px); animation: rise .8s var(--ease) forwards; animation-delay: calc(.35s + var(--i) * .16s); }
+        .acronym .pearl { background-image: linear-gradient(176deg, #ffffff 0%, #f3f6f9 34%, #cfdbe8 62%, #f6f9fb 100%); }
+        .acronym .green { background-image: linear-gradient(176deg, #ffffff 0%, #e6f3e3 26%, #bddcb9 50%, var(--brand-300) 68%, #d9ecd6 100%); }
+        .acronym .letter::after {   /* a sheen passing from R to H */
+            content: attr(data-l); position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%) no-repeat;
+            background-size: 260% 100%; background-position: 160% 0;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: letter-sheen 6s var(--ease) infinite; animation-delay: calc(2s + var(--i) * .12s);
+        }
+        .acronym .word {
+            position: relative; margin-top: clamp(10px, 1.6vh, 16px); padding-top: clamp(8px, 1.2vh, 12px);
+            font-family: var(--display); font-weight: 600; white-space: nowrap;
+            font-size: clamp(9.5px, 1.1vw, 14px); letter-spacing: clamp(.06em, .26vw, .2em); text-transform: uppercase;
+            color: rgba(255, 255, 255, .86);
+            opacity: 0; transform: translateY(8px);
+            animation: rise .8s var(--ease) forwards; animation-delay: calc(.95s + var(--i) * .14s);
+        }
+        .acronym .word b { font-weight: 800; color: var(--gold-300); }
+        .acronym .word::before {    /* gold line drawn in above each word */
+            content: ''; position: absolute; top: 0; left: 50%; width: 28px; height: 2px; margin-left: -14px; border-radius: 2px;
+            background: linear-gradient(90deg, var(--gold-300), var(--gold-400));
+            transform: scaleX(0); animation: draw .7s var(--ease) forwards; animation-delay: calc(1.25s + var(--i) * .14s);
+        }
 
         .cut { position: relative; margin-top: 38px; }
         .ribbon {
@@ -405,6 +426,8 @@
         @keyframes snip { to { transform: rotate(-22deg); } }
         @keyframes shiver { 30%, 70% { transform: scaleX(.985); } }
         @keyframes halo { 50% { opacity: .55; transform: scale(.92); } }
+        @keyframes letter-sheen { 0% { background-position: 160% 0; } 40%, 100% { background-position: -60% 0; } }
+        @keyframes draw { to { transform: scaleX(1); } }
         @keyframes billow {
             0%   { background-position: 0 0, 0 0;      background-size: 100% 100%, 6.4vw 100%; }
             50%  { background-position: 0 0, .9vw 0;   background-size: 100% 100%, 6.9vw 100%; }
@@ -418,7 +441,7 @@
 
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
-            .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before, .curtain, .curtain::after { animation: none; }
+            .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before, .curtain, .curtain::after, .acronym .letter::after { animation: none; }
         }
     </style>
 </head>
@@ -462,12 +485,14 @@
 
         <div class="text">
             <span class="logo"><img src="{{ asset('media/logo-mark.png') }}" alt="UGV RICH" width="256" height="249"></span>
-            <p class="tagline" aria-label="Research, Innovation and Consultancy Hub">
-                <span style="--i: 0">Research</span><i aria-hidden="true"></i>
-                <span style="--i: 1">Innovation</span><i aria-hidden="true"></i>
-                <span style="--i: 2">Consultancy</span>
-                <span class="hub" style="--i: 3">Hub</span>
-            </p>
+            <h1 class="acronym" aria-label="RICH — Research, Innovation and Consultancy Hub">
+                @foreach ([['R', 'Research', 'pearl'], ['I', 'Innovation', 'pearl'], ['C', 'Consultancy', 'green'], ['H', 'Hub', 'green']] as $i => [$letter, $word, $tone])
+                    <span class="col" aria-hidden="true">
+                        <span class="letter {{ $tone }}" data-l="{{ $letter }}" style="--i: {{ $i }}">{{ $letter }}</span>
+                        <span class="word" style="--i: {{ $i }}"><b>{{ $letter }}</b>{{ substr($word, 1) }}</span>
+                    </span>
+                @endforeach
+            </h1>
         </div>
 
         <div class="cut">
