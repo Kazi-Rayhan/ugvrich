@@ -1348,7 +1348,7 @@
             const box = knot.getBoundingClientRect();
             const y = box.top + box.height / 2, cx = box.left + box.width / 2;
             const n = Math.max(30, Math.round(W / 24));
-            rest = (W / n) * 1.012;                       // a touch longer than the gap: it sags
+            rest = (W / n) * 1.0015;                      // pulled almost taut: it runs nearly straight
             pts = [];
             for (let i = 0; i <= n; i++) {
                 const x = (i / n) * W;
@@ -1365,7 +1365,7 @@
                 const vx = (p.x - p.px) * DAMPING, vy = (p.y - p.py) * DAMPING;
                 p.px = p.x;
                 p.py = p.y;
-                const breeze = Math.sin(clock * 0.03 + p.x * 0.02) * 0.04;
+                const breeze = Math.sin(clock * 0.03 + p.x * 0.02) * 0.02;
                 p.x += vx;
                 p.y += vy + GRAVITY + breeze;
             }
