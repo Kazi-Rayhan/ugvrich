@@ -684,7 +684,8 @@ return [
     ],
 
     'ideas' => [
-        'category_label' => 'Category',
+        'category_label' => 'Idea category',
+        'category_placeholder' => 'Select a category',
         'step_register' => 'Register',
         'register_note' => 'Your details — or your team’s — and a working title for the idea.',
         'name_label' => 'Name / Team name',

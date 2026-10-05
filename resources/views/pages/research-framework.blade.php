@@ -139,7 +139,7 @@
         </div>
     </section>
 
-    {{-- ---------------- 1. Identity ---------------- --}}
+    {{-- ---------------- 1. Preface ---------------- --}}
     <section class="border-t border-ink-100 bg-ink-50 py-16 sm:py-20">
         <div class="container-rich">
             <p class="{{ $eyebrow }}">{{ $f['headings']['section_1'] }}</p>

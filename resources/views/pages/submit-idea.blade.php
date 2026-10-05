@@ -149,22 +149,25 @@
                         <p class="mt-1.5 text-[14px] muted">{{ __('site.ideas.submit_note') }}</p>
 
                         {{-- The category the idea belongs to --}}
-                        <p class="mb-3 mt-7 text-[13px] font-semibold text-ink-700">
-                            {{ __('site.ideas.category_label') }} <span class="text-brand-600">*</span>
-                        </p>
-                        <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-                            @foreach (\App\Support\Vocabulary::all('idea_categories') as $value => $label)
-                                <label class="relative flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 transition has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-600"
-                                       :class="category === '{{ $value }}' ? 'border-brand-400 bg-brand-50 ring-4 ring-brand-100' : 'border-ink-200 hover:border-ink-300 hover:bg-ink-50/60'">
-                                    <input type="radio" name="category" value="{{ $value }}" x-model="category" required class="sr-only"
-                                           @checked(old('category') === $value)>
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors"
-                                          :class="category === '{{ $value }}' ? 'bg-brand-600 text-white' : 'bg-ink-50 text-brand-600'">
-                                        <x-ui-icon :name="['engineering' => 'cpu', 'business' => 'briefcase', 'arts' => 'users', 'other' => 'grid'][$value] ?? 'grid'" class="h-4 w-4" />
-                                    </span>
-                                    <span class="text-[13.5px] font-medium leading-snug text-ink-800">{{ $label }}</span>
-                                </label>
-                            @endforeach
+                        <div class="mt-7 max-w-md">
+                            <label for="category" class="mb-2 block text-[13px] font-semibold text-ink-700">
+                                {{ __('site.ideas.category_label') }} <span class="text-brand-600">*</span>
+                            </label>
+                            <div class="relative">
+                                <x-ui-icon name="grid" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-400" />
+                                <select id="category" name="category" required x-model="category"
+                                        @class([
+                                            'w-full appearance-none rounded-2xl border bg-ink-50/60 py-3.5 pl-11 pr-10 text-[15px] text-ink-900 transition focus:bg-white focus:outline-none focus:ring-4',
+                                            'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('category'),
+                                            'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('category'),
+                                        ])>
+                                    <option value="">{{ __('site.ideas.category_placeholder') }}</option>
+                                    @foreach (\App\Support\Vocabulary::all('idea_categories') as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('category') === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <x-ui-icon name="chevron-down" class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                            </div>
                         </div>
                         @error('category')
                             <p class="mt-2 text-[13px] text-red-600">{{ $message }}</p>
