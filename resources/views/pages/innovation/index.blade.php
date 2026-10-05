@@ -46,7 +46,7 @@
         $fieldIcons = ['concept' => 'lightbulb', 'how' => 'cog', 'why' => 'chart'];
         $focusIcons = ['target', 'compass', 'users', 'chart', 'globe'];
 
-        $sections = ['focus', 'process', 'areas', 'funding', 'conclusion'];
+        $sections = ['focus', 'process', 'areas', 'funding'];
     @endphp
 
     @php
@@ -438,18 +438,4 @@
         </div>
     </section>
 
-    {{-- ---------------- Conclusion ---------------- --}}
-    <section id="conclusion" class="scroll-mt-28 bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <div class="reveal relative isolate overflow-hidden rounded-[2.5rem] bg-navy-700 px-8 py-16 sm:px-14 sm:py-20">
-                <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-20" aria-hidden="true"></div>
-                <div class="pointer-events-none absolute -right-28 -top-28 -z-10 h-80 w-80 rounded-full bg-brand-600/50" aria-hidden="true"></div>
-                <div class="pointer-events-none absolute -bottom-32 -left-24 -z-10 h-72 w-72 rounded-full border border-white/10" aria-hidden="true"></div>
-
-                <span class="mb-6 block h-1 w-12 rounded-full bg-brand-400" aria-hidden="true"></span>
-                <h2 class="font-display text-[28px] font-bold leading-tight !text-white sm:text-[38px]">{{ $title('conclusion') }}</h2>
-                <p class="mt-8 max-w-4xl text-[17px] leading-[1.85] text-white/85">{{ $doc['conclusion'] }}</p>
-            </div>
-        </div>
-    </section>
 </x-layouts.app>

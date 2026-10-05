@@ -1081,31 +1081,38 @@
      | Cloth — the curtains as real hanging fabric (Verlet integration).
      |
      | Each curtain is a grid of points held together by links. The top row is
-     | pinned under the valance; gravity and a slow breeze (ঢেউ) do the rest,
-     | and a passing pointer pushes the velvet aside. Opening draws the pinned
-     | row along its track to the side, and the fabric follows, swings and
-     | gathers. Visitors who ask for less motion keep the still CSS curtains.
+     | pinned under the valance; gravity, a weighted hem and a gusting breeze
+     | (ঢেউ) do the rest, and a passing pointer pushes the velvet aside. Each
+     | piece of cloth is lit by how it leans, so waves catch the light as they
+     | roll. Opening pulls the leading edge along the rail, gathering the folds
+     | as it goes. Visitors who ask for less motion keep the still CSS curtains.
      * ===================================================================== */
     const Cloth = (() => {
         const canvas = document.getElementById('cloth');
         if (reduced || !canvas || !canvas.getContext) return null;
         const c = canvas.getContext('2d');
 
-        // The site's navy, from the deepest fold to the lit crest of a fold
-        const TONES = [[1, 12, 31], [2, 22, 52], [2, 34, 81], [15, 66, 128], [42, 95, 156], [96, 140, 196]];
-        const GRAVITY = 0.32, DAMPING = 0.985, SOLVES = 4, STEP = 1000 / 60;
+        /* One fold of royal-blue velvet, valley to crest to valley — the same
+           navy stops the CSS curtains use. Two strips of mesh make one fold. */
+        const FOLD = [
+            [0.00, [1, 12, 31]],  [0.19, [2, 22, 52]],  [0.36, [2, 34, 81]],  [0.44, [15, 66, 128]],
+            [0.48, [42, 95, 156]], [0.51, [79, 127, 184]], [0.56, [15, 66, 128]], [0.66, [2, 34, 81]],
+            [0.81, [2, 22, 52]],  [1.00, [1, 12, 31]],
+        ];
+        const GRAVITY = 0.32, DAMPING = 0.986, SOLVES = 5, STEP = 1000 / 60;
+        const HEM_WEIGHT = 1.9;        // the hem is heavier than the cloth above it
         const GATHER = 0.065;          // the share of the screen each curtain gathers into
         const MIN_GAP = 0.12;          // folds may bunch up, but never pass through each other
-        const OPEN_MS = 3200, REACH = 110;
+        const OPEN_MS = 3600, REACH = 120;
 
-        let W, H, top, sheets = [], shade, sheen, hem;
+        let W, H, top, sheets = [], shade, sheen, edgeShade, hem;
         let openedAt = 0, last = 0, acc = 0, clock = 0;
         const pointer = { x: -1e4, y: -1e4, vx: 0, vy: 0, fresh: 0 };
 
-        const tone = v => {
-            v = Math.min(1, Math.max(0, v)) * (TONES.length - 1);
-            const i = Math.min(TONES.length - 2, Math.floor(v)), f = v - i, a = TONES[i], b = TONES[i + 1];
-            return `rgb(${(a[0] + (b[0] - a[0]) * f) | 0},${(a[1] + (b[1] - a[1]) * f) | 0},${(a[2] + (b[2] - a[2]) * f) | 0})`;
+        // A stop's colour, brightened or darkened by the light falling on that piece of cloth
+        const lit = (rgb, light, crest) => {
+            const k = 1 + (light - 1) * (0.55 + 0.45 * crest);
+            return `rgb(${Math.min(255, rgb[0] * k) | 0},${Math.min(255, rgb[1] * k) | 0},${Math.min(255, rgb[2] * k) | 0})`;
         };
         const ease = p => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
         const gathered = (side, u) => (side === 'left' ? u * W * GATHER : W - (1 - u) * W * GATHER);
@@ -1113,8 +1120,8 @@
         function sheet(side, opened) {
             const half = W / 2 + 24;                     // the two curtains overlap where they meet
             let strips = Math.max(8, Math.round(half / (W < 700 ? 26 : 46)));
-            strips += strips % 2;                        // two strips make one fold
-            const rows = W < 700 ? 16 : 22;
+            strips += strips % 2;
+            const rows = W < 700 ? 18 : 26;
             const x0 = side === 'left' ? 0 : W - half;
             const restX = half / strips, restY = (H - 2 - top) / (rows - 1);
             const pts = [];
@@ -1122,9 +1129,9 @@
                 for (let i = 0; i <= strips; i++) {
                     const u = i / strips, homeX = x0 + i * restX;
                     const x = opened ? gathered(side, u) : homeX, y = top + r * restY;
-                    // The outer edge hangs against the frame, so it can swing back and forth but never inward
+                    // The outer edge hangs against the frame: it can lift and fall, never swing inward
                     const edge = side === 'left' ? i === 0 : i === strips;
-                    pts.push({ x, y, px: x, py: y, homeX, u, pin: r === 0, edge });
+                    pts.push({ x, y, px: x, py: y, homeX, u, pin: r === 0, edge, heavy: r === rows - 1 });
                 }
             }
             return { side, strips, cols: strips + 1, rows, restX, restY, pts };
@@ -1141,12 +1148,12 @@
             sheets = [sheet('left', openedAt), sheet('right', openedAt)];
 
             shade = c.createLinearGradient(0, 0, 0, H);
-            shade.addColorStop(0, 'rgba(0,0,0,.4)');
-            shade.addColorStop(0.22, 'rgba(0,0,0,0)');
-            shade.addColorStop(0.72, 'rgba(0,0,0,0)');
-            shade.addColorStop(1, 'rgba(0,0,0,.55)');
+            shade.addColorStop(0, 'rgba(0,0,0,.38)');
+            shade.addColorStop(0.2, 'rgba(0,0,0,0)');
+            shade.addColorStop(0.75, 'rgba(0,0,0,0)');
+            shade.addColorStop(1, 'rgba(0,0,0,.5)');
             sheen = c.createRadialGradient(W / 2, H * 0.38, 0, W / 2, H * 0.38, W * 0.55);
-            sheen.addColorStop(0, 'rgba(170,200,240,.11)');
+            sheen.addColorStop(0, 'rgba(170,200,240,.12)');
             sheen.addColorStop(1, 'rgba(170,200,240,0)');
             hem = c.createLinearGradient(0, H - 16, 0, H);
             hem.addColorStop(0, '#f2cd6b');
@@ -1166,15 +1173,27 @@
             b.x -= dx * diff * 0.5; b.y -= dy * diff * 0.5;
         }
 
+        // Where each hook on the rail is. Opening pulls the leading edge across;
+        // each fold behind it only moves once the gathering cloth reaches it.
+        function hookX(s, p, progress) {
+            if (!progress) return p.homeX;
+            const lead = s.side === 'left' ? 1 : 0;
+            const leadHome = s.side === 'left' ? s.pts[s.strips].homeX : s.pts[0].homeX;
+            const leadX = leadHome + (gathered(s.side, lead) - leadHome) * progress;
+            const packed = leadX + (gathered(s.side, p.u) - gathered(s.side, lead));
+            return s.side === 'left' ? Math.min(p.homeX, packed) : Math.max(p.homeX, packed);
+        }
+
         function simulate() {
             clock += 1;
             const progress = openedAt ? ease(Math.min(1, (performance.now() - openedAt) / OPEN_MS)) : 0;
             const pushing = pointer.fresh > 0;
+            const gust = 0.65 + 0.35 * Math.sin(clock * 0.0041) * Math.sin(clock * 0.0017 + 1);
 
             for (const s of sheets) {
                 for (const p of s.pts) {
-                    const track = p.homeX + (gathered(s.side, p.u) - p.homeX) * progress;
-                    if (p.pin) {        // the track: pinned points slide toward the side as it opens
+                    const track = hookX(s, p, progress);
+                    if (p.pin) {
                         p.x = p.px = track;
                         continue;
                     }
@@ -1182,19 +1201,21 @@
                     p.px = p.x;
                     p.py = p.y;
                     const depth = (p.y - top) / (H - top);
-                    // ঢেউ: phased by position on screen, so both curtains move together where they meet
-                    let fx = Math.sin(clock * 0.018 + p.y * 0.012 + p.homeX * 0.006) * 0.05 * depth;
+
+                    // ঢেউ: two slow waves and a gust, phased by place on screen so both curtains move as one
+                    let fx = (Math.sin(clock * 0.013 + p.y * 0.010 + p.homeX * 0.005) * 0.6
+                            + Math.sin(clock * 0.029 + p.y * 0.021 - p.homeX * 0.008) * 0.4) * 0.055 * depth * gust;
                     let fy = 0;
                     if (pushing) {
                         const dx = p.x - pointer.x, dy = p.y - pointer.y, d2 = dx * dx + dy * dy;
                         if (d2 < REACH * REACH) {
                             const f = 1 - Math.sqrt(d2) / REACH;
-                            fx += Math.max(-1.6, Math.min(1.6, pointer.vx * 0.045 * f));
-                            fy += Math.max(-1.2, Math.min(1.2, pointer.vy * 0.03 * f));
+                            fx += Math.max(-1.6, Math.min(1.6, pointer.vx * 0.045 * f * f));
+                            fy += Math.max(-1.2, Math.min(1.2, pointer.vy * 0.03 * f * f));
                         }
                     }
                     p.x += vx + fx;
-                    p.y += vy + GRAVITY + fy;
+                    p.y += vy + GRAVITY * (p.heavy ? HEM_WEIGHT : 1) + fy;
                     if (p.y > H + 40) p.y = H + 40;
                     if (p.edge) p.x = p.px = track;
                 }
@@ -1206,6 +1227,8 @@
                             const a = pts[r * cols + i];
                             if (i < cols - 1) link(a, pts[r * cols + i + 1], restX, restX * MIN_GAP);
                             if (r < rows - 1) link(a, pts[(r + 1) * cols + i], restY, 0);
+                            // Stiffness: velvet is heavy, so it curves rather than kinks
+                            if (r < rows - 2) link(a, pts[(r + 2) * cols + i], restY * 2, restY * 1.8);
                         }
                     }
                 }
@@ -1216,37 +1239,51 @@
         function draw() {
             c.clearRect(0, 0, W, H);
             for (const s of [sheets[1], sheets[0]]) {    // the left curtain falls over the right
-                const { cols, rows, pts } = s, mid = rows >> 1, sign = s.side === 'left' ? 1 : -1;
+                const { cols, rows, pts, restX, restY } = s;
+                const sign = s.side === 'left' ? 1 : -1;
                 for (let i = 0; i < s.strips; i++) {
-                    const ml = pts[mid * cols + i], mr = pts[mid * cols + i + 1];
-                    const tl = pts[i], bl = pts[(rows - 1) * cols + i];
-                    const bunched = Math.min(1.2, Math.abs(mr.x - ml.x) / s.restX);    // < 1 as the folds gather
-                    const swing = ((bl.x - tl.x) / (H * 0.2)) * sign;                  // catching the light as it swings
-                    const lift = Math.max(0.45, Math.min(1.08, 0.6 + 0.4 * bunched + 0.12 * swing));
-                    const crest = 0.92 * lift, valley = 0.04;
+                    const half = i % 2 === 0 ? [0, 0.5] : [0.5, 1];     // which half of the fold this strip is
+                    for (let r = 0; r < rows - 1; r++) {
+                        const a = pts[r * cols + i], b = pts[r * cols + i + 1];
+                        const d = pts[(r + 1) * cols + i], e = pts[(r + 1) * cols + i + 1];
 
-                    const g = c.createLinearGradient(ml.x, ml.y, mr.x, mr.y);
-                    if (i % 2 === 0) {
-                        g.addColorStop(0, tone(valley)); g.addColorStop(0.55, tone(0.55 * lift));
-                        g.addColorStop(0.85, tone(crest)); g.addColorStop(1, tone(crest * 0.9));
-                    } else {
-                        g.addColorStop(0, tone(crest * 0.9)); g.addColorStop(0.15, tone(crest));
-                        g.addColorStop(0.45, tone(0.55 * lift)); g.addColorStop(1, tone(valley));
+                        // Light from the upper left: cloth leaning toward it brightens, cloth turned away darkens,
+                        // and gathered folds fall into deeper shadow.
+                        const lean = ((d.x - a.x) + (e.x - b.x)) / (2 * restY);
+                        const bunched = Math.min(1.15, Math.abs((b.x + e.x - a.x - d.x) / 2) / restX);
+                        const light = Math.max(0.55, Math.min(1.35, 1 - lean * 0.9 * sign + (bunched - 1) * 0.35));
+
+                        const mx = (a.x + d.x) / 2, my = (a.y + d.y) / 2, nx = (b.x + e.x) / 2, ny = (b.y + e.y) / 2;
+                        const g = c.createLinearGradient(mx, my, nx, ny);
+                        for (const [at, rgb] of FOLD) {
+                            if (at < half[0] || at > half[1]) continue;
+                            g.addColorStop((at - half[0]) * 2, lit(rgb, light, 1 - Math.abs(at - 0.5) * 2));
+                        }
+
+                        c.beginPath();
+                        c.moveTo(a.x, a.y);
+                        c.lineTo(b.x, b.y);
+                        c.lineTo(e.x, e.y + 0.6);   // a hair of overlap hides the seams between pieces
+                        c.lineTo(d.x, d.y + 0.6);
+                        c.closePath();
+                        c.fillStyle = g;
+                        c.fill();
+                        c.strokeStyle = g;
+                        c.lineWidth = 0.8;
+                        c.stroke();
                     }
-
-                    c.beginPath();
-                    for (let r = 0; r < rows; r++) { const p = pts[r * cols + i]; r ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y); }
-                    for (let r = rows - 1; r >= 0; r--) { const p = pts[r * cols + i + 1]; c.lineTo(p.x, p.y); }
-                    c.closePath();
-                    c.fillStyle = g;
-                    c.fill();
-                    c.strokeStyle = g;          // closes the hairline seams between strips
-                    c.lineWidth = 1;
-                    c.stroke();
                 }
+
+                // The shadow along the inner edge, where the curtain turns away
+                const inner = s.side === 'left' ? s.strips : 0;
+                c.beginPath();
+                for (let r = 0; r < rows; r++) { const p = pts[r * cols + inner]; r ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y); }
+                c.strokeStyle = 'rgba(0,0,0,.45)';
+                c.lineWidth = 10;
+                c.stroke();
             }
 
-            // Light and shade, laid over the fabric only
+            // Light and shade over the fabric only
             c.globalCompositeOperation = 'source-atop';
             c.fillStyle = shade;
             c.fillRect(0, 0, W, H);
@@ -1303,10 +1340,16 @@
             shiver(ms = 1400) {
                 const end = performance.now() + ms;
                 const kick = () => {
-                    for (const s of sheets) for (const p of s.pts) if (!p.pin) p.px += rand(-1, 1) * 1.3;
+                    for (const s of sheets) for (const p of s.pts) if (!p.pin && !p.edge) p.px += rand(-1, 1) * 1.1;
                     if (performance.now() < end) setTimeout(kick, 90);
                 };
                 kick();
+            },
+            frameCost() {                 // for testing: milliseconds to simulate and draw one frame
+                const t = performance.now();
+                simulate();
+                draw();
+                return performance.now() - t;
             },
         };
     })();
