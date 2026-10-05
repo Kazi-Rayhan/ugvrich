@@ -55,6 +55,8 @@ Route::get('/services/{serviceCategory}/{service}', [ServiceController::class, '
 
 Route::get('/innovation', [InnovationController::class, 'index'])->name('innovation.index');
 Route::get('/innovation/areas', [InnovationController::class, 'areas'])->name('innovation.areas');
+// One innovation area on a page of its own, the way a service category has one.
+Route::get('/innovation/areas/{innovationArea}', [InnovationController::class, 'area'])->name('innovation.area');
 Route::redirect('/innovation/plan', '/innovation')->name('innovation.plan');
 // Last of the three: a bare segment would otherwise swallow `areas` and `plan`.
 Route::get('/innovation/{slug}', [InnovationController::class, 'show'])->name('innovation.show');

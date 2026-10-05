@@ -32,6 +32,12 @@ class InnovationArea extends Model
         return $this->hasMany(Project::class);
     }
 
+    /** The innovations in this area, as a service category has its services. */
+    public function innovations(): HasMany
+    {
+        return $this->hasMany(Innovation::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', true);

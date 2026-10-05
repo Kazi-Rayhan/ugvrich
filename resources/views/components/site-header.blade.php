@@ -10,7 +10,16 @@
     $links = [
         ['key' => 'home', 'label' => __('site.nav.home'), 'route' => 'home', 'match' => ['home']],
         ['key' => 'research', 'label' => __('site.nav.research'), 'route' => 'research', 'match' => ['research']],
-        ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*']],
+        ['key' => 'innovation', 'label' => __('site.nav.innovation'), 'route' => 'innovation.index', 'match' => ['innovation.*'], 'panel' => [
+            'title' => __('site.nav.innovation'),
+            'text' => __('site.nav.innovation_panel_text'),
+            'children' => array_merge(
+                $site->innovationAreas()->map(fn ($area) => [
+                    $area->name, route('innovation.area', $area), $area->icon ?? 'lightbulb', $area->department_name,
+                ])->all(),
+                [[__('site.nav.startup'), route('startup'), 'rocket', __('site.innovation.menu_startup_note')]],
+            ),
+        ]],
         ['key' => 'consultancy', 'label' => __('site.nav.consultancy'), 'route' => 'services.index', 'match' => ['services.*', 'consultancy.*'], 'panel' => [
             'title' => __('site.nav.consultancy'),
             'text' => __('site.nav.consultancy_panel_text'),

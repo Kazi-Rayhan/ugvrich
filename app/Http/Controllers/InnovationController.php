@@ -10,17 +10,55 @@ use Illuminate\Http\Request;
 
 class InnovationController extends Controller
 {
-    /** The Innovation Wing proposal, exactly as the document sets it out. */
+    /**
+     * The Innovation Wing: a hero and the departmental areas, laid out the way
+     * the Services page lays out its categories, then the wing's proposal as
+     * the document sets it out.
+     */
     public function index()
     {
+        $doc = InnovationFramework::all();
+
         return view('pages.innovation.index', [
-            'doc' => InnovationFramework::all(),
+            'doc' => $doc,
+            'areas' => InnovationArea::active()
+                ->with(['innovations' => fn ($q) => $q->active()])
+                ->withCount(['projects' => fn ($q) => $q->public()->where('type', 'innovation')])
+                ->orderBy('sort_order')
+                ->get(),
+            // Where each innovation's own page is, for the links under each area.
+            'innovationSlugs' => InnovationFramework::recordSlugs($doc),
+        ]);
+    }
+
+    /** One area on a page of its own: what it covers, and the projects in it. */
+    public function area(InnovationArea $innovationArea)
+    {
+        abort_unless($innovationArea->is_active, 404);
+
+        $innovationArea->load(['innovations' => fn ($q) => $q->active()]);
+
+        return view('pages.innovation.area', [
+            'area' => $innovationArea,
+            'innovationSlugs' => InnovationFramework::recordSlugs(),
+            'projects' => Project::public()->with('innovationArea')
+                ->where('type', 'innovation')
+                ->where('innovation_area_id', $innovationArea->id)
+                ->orderByDesc('is_featured')
+                ->orderBy('sort_order')
+                ->get(),
+            'siblings' => InnovationArea::active()->whereKeyNot($innovationArea->id)->orderBy('sort_order')->get(),
         ]);
     }
 
     /** The eight departmental areas, and the projects running in each. */
     public function areas(Request $request)
     {
+        // A link to one area (the old ?area= tabs) now goes to that area's own page.
+        if ($request->filled('area') && ($one = InnovationArea::active()->where('slug', $request->string('area'))->first())) {
+            return redirect()->route('innovation.area', $one);
+        }
+
         $areas = InnovationArea::active()
             ->withCount(['projects' => fn ($q) => $q->where('type', 'innovation')])
             ->orderBy('sort_order')

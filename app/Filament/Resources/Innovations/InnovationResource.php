@@ -53,6 +53,15 @@ class InnovationResource extends Resource
                 Section::make('Innovation')
                     ->columns(2)
                     ->schema([
+                        Select::make('innovation_area_id')
+                            ->label('Innovation area')
+                            ->relationship('area', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->helperText('The area it is listed under, as a service sits under its category.')
+                            ->columnSpanFull(),
+
                         Select::make('phase')
                             ->options(Innovation::phases())
                             ->default(Innovation::CURRENT)
@@ -158,6 +167,13 @@ class InnovationResource extends Resource
                     ->limit(60)
                     ->color('gray'),
 
+                TextColumn::make('area.name')
+                    ->label('Innovation area')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('Not set')
+                    ->wrap(),
+
                 TextColumn::make('phase')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => $state === Innovation::CURRENT ? 'Current' : 'Proposed')
@@ -166,6 +182,9 @@ class InnovationResource extends Resource
                 IconColumn::make('is_active')->label('Shown')->boolean(),
             ])
             ->filters([
+                SelectFilter::make('innovation_area_id')
+                    ->label('Innovation area')
+                    ->relationship('area', 'name'),
                 SelectFilter::make('phase')->options(Innovation::phases()),
                 TernaryFilter::make('is_active')->label('Shown on the site'),
             ])

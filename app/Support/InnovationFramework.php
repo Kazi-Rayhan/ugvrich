@@ -36,6 +36,36 @@ class InnovationFramework
     }
 
     /**
+     * The page address of each innovation record, keyed by its id.
+     *
+     * The document lists each phase in the same order as the active records
+     * (that is how apply() builds it), so a record's place in its phase is its
+     * place in the document, and the address is read from there. That keeps an
+     * area's links pointing at exactly the pages the Innovation page links to.
+     *
+     * @return array<int, string>
+     */
+    public static function recordSlugs(?array $doc = null): array
+    {
+        $doc ??= static::all();
+        $slugs = [];
+
+        foreach (static::records() as $phase => $records) {
+            foreach ($records->values() as $i => $record) {
+                $slug = $phase === Innovation::CURRENT
+                    ? ($doc['current_slugs'][$i] ?? null)
+                    : ($doc['proposed'][$i]['slug'] ?? null);
+
+                if ($slug) {
+                    $slugs[$record->id] = $slug;
+                }
+            }
+        }
+
+        return $slugs;
+    }
+
+    /**
      * The innovation at an address, in either phase, or null.
      *
      * The two phases are shaped differently — a current innovation is a lead

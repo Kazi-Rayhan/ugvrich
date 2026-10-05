@@ -170,6 +170,18 @@ class ManageSiteSettings extends Page implements HasSchemas
                                             ->maxSize(204800)
                                             ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the Services page banner, and on the Consultancy tile on the home page. Leave empty to keep the photos.'),
                                     ]),
+
+                                Section::make('Innovation page')
+                                    ->description('The banner at the top of the Innovation page.')
+                                    ->schema([
+                                        FileUpload::make('innovation_video')
+                                            ->label('Innovation page video')
+                                            ->disk('public')
+                                            ->directory('hero')
+                                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                            ->maxSize(204800)
+                                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the Innovation page banner. Leave empty for the plain navy banner.'),
+                                    ]),
                             ]),
 
                             Tabs\Tab::make('About')->icon('heroicon-o-information-circle')->schema([

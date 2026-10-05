@@ -273,6 +273,7 @@ return [
         'group_commercialization_text' => 'Work being taken to market, through licensing, incubation or a formed venture.',
 
         'project_count' => '{1} :count project|[2,*] :count projects',
+        'innovation_count' => '{0} No innovations yet|{1} :count innovation|[2,*] :count innovations',
         'group_empty' => 'Nothing on this shelf yet. Projects appear here as soon as the Innovation Wing records this status against them.',
         'stage' => 'Stage :index/8',
 
@@ -354,6 +355,21 @@ return [
     ],
 
     'innovation' => [
+        'catalogue_eyebrow' => 'Innovation areas',
+        'catalogue_title' => 'Every department, its own <span class="text-accent">innovation area</span>',
+        'catalogue_lead' => 'Each area turns a department\'s expertise into prototypes, products and ventures. Open one to see what it covers and the projects running in it.',
+        'focus_eyebrow' => 'What this area covers',
+        'focus_count' => '{1} :count focus area|[2,*] :count focus areas',
+        'project_count' => '{0} No projects yet|{1} :count project|[2,*] :count projects',
+        'department' => 'Department',
+        'area_detail' => 'Area detail',
+        'see_focus' => 'See what it covers',
+        'projects_eyebrow' => 'Projects in this area',
+        'projects_title' => 'Work under way in this area',
+        'others_eyebrow' => 'Other innovation areas',
+        'others_title' => 'Explore the other areas',
+        'others_link' => 'All innovation areas',
+        'menu_startup_note' => 'From idea to enterprise',
         'read_full' => 'Read the full proposal',
         'back_to_current' => 'All current innovations',
         'back_to_proposals' => 'All proposed innovations',
@@ -368,7 +384,7 @@ return [
         'plan_link' => 'Read the innovation plan',
         'meta_description' => 'The UGV RICH Innovation Wing transforms ideas into practical solutions through interdisciplinary collaboration, prototyping, testing, IP development and commercialization support.',
         'hero_eyebrow' => 'UGV RICH Innovation Wing',
-        'hero_title' => 'From ideas to <span class="text-accent">practical solutions</span>',
+        'hero_title' => 'From ideas to <span class="text-highlight">practical solutions</span>',
         'hero_lead' => 'The Innovation Wing transforms ideas into practical solutions through interdisciplinary collaboration, prototyping, testing, intellectual property development and commercialization support.',
         'explore_areas' => 'Explore the areas',
 

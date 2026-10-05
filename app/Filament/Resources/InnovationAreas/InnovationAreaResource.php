@@ -78,9 +78,38 @@ class InnovationAreaResource extends Resource
                             ->directory('innovation')
                             ->imageEditor(),
 
+                        FileUpload::make('video')
+                            ->label('Video (optional)')
+                            ->disk('public')
+                            ->directory('innovation/videos')
+                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                            ->maxSize(204800)
+                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped in place of the cover image; the image shows while it loads.'),
+
                         TextInput::make('sort_order')->numeric()->default(0)->required(),
 
                         Toggle::make('is_active')->label('Visible on the site')->default(true),
+                    ]),
+
+                Section::make('Hero banner')
+                    ->description('The banner at the top of this area\'s page. A video plays behind the text; the photo shows while it loads. Leave both empty to keep the default banner photo.')
+                    ->columns(2)
+                    ->schema([
+                        FileUpload::make('hero_image')
+                            ->label('Hero image (optional)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('innovation/hero')
+                            ->imageEditor()
+                            ->helperText('Wide photo, at least 1920 × 800.'),
+
+                        FileUpload::make('hero_video')
+                            ->label('Hero video (optional)')
+                            ->disk('public')
+                            ->directory('innovation/hero')
+                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                            ->maxSize(204800)
+                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the banner text.'),
                     ]),
             ]),
         ]);
@@ -94,6 +123,7 @@ class InnovationAreaResource extends Resource
             ->columns([
                 TextColumn::make('name')->searchable()->weight('semibold')->wrap(),
                 TextColumn::make('department')->badge()->color('primary'),
+                TextColumn::make('innovations_count')->counts('innovations')->label('Innovations'),
                 TextColumn::make('projects_count')->counts('projects')->label('Projects'),
                 IconColumn::make('is_active')->label('Visible')->boolean(),
             ])

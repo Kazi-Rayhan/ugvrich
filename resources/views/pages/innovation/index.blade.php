@@ -49,35 +49,57 @@
         $sections = ['summary', 'purpose', 'focus', 'current', 'proposed', 'process', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
     @endphp
 
-    {{-- ---------------- Cover ---------------- --}}
-    <section class="relative isolate overflow-hidden bg-navy-700">
-        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.18]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -right-40 -top-40 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[120px]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-52 left-1/4 -z-10 h-[30rem] w-[30rem] rounded-full bg-brand-500/20 blur-[130px]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-40 -left-32 -z-10 h-[26rem] w-[26rem] rounded-full border border-white/10" aria-hidden="true"></div>
+    @php
+        $heroVideo = $site->get('innovation_video');
+    @endphp
 
-        <div class="container-rich py-20 sm:py-28">
-            <h1 class="max-w-4xl font-display text-[34px] font-bold leading-[1.05] tracking-tight !text-white sm:text-[54px]">
-                {{ $doc['title'] }}
+    {{-- Hero, in the same voice as the Services and Research pages: navy, a
+         pill eyebrow and the highlighted phrase. A video from Site Settings
+         plays behind it. The strip at the foot jumps to each part below. --}}
+    <section class="relative isolate overflow-hidden bg-navy-700 text-white">
+        @if ($heroVideo)
+            {{-- Muted, looped and decorative. With reduced motion it stays on its first frame. --}}
+            <video class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+                   autoplay muted loop playsinline preload="auto"
+                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                   aria-hidden="true" tabindex="-1">
+                <source src="{{ Storage::url($heroVideo) }}" type="{{ str_ends_with(strtolower($heroVideo), '.webm') ? 'video/webm' : 'video/mp4' }}">
+            </video>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-navy-900/70" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-navy-900/90 via-navy-800/60 to-transparent" aria-hidden="true"></div>
+        @else
+            <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.15]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-40 -top-48 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[130px]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -bottom-52 -left-32 -z-10 h-[30rem] w-[30rem] rounded-full border border-white/10" aria-hidden="true"></div>
+        @endif
+
+        <div class="container-rich py-16 sm:py-20">
+            <p class="reveal eyebrow-invert">{{ __('site.innovation.hero_eyebrow') }}</p>
+
+            <h1 class="reveal mt-7 max-w-4xl font-display text-[38px] font-bold leading-[1.05] tracking-[-0.03em] !text-white sm:text-[58px]">
+                {!! __('site.innovation.hero_title') !!}
             </h1>
 
-            <p class="mt-7 max-w-3xl text-[17px] font-medium leading-relaxed text-white/80">{{ $doc['subtitle'] }}</p>
+            <p class="reveal mt-7 max-w-2xl text-[17.5px] leading-[1.8] text-white/75">{{ __('site.innovation.hero_lead') }}</p>
 
-            {{-- Innovation • Prototyping • Technology Transfer • Impact --}}
-            <div class="mt-11 flex flex-wrap items-center gap-2.5">
-                @if ($straplineLead)
-                    <span class="text-[11.5px] font-semibold uppercase tracking-[0.2em] text-brand-300">{{ trim($straplineLead) }}</span>
-                @endif
-                @foreach ($straplineItems as $i => $item)
-                    <span class="reveal rounded-full border border-white/20 bg-white/[0.07] px-4 py-1.5 text-[13.5px] font-medium text-white backdrop-blur-sm transition duration-300 hover:border-brand-400 hover:bg-white/15"
-                          style="{{ $delay($i, 60) }}">{{ $item }}</span>
-                @endforeach
+            <div class="reveal mt-10 flex flex-wrap gap-3">
+                <a href="{{ route('ideas.create') }}" class="btn-lead group">
+                    <span class="relative">{{ __('site.actions.submit_idea') }}</span>
+                    <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+                <a href="#areas" class="btn-invert px-7 py-4 text-[15px]">
+                    {{ __('site.innovation.explore_areas') }}
+                </a>
             </div>
         </div>
 
         {{-- The sections, by name --}}
         <nav class="border-t border-white/10" aria-label="{{ $doc['title'] }}">
             <div class="container-rich flex gap-1 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <a href="#areas"
+                   class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-medium text-white/55 transition hover:bg-white/10 hover:text-white">
+                    {{ __('site.innovation.catalogue_eyebrow') }}
+                </a>
                 @foreach ($sections as $anchor)
                     <a href="#{{ $anchor }}"
                        class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-medium text-white/55 transition hover:bg-white/10 hover:text-white">
@@ -86,6 +108,141 @@
                 @endforeach
             </div>
         </nav>
+    </section>
+
+    {{-- ---------------- Innovation areas ----------------
+
+         The departmental areas, laid out the way the Services page lays out its
+         categories: the heading and the numbered focus topics flow across a
+         four-column grid while the image (or a video) holds the top-right
+         corner. --}}
+    <section id="areas" class="scroll-mt-28 bg-white py-20 sm:py-28">
+        <div class="container-rich">
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <x-section-heading
+                    :eyebrow="__('site.innovation.catalogue_eyebrow')"
+                    :title="__('site.innovation.catalogue_title')"
+                    :lead="__('site.innovation.catalogue_lead')" />
+
+                <a href="{{ route('ideas.create') }}" class="btn-primary reveal shrink-0">
+                    {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                </a>
+            </div>
+
+            <div class="mt-14 space-y-20 sm:space-y-28">
+                @foreach ($areas as $area)
+                    @php
+                        $focus = collect($area->focus ?: []);
+                    @endphp
+                    <section id="area-{{ $area->slug }}" class="scroll-mt-28 border-t border-ink-100 pt-12 first:border-0 first:pt-0">
+                        <div class="grid gap-x-10 gap-y-10 lg:grid-cols-4 lg:[grid-auto-flow:dense]">
+
+                            {{-- Heading: the left half of the first row --}}
+                            <div class="reveal lg:col-span-2">
+                                <p class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600">
+                                    <span class="text-brand-300">//</span> {{ __('site.innovation.focus_eyebrow') }}
+                                </p>
+
+                                <h2 class="mt-4 font-display text-[28px] font-bold leading-[1.1] tracking-tight text-ink-950 sm:text-[40px]">
+                                    <a href="{{ route('innovation.area', $area) }}" class="transition-colors hover:text-brand-700">{{ $area->name }}</a>
+                                </h2>
+
+                                <div class="mt-4 flex flex-wrap items-center gap-2.5">
+                                    @if ($area->department_name)
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-ink-200 px-3.5 py-1.5 text-[12.5px] text-ink-600">
+                                            <x-ui-icon name="building" class="h-3.5 w-3.5 text-brand-600" />
+                                            <span class="font-semibold text-ink-800">{{ __('site.innovation.department') }}:</span>
+                                            {{ $area->department_name }}
+                                        </span>
+                                    @endif
+
+                                    <span class="rounded-full bg-brand-50 px-3 py-1.5 font-numeric text-[12.5px] font-bold tabular-nums text-brand-700">
+                                        {{ trans_choice('site.innovation.innovation_count', $area->innovations->count(), ['count' => $num($area->innovations->count())]) }}
+                                    </span>
+
+                                    @if ($area->projects_count)
+                                        <span class="rounded-full bg-ink-50 px-3 py-1.5 font-numeric text-[12.5px] font-semibold tabular-nums text-ink-600">
+                                            {{ trans_choice('site.innovation.project_count', $area->projects_count, ['count' => $num($area->projects_count)]) }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                @if ($area->description)
+                                    <p class="mt-5 text-[14.5px] leading-[1.9] text-ink-600">{{ $area->description }}</p>
+                                @endif
+                            </div>
+
+                            {{-- The image (or a video in its place) holds the top-right corner across two rows --}}
+                            <div class="reveal lg:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1">
+                                @if ($area->video)
+                                    {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
+                                    <div class="relative aspect-[16/11] h-full overflow-hidden rounded-[1.5rem] bg-brand-50">
+                                        <video class="h-full w-full object-cover"
+                                               autoplay muted loop playsinline preload="metadata"
+                                               @if ($area->image) poster="{{ Storage::url($area->image) }}" @endif
+                                               x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                                               aria-label="{{ __('site.projects.video_title', ['title' => $area->name]) }}">
+                                            <source src="{{ Storage::url($area->video) }}"
+                                                    type="{{ str_ends_with(strtolower($area->video), '.webm') ? 'video/webm' : 'video/mp4' }}">
+                                        </video>
+                                    </div>
+                                @elseif ($area->image)
+                                    <x-media-frame :src="$area->image" :alt="$area->name"
+                                                   ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
+                                @else
+                                    {{-- No photograph yet: the department's own drawn poster. --}}
+                                    <div class="aspect-[16/11] h-full overflow-hidden rounded-[1.5rem]">
+                                        <x-service-poster :sector="$area->department" :seed="$area->slug" class="h-full w-full object-cover" />
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- The innovations, numbered, filling every cell the image leaves
+                                 (as a service category lists its services). An area with
+                                 none yet lists its focus topics instead. --}}
+                            @forelse ($area->innovations as $j => $innovation)
+                                <article class="reveal group" style="transition-delay: {{ min($j * 40, 280) }}ms">
+                                    <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
+                                        {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
+                                    </p>
+
+                                    <h3 class="mt-3 font-display text-[16.5px] font-bold leading-snug text-ink-950">
+                                        @if ($slug = $innovationSlugs[$innovation->id] ?? null)
+                                            <a href="{{ route('innovation.show', $slug) }}" class="transition-colors group-hover:text-brand-700">{{ $innovation->name }}</a>
+                                        @else
+                                            {{ $innovation->name }}
+                                        @endif
+                                    </h3>
+
+                                    @if ($innovation->tagline)
+                                        <p class="mt-2.5 text-[13.5px] leading-[1.9] text-ink-600">{{ $innovation->tagline }}</p>
+                                    @endif
+                                </article>
+                            @empty
+                                @foreach ($focus as $j => $topic)
+                                    <article class="reveal group" style="transition-delay: {{ min($j * 40, 280) }}ms">
+                                        <p class="font-numeric text-[15px] font-bold tabular-nums text-brand-600">
+                                            {{ $num(str_pad($j + 1, 2, '0', STR_PAD_LEFT)) }}.
+                                        </p>
+
+                                        <h3 class="mt-3 font-display text-[16.5px] font-bold leading-snug text-ink-950">{{ $topic }}</h3>
+                                    </article>
+                                @endforeach
+                            @endforelse
+                        </div>
+
+                        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
+                            <a href="{{ route('innovation.area', $area) }}" class="btn-ghost">
+                                {{ __('site.innovation.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
+                            </a>
+                            <a href="{{ route('ideas.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
+                                {{ __('site.actions.submit_idea') }}
+                            </a>
+                        </div>
+                    </section>
+                @endforeach
+            </div>
+        </div>
     </section>
 
     {{-- ---------------- Executive Summary ---------------- --}}

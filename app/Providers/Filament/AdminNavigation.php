@@ -90,14 +90,23 @@ class AdminNavigation
                     ->isActiveWhen(fn () => request()->routeIs(ReportsAnalytics::getRouteName())),
             ]),
 
+            // The Innovation Wing's own content, kept in view rather than inside
+            // the collapsed Website Content group: the areas (the Innovation
+            // menu, the area pages) and the innovations shown on the page.
+            NavigationGroup::make('Innovation Wing')
+                ->icon(Heroicon::OutlinedLightBulb)
+                ->collapsible()
+                ->items([
+                    $this->resource('Innovation Areas', null, InnovationAreaResource::class),
+                    $this->resource('Innovations', null, InnovationResource::class),
+                ]),
+
             NavigationGroup::make('Website Content')
                 ->icon(Heroicon::OutlinedGlobeAlt)
                 ->collapsible()
                 ->collapsed()
                 ->items([
                     $this->filtered('News', null, PostResource::class, 'type', 'news'),
-                    $this->resource('Innovations', null, InnovationResource::class),
-                    $this->resource('Innovation Areas', null, InnovationAreaResource::class),
                     $this->resource('Service Categories', null, ServiceCategoryResource::class),
                     $this->resource('Services', null, ServiceResource::class),
                     $this->resource('Core Areas', null, CoreAreaResource::class),

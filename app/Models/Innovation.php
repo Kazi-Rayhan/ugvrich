@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One innovation on /innovation, in either phase of the Innovation Wing plan.
@@ -51,6 +52,12 @@ class Innovation extends Model
             self::CURRENT => 'Current innovation — prototype to field test',
             self::PROPOSED => 'Proposed innovation — next phase',
         ];
+    }
+
+    /** The innovation area it belongs to, as a service belongs to its category. */
+    public function area(): BelongsTo
+    {
+        return $this->belongsTo(InnovationArea::class, 'innovation_area_id');
     }
 
     public function scopeActive(Builder $query): Builder
