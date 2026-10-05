@@ -87,6 +87,32 @@ class PostForm
                                 ->columnSpanFull(),
                         ]),
 
+                    Section::make('Source & video')
+                        ->description('Optional. Where the item was first published, and a video to show with it.')
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make('reference_name')
+                                ->label('Reference name')
+                                ->placeholder('e.g. The Daily Star')
+                                ->maxLength(180)
+                                ->helperText('The outlet or organisation the item comes from.'),
+
+                            TextInput::make('external_url')
+                                ->label('External URL')
+                                ->url()
+                                ->maxLength(500)
+                                ->placeholder('https://…')
+                                ->helperText('Link to the original article or page.'),
+
+                            TextInput::make('video_url')
+                                ->label('Video URL')
+                                ->url()
+                                ->maxLength(500)
+                                ->placeholder('https://www.youtube.com/watch?v=…')
+                                ->helperText('YouTube or Vimeo links play on the page; any other link shows as a "Watch the video" button.')
+                                ->columnSpanFull(),
+                        ]),
+
                     Section::make('Publishing')
                         ->columns(2)
                         ->schema([

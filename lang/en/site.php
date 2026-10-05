@@ -547,6 +547,8 @@ return [
         'back' => 'All news & events',
         'event_details' => 'Event details',
         'register_interest' => 'Register interest',
+        'source' => 'Source',
+        'read_original' => 'Read the original',
         'cta_title' => 'Work with UGV RICH',
         'cta_body' => 'Bring us a research question or a consultancy requirement and we will match it to the right expertise.',
         'cta_button' => 'Submit a request',

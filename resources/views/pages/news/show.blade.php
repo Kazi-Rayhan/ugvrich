@@ -1,5 +1,19 @@
 <x-layouts.app :title="$post->title" :description="$post->excerpt">
 
+    @php
+        // YouTube / Vimeo links become an embeddable URL; anything else is shown as a link.
+        $embed = null;
+        if ($post->video_url && preg_match('~(?:youtube\.com/(?:watch\?v=|shorts/|embed/)|youtu\.be/)([\w-]{11})~', $post->video_url, $m)) {
+            $embed = 'https://www.youtube-nocookie.com/embed/'.$m[1];
+        } elseif ($post->video_url && preg_match('~vimeo\.com/(\d+)~', $post->video_url, $m)) {
+            $embed = 'https://player.vimeo.com/video/'.$m[1];
+        }
+
+        // The source: its name if given, otherwise the site the link points at.
+        $sourceName = $post->reference_name
+            ?: ($post->external_url ? preg_replace('/^www\./', '', (string) parse_url($post->external_url, PHP_URL_HOST)) : null);
+    @endphp
+
     <x-page-hero
         :eyebrow="$post->category ?: ucfirst($post->type)"
         :title="$post->title"
@@ -32,6 +46,39 @@
                         @endif
                     @endforeach
                 </div>
+
+                {{-- Video --}}
+                @if ($embed)
+                    <div class="reveal mt-10 aspect-video overflow-hidden rounded-3xl bg-ink-950">
+                        <iframe src="{{ $embed }}" title="{{ __('site.projects.video_title', ['title' => $post->title]) }}" class="h-full w-full" loading="lazy"
+                                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                @elseif ($post->video_url)
+                    <a href="{{ $post->video_url }}" target="_blank" rel="noopener noreferrer" class="btn-ghost reveal mt-10">
+                        <x-ui-icon name="play" class="h-4 w-4" /> {{ __('site.projects.watch_video') }}
+                    </a>
+                @endif
+
+                {{-- Where the item was first published --}}
+                @if ($sourceName)
+                    <div class="reveal mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink-100 bg-ink-50 px-5 py-4">
+                        <p class="flex items-center gap-3 text-[14px] text-ink-600">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 ring-1 ring-ink-100">
+                                <x-ui-icon name="link" class="h-4 w-4" />
+                            </span>
+                            <span>
+                                <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-400">{{ __('site.news.source') }}</span>
+                                <span class="font-semibold text-ink-900">{{ $sourceName }}</span>
+                            </span>
+                        </p>
+                        @if ($post->external_url)
+                            <a href="{{ $post->external_url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-brand-700 hover:underline">
+                                {{ __('site.news.read_original') }} <x-ui-icon name="external" class="h-3.5 w-3.5" />
+                            </a>
+                        @endif
+                    </div>
+                @endif
 
                 <div class="mt-12 flex items-center justify-between gap-4 border-t hairline pt-8">
                     <a href="{{ route('news.index') }}" class="btn-ghost">
