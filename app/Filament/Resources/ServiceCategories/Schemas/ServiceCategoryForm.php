@@ -86,6 +86,27 @@ class ServiceCategoryForm
                                 ->columnSpanFull(),
                         ]),
 
+                    Section::make('Hero banner')
+                        ->description('The banner at the top of this service page. A video plays behind the text; the photo shows while it loads. Leave both empty to keep the default banner photo.')
+                        ->columns(2)
+                        ->schema([
+                            FileUpload::make('hero_image')
+                                ->label('Hero image (optional)')
+                                ->image()
+                                ->disk('public')
+                                ->directory('service-categories/hero')
+                                ->imageEditor()
+                                ->helperText('Wide photo, at least 1920 × 800.'),
+
+                            FileUpload::make('hero_video')
+                                ->label('Hero video (optional)')
+                                ->disk('public')
+                                ->directory('service-categories/hero')
+                                ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                ->maxSize(204800)
+                                ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the banner text.'),
+                        ]),
+
                     Section::make('Display')
                         ->columns(3)
                         ->schema([

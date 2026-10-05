@@ -4,6 +4,8 @@
         :eyebrow="$category->tagline"
         :title="$category->name"
         :lead="$category->description"
+        :image="$category->hero_image"
+        :video="$category->hero_video"
         :breadcrumbs="[__('site.services.breadcrumb') => route('services.index'), $category->name => null]">
         <a href="{{ route('consultancy.create', ['area' => $category->slug]) }}" class="btn-primary">
             {{ __('site.services.request_service') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
