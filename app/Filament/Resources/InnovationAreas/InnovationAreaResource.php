@@ -9,6 +9,9 @@ use App\Filament\Resources\InnovationAreas\Pages\ListInnovationAreas;
 use App\Filament\Resources\ServiceCategories\Schemas\ServiceCategoryForm;
 use App\Models\InnovationArea;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -127,7 +130,17 @@ class InnovationAreaResource extends Resource
                 TextColumn::make('projects_count')->counts('projects')->label('Projects'),
                 IconColumn::make('is_active')->label('Visible')->boolean(),
             ])
-            ->recordActions([EditAction::make()]);
+            ->recordActions([
+                EditAction::make(),
+                // Its projects and innovations stay; they are simply left without an area.
+                DeleteAction::make()
+                    ->modalDescription('The area is removed from the site and the menu. Its projects and innovations are kept, without an area.'),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
     }
 
     public static function getPages(): array
