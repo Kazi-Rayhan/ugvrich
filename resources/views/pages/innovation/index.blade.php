@@ -144,39 +144,75 @@
             <p class="reveal eyebrow"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ $title('focus') }}</p>
 
             <div class="mt-10 grid gap-5 lg:grid-cols-12">
-                {{-- Vision: the big statement --}}
+                {{-- Vision: the big statement, over a target of slow-turning rings
+                     and the word itself as an outlined watermark. --}}
                 @if ($vision)
-                    <article class="reveal group relative isolate overflow-hidden rounded-[2rem] bg-navy-800 p-8 text-white shadow-[0_40px_80px_-50px_rgba(2,22,52,0.8)] sm:p-10 lg:col-span-7">
-                        <div class="pointer-events-none absolute -right-16 -top-20 -z-10 h-64 w-64 rounded-full bg-brand-500/30 blur-[80px]" aria-hidden="true"></div>
-                        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.06]" aria-hidden="true"></div>
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-gold-300 ring-1 ring-white/15 transition duration-500 group-hover:-rotate-6">
-                                <x-ui-icon name="target" class="h-5 w-5" />
-                            </span>
-                            <p class="text-[12px] font-bold uppercase tracking-[0.2em] text-gold-300">{{ $vision[0] }}</p>
+                    <article data-tilt class="wing-tile reveal spotlight spotlight-invert group relative isolate flex min-h-[22rem] flex-col justify-between overflow-hidden rounded-[2rem] bg-navy-900 p-8 text-white shadow-[0_40px_80px_-50px_rgba(2,22,52,0.85)] sm:p-10 lg:col-span-7">
+                        {{-- Light and texture --}}
+                        <div class="pointer-events-none absolute -left-24 -top-24 -z-10 h-80 w-80 rounded-full bg-brand-500/35 blur-[90px]" aria-hidden="true"></div>
+                        <div class="pointer-events-none absolute -bottom-28 right-0 -z-10 h-72 w-72 rounded-full bg-gold-400/20 blur-[90px]" aria-hidden="true"></div>
+                        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.06] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" aria-hidden="true"></div>
+
+                        {{-- The target: three rings, the dashed one turning --}}
+                        <div class="pointer-events-none absolute -right-16 -top-16 -z-10 h-64 w-64" aria-hidden="true">
+                            <span class="absolute inset-0 rounded-full border border-white/10"></span>
+                            <span class="absolute inset-8 animate-[spin_40s_linear_infinite] rounded-full border-2 border-dashed border-gold-300/30"></span>
+                            <span class="absolute inset-16 rounded-full border border-white/15"></span>
+                            <span class="absolute inset-[6.5rem] rounded-full bg-gold-300/80 shadow-[0_0_30px_8px_rgba(242,205,107,0.35)]"></span>
                         </div>
-                        <p class="mt-8 font-display text-[22px] font-semibold leading-[1.45] !text-white sm:text-[27px]">{{ $vision[1] }}</p>
+
+                        {{-- The word, outlined, as a watermark --}}
+                        <span class="pointer-events-none absolute -bottom-6 right-4 -z-10 select-none font-display text-[110px] font-extrabold uppercase leading-none tracking-tight text-transparent sm:text-[150px]"
+                              style="-webkit-text-stroke: 1.5px rgb(255 255 255 / 0.07)" aria-hidden="true">{{ $vision[0] }}</span>
+
+                        <div class="relative z-10">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-gold-300/30 bg-gold-300/10 py-1.5 pl-1.5 pr-4 text-[12px] font-bold uppercase tracking-[0.18em] text-gold-300 backdrop-blur-md">
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-gold-300 text-navy-900">
+                                    <x-ui-icon name="target" class="h-4 w-4" />
+                                </span>
+                                {{ $vision[0] }}
+                            </span>
+                        </div>
+
+                        <div class="relative z-10 mt-10 flex gap-5">
+                            <span class="w-1 shrink-0 rounded-full bg-gradient-to-b from-gold-300 via-gold-400 to-transparent" aria-hidden="true"></span>
+                            <p class="font-display text-[22px] font-semibold leading-[1.45] tracking-[-0.01em] !text-white sm:text-[28px]">{{ $vision[1] }}</p>
+                        </div>
                     </article>
                 @endif
 
-                {{-- Mission --}}
+                {{-- Mission: each commitment as a numbered tile with its own icon --}}
                 @if ($mission)
-                    <article class="reveal group relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white shadow-[0_40px_80px_-50px_var(--color-brand-700)] sm:p-10 lg:col-span-5" style="{{ $delay(1, 90) }}">
-                        <x-ui-icon name="quote" class="pointer-events-none absolute -right-4 -top-4 -z-10 h-36 w-36 text-white/10" />
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand-700 transition duration-500 group-hover:-rotate-6">
-                                <x-ui-icon name="compass" class="h-5 w-5" />
+                    @php
+                        $missionPoints = collect(preg_split('/;\s*/u', rtrim($mission[1], '।. ')))->map(fn ($p) => trim($p))->filter()->values();
+                        $missionIcons = ['users', 'cog', 'shield', 'rocket', 'handshake', 'globe'];
+                    @endphp
+                    <article class="reveal spotlight spotlight-invert group relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-8 text-white shadow-[0_40px_80px_-50px_var(--color-brand-700)] sm:p-9 lg:col-span-5" style="{{ $delay(1, 90) }}">
+                        <div class="pointer-events-none absolute -right-20 -top-20 -z-10 h-64 w-64 rounded-full bg-white/10 blur-[70px]" aria-hidden="true"></div>
+                        <span class="pointer-events-none absolute -bottom-6 -left-2 -z-10 select-none font-display text-[110px] font-extrabold uppercase leading-none tracking-tight text-transparent sm:text-[130px]"
+                              style="-webkit-text-stroke: 1.5px rgb(255 255 255 / 0.08)" aria-hidden="true">{{ $mission[0] }}</span>
+
+                        <span class="relative z-10 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 py-1.5 pl-1.5 pr-4 text-[12px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
+                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white text-brand-700">
+                                <x-ui-icon name="compass" class="h-4 w-4" />
                             </span>
-                            <p class="text-[12px] font-bold uppercase tracking-[0.2em] text-brand-100">{{ $mission[0] }}</p>
-                        </div>
-                        <ul class="mt-7 space-y-3">
-                            @foreach (collect(preg_split('/;\s*/u', rtrim($mission[1], '।. ')))->filter() as $point)
-                                <li class="flex items-start gap-3 text-[15px] leading-relaxed text-white/90">
-                                    <x-ui-icon name="check" class="mt-1 h-4 w-4 shrink-0 text-gold-300" stroke="2.4" />
-                                    <span>{{ \Illuminate\Support\Str::ucfirst(trim($point)) }}</span>
+                            {{ $mission[0] }}
+                        </span>
+
+                        <ol class="relative z-10 mt-7 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                            @foreach ($missionPoints as $i => $point)
+                                <li @class([
+                                    'group/item flex items-start gap-3 rounded-2xl bg-white/[0.08] p-3.5 ring-1 ring-white/15 backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white/[0.14]',
+                                    'sm:col-span-2 lg:col-span-1 xl:col-span-2' => $loop->last && $missionPoints->count() % 2 === 1,
+                                ])>
+                                    <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-gold-300 transition duration-300 group-hover/item:bg-gold-300 group-hover/item:text-navy-900">
+                                        <x-ui-icon :name="$missionIcons[$i] ?? 'check'" class="h-4 w-4" />
+                                        <span class="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold-300 font-numeric text-[9px] font-bold text-navy-900">{{ $num($i + 1) }}</span>
+                                    </span>
+                                    <span class="pt-1.5 text-[13.5px] font-medium leading-snug text-white/90">{{ \Illuminate\Support\Str::ucfirst($point) }}</span>
                                 </li>
                             @endforeach
-                        </ul>
+                        </ol>
                     </article>
                 @endif
 

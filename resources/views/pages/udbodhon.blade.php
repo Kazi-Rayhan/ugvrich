@@ -207,20 +207,28 @@
                     var(--navy-950) 0, var(--navy-900) 1.2vw, var(--navy-700) 2.3vw, var(--navy-600) 2.8vw,
                     var(--navy-500) 3.1vw, #4f7fb8 3.25vw, var(--navy-600) 3.6vw, var(--navy-700) 4.2vw, var(--navy-900) 5.2vw, var(--navy-950) 6.4vw);
             transition: transform 3.2s cubic-bezier(.66, 0, .25, 1);
-            will-change: transform;
+            will-change: transform, background-position;
+            /* ঢেউ — the velvet never quite rests: its folds drift and breathe */
+            animation: billow 9s ease-in-out infinite alternate;
         }
         .curtain::before { /* gold hem */
             content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 12px;
             background: linear-gradient(180deg, var(--gold-300), var(--gold-500));
             box-shadow: 0 -2px 6px rgba(0, 0, 0, .3);
         }
-        .curtain::after { /* velvet sheen */
+        .curtain::after { /* velvet sheen, and a band of light rolling across it like a wave */
             content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse 65% 40% at 50% 38%, rgba(170, 200, 240, .12), transparent 70%);
+            background:
+                linear-gradient(100deg, transparent 38%, rgba(170, 200, 240, .13) 47%, rgba(200, 222, 250, .2) 50%, rgba(170, 200, 240, .13) 53%, transparent 62%) 0 0 / 300% 100% no-repeat,
+                radial-gradient(ellipse 65% 40% at 50% 38%, rgba(170, 200, 240, .12), transparent 70%);
+            animation: ripple 7s ease-in-out infinite;
         }
         .curtain-left { left: 0; transform-origin: 0 50%; box-shadow: inset -34px 0 40px -20px rgba(0, 0, 0, .7); }
         .curtain-right { right: 0; transform-origin: 100% 50%; box-shadow: inset 34px 0 40px -20px rgba(0, 0, 0, .7); }
-        [data-state="rolling"] .curtain { animation: shiver 1.4s ease-in-out; }
+        /* The wave runs on from the left curtain into the right */
+        .curtain-right { animation-delay: -4.5s; }
+        .curtain-right::after { animation-delay: 3.5s; }
+        [data-state="rolling"] .curtain { animation: shiver 1.4s ease-in-out, billow 9s ease-in-out infinite alternate; }
         [data-state="open"] .curtain-left { transform: scaleX(.12) skewY(-1deg); }
         [data-state="open"] .curtain-right { transform: scaleX(.12) skewY(1deg); }
 
@@ -277,21 +285,41 @@
             animation: halo 4.5s ease-in-out infinite;
         }
         .logo img { width: 100%; height: 100%; object-fit: contain; }
-        .intro .eyebrow-invert { margin-top: clamp(26px, 4vh, 36px); }
-        .title-rule {
-            display: flex; align-items: center; gap: 10px; margin-top: clamp(14px, 2.2vh, 20px);
+
+        /* The university's name, signed across the top of the stage under the valance */
+        .signature {
+            position: absolute; left: 0; right: 0; top: calc(clamp(64px, 12.5vh, 124px) + clamp(18px, 3.5vh, 34px));
+            display: flex; align-items: center; justify-content: center; gap: clamp(12px, 2vw, 20px);
+            font-family: var(--display); font-weight: 600; font-size: clamp(11px, 1.15vw, 14px);
+            letter-spacing: .42em; text-transform: uppercase; color: rgba(255, 255, 255, .82);
+            transition: opacity .6s ease, transform .6s ease;
         }
-        .title-rule::before, .title-rule::after {
-            content: ''; width: clamp(60px, 12vw, 150px); height: 1px;
+        .signature span { margin-right: -.42em; }
+        .signature::before, .signature::after {
+            content: ''; width: clamp(28px, 7vw, 90px); height: 1px;
             background: linear-gradient(90deg, transparent, var(--gold-300));
         }
-        .title-rule::after { transform: scaleX(-1); }
-        .title-rule i { width: 7px; height: 7px; transform: rotate(45deg); background: var(--gold-300); box-shadow: 0 0 12px rgba(242, 205, 107, .8); }
+        .signature::after { transform: scaleX(-1); }
+        [data-state="cut"] .signature, [data-state="open"] .signature { opacity: 0; transform: translateY(-12px); }
 
-        .intro .subtitle {
-            margin-top: 14px; font-family: var(--display); font-weight: 600; color: rgba(255, 255, 255, .88);
-            font-size: clamp(13px, 1.4vw, 16px); letter-spacing: .22em; text-transform: uppercase;
+        /* Research · Innovation · Consultancy  [Hub] — a glass capsule */
+        .tagline {
+            margin-top: clamp(28px, 4.5vh, 40px);
+            display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(9px, 1.3vw, 16px);
+            padding: 7px 7px 7px clamp(16px, 2vw, 24px); border-radius: 999px;
+            font-family: var(--display); font-weight: 600; font-size: clamp(13px, 1.45vw, 17px); color: #fff;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .04));
+            border: 1px solid rgba(255, 255, 255, .18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 20px 44px -22px rgba(0, 0, 0, .8);
+            -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
         }
+        .tagline i { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-300); box-shadow: 0 0 10px rgba(242, 205, 107, .9); }
+        .tagline .hub {
+            padding: 8px 18px; border-radius: 999px; font-weight: 700; color: #fff;
+            background: linear-gradient(180deg, var(--brand-500), var(--brand-600) 60%, var(--brand-700));
+            box-shadow: 0 0 0 1px rgba(242, 205, 107, .6), 0 10px 22px -10px rgba(65, 132, 63, .95);
+        }
+        .tagline > span { opacity: 0; transform: translateY(6px); animation: rise .8s var(--ease) forwards; animation-delay: calc(.35s + var(--i) * .16s); }
 
         .cut { position: relative; margin-top: 38px; }
         .ribbon {
@@ -377,11 +405,20 @@
         @keyframes snip { to { transform: rotate(-22deg); } }
         @keyframes shiver { 30%, 70% { transform: scaleX(.985); } }
         @keyframes halo { 50% { opacity: .55; transform: scale(.92); } }
+        @keyframes billow {
+            0%   { background-position: 0 0, 0 0;      background-size: 100% 100%, 6.4vw 100%; }
+            50%  { background-position: 0 0, .9vw 0;   background-size: 100% 100%, 6.9vw 100%; }
+            100% { background-position: 0 0, -.6vw 0;  background-size: 100% 100%, 6.1vw 100%; }
+        }
+        @keyframes ripple {
+            0%   { background-position: 130% 0, 0 0; }
+            70%, 100% { background-position: -30% 0, 0 0; }
+        }
         @keyframes sweep { 0% { transform: translateX(-130%); } 40%, 100% { transform: translateX(130%); } }
 
         @media (prefers-reduced-motion: reduce) {
             .curtain, .ribbon { transition-duration: .8s; }
-            .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before { animation: none; }
+            .rays, .btn-cut::before, .btn-cut .sweep::after, .logo::before, .curtain, .curtain::after { animation: none; }
         }
     </style>
 </head>
@@ -421,11 +458,16 @@
 
     {{-- The closed stage --}}
     <section class="intro">
+        <p class="signature"><span>University of Global Village</span></p>
+
         <div class="text">
             <span class="logo"><img src="{{ asset('media/logo-mark.png') }}" alt="UGV RICH" width="256" height="249"></span>
-            <p class="eyebrow-invert">University of Global Village</p>
-            <span class="title-rule" aria-hidden="true"><i></i></span>
-            <p class="subtitle">Research, Innovation and Consultancy Hub</p>
+            <p class="tagline" aria-label="Research, Innovation and Consultancy Hub">
+                <span style="--i: 0">Research</span><i aria-hidden="true"></i>
+                <span style="--i: 1">Innovation</span><i aria-hidden="true"></i>
+                <span style="--i: 2">Consultancy</span>
+                <span class="hub" style="--i: 3">Hub</span>
+            </p>
         </div>
 
         <div class="cut">
