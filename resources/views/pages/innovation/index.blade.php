@@ -46,7 +46,7 @@
         $fieldIcons = ['concept' => 'lightbulb', 'how' => 'cog', 'why' => 'chart'];
         $focusIcons = ['target', 'compass', 'users', 'chart', 'globe'];
 
-        $sections = ['summary', 'purpose', 'focus', 'current', 'proposed', 'process', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
+        $sections = ['focus', 'summary', 'purpose', 'current', 'proposed', 'process', 'organization', 'kpis', 'abbreviations', 'funding', 'conclusion'];
     @endphp
 
     @php
@@ -113,6 +113,161 @@
                 @endforeach
             </div>
         </nav>
+    </section>
+
+    {{-- ---------------- Vision, Mission & Focus ----------------
+         Straight after the hero, each part drawn for what it is: the vision
+         and mission as statements, the development path as a stepper, the
+         culture shift as a before and after, and the impact as SDG goals. --}}
+    @php
+        $focusItems = collect($doc['focus'])->values();
+        $isArrowPath = function (string $text) {
+            $steps = collect(explode('→', rtrim($text, '।. ')))->map(fn ($step) => trim($step))->filter();
+
+            return $steps->count() >= 3 && $steps->max(fn ($step) => mb_strlen($step)) <= 30 ? $steps->values() : null;
+        };
+        // Bengali digits back to ASCII, so "SDG ৩,৪" reads the same as "SDG 3,4".
+        $ascii = fn (string $text) => strtr($text, ['০' => '0', '১' => '1', '২' => '2', '৩' => '3', '৪' => '4', '৫' => '5', '৬' => '6', '৭' => '7', '৮' => '8', '৯' => '9']);
+
+        [$vision, $mission] = [$focusItems->get(0), $focusItems->get(1)];
+        $rest = $focusItems->slice(2)->values();
+        $path = $rest->first(fn ($item) => $isArrowPath($item[1]));
+        $shift = $rest->first(fn ($item) => $item !== $path && str_contains($item[1], '→'));
+        $impact = $rest->first(fn ($item) => preg_match('/SDG\s*[\d০-৯]/u', $item[1]));
+        $others = $rest->reject(fn ($item) => in_array($item, [$path, $shift, $impact], true));
+    @endphp
+
+    <section id="focus" class="relative isolate scroll-mt-28 overflow-hidden bg-ink-50 py-20 sm:py-24">
+        <div class="pointer-events-none absolute inset-0 -z-10 text-brand-700 grid-overlay opacity-25 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden="true"></div>
+
+        <div class="container-rich">
+            <p class="reveal eyebrow"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ $title('focus') }}</p>
+
+            <div class="mt-10 grid gap-5 lg:grid-cols-12">
+                {{-- Vision: the big statement --}}
+                @if ($vision)
+                    <article class="reveal group relative isolate overflow-hidden rounded-[2rem] bg-navy-800 p-8 text-white shadow-[0_40px_80px_-50px_rgba(2,22,52,0.8)] sm:p-10 lg:col-span-7">
+                        <div class="pointer-events-none absolute -right-16 -top-20 -z-10 h-64 w-64 rounded-full bg-brand-500/30 blur-[80px]" aria-hidden="true"></div>
+                        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.06]" aria-hidden="true"></div>
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-gold-300 ring-1 ring-white/15 transition duration-500 group-hover:-rotate-6">
+                                <x-ui-icon name="target" class="h-5 w-5" />
+                            </span>
+                            <p class="text-[12px] font-bold uppercase tracking-[0.2em] text-gold-300">{{ $vision[0] }}</p>
+                        </div>
+                        <p class="mt-8 font-display text-[22px] font-semibold leading-[1.45] !text-white sm:text-[27px]">{{ $vision[1] }}</p>
+                    </article>
+                @endif
+
+                {{-- Mission --}}
+                @if ($mission)
+                    <article class="reveal group relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white shadow-[0_40px_80px_-50px_var(--color-brand-700)] sm:p-10 lg:col-span-5" style="{{ $delay(1, 90) }}">
+                        <x-ui-icon name="quote" class="pointer-events-none absolute -right-4 -top-4 -z-10 h-36 w-36 text-white/10" />
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand-700 transition duration-500 group-hover:-rotate-6">
+                                <x-ui-icon name="compass" class="h-5 w-5" />
+                            </span>
+                            <p class="text-[12px] font-bold uppercase tracking-[0.2em] text-brand-100">{{ $mission[0] }}</p>
+                        </div>
+                        <ul class="mt-7 space-y-3">
+                            @foreach (collect(preg_split('/;\s*/u', rtrim($mission[1], '।. ')))->filter() as $point)
+                                <li class="flex items-start gap-3 text-[15px] leading-relaxed text-white/90">
+                                    <x-ui-icon name="check" class="mt-1 h-4 w-4 shrink-0 text-gold-300" stroke="2.4" />
+                                    <span>{{ \Illuminate\Support\Str::ucfirst(trim($point)) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </article>
+                @endif
+
+                {{-- Development path: a stepper --}}
+                @if ($path && ($steps = $isArrowPath($path[1])))
+                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-12" style="{{ $delay(2, 90) }}">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+                                <x-ui-icon name="rocket" class="h-5 w-5" />
+                            </span>
+                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $path[0] }}</h3>
+                        </div>
+
+                        <ol class="relative mt-9 grid gap-6" style="grid-template-columns: repeat({{ $steps->count() }}, minmax(0, 1fr))">
+                            <span class="absolute left-[10%] right-[10%] top-6 hidden h-0.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-brand-200 via-brand-400 to-gold-400 sm:block" aria-hidden="true"></span>
+                            @foreach ($steps as $step)
+                                <li class="relative flex flex-col items-center text-center">
+                                    <span @class([
+                                        'flex h-12 w-12 items-center justify-center rounded-full font-display text-[15px] font-bold ring-[6px] ring-white transition duration-500',
+                                        'bg-brand-600 text-white' => ! $loop->last,
+                                        'bg-gold-400 text-navy-900 shadow-[0_0_0_10px_var(--color-gold-100)]' => $loop->last,
+                                    ])>
+                                        @if ($loop->last)
+                                            <x-ui-icon name="star" class="h-5 w-5" />
+                                        @else
+                                            {{ $num($loop->iteration) }}
+                                        @endif
+                                    </span>
+                                    <span class="mt-3 font-display text-[14px] font-bold leading-tight text-ink-900 sm:text-[16px]">{{ $step }}</span>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </article>
+                @endif
+
+                {{-- Innovation culture: from → to --}}
+                @if ($shift)
+                    @php [$from, $to] = array_map('trim', explode('→', $shift[1], 2)); @endphp
+                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-6" style="{{ $delay(3, 90) }}">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+                                <x-ui-icon name="users" class="h-5 w-5" />
+                            </span>
+                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $shift[0] }}</h3>
+                        </div>
+                        <div class="mt-7 grid items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+                            <p class="rounded-2xl border border-dashed border-ink-200 bg-ink-50 p-4 text-[14px] leading-relaxed text-ink-500">{{ \Illuminate\Support\Str::ucfirst(preg_replace('/^(From|থেকে)\s+/iu', '', $from)) }}</p>
+                            <span class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gold-300 text-navy-900">
+                                <x-ui-icon name="arrow-right" class="h-4 w-4 rotate-90 sm:rotate-0" />
+                            </span>
+                            <p class="rounded-2xl border border-brand-200 bg-brand-50 p-4 text-[14px] font-semibold leading-relaxed text-brand-800">{{ \Illuminate\Support\Str::ucfirst(rtrim($to, '।. ')) }}</p>
+                        </div>
+                    </article>
+                @endif
+
+                {{-- Impact: the SDGs as goal chips --}}
+                @if ($impact)
+                    @php
+                        [$goalsPart, $themes] = array_pad(array_map('trim', explode(':', $impact[1], 2)), 2, '');
+                        preg_match_all('/\d+/', $ascii($goalsPart), $m);
+                        $goals = $m[0];
+                    @endphp
+                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 sm:p-10 lg:col-span-6" style="{{ $delay(4, 90) }}">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+                                <x-ui-icon name="globe" class="h-5 w-5" />
+                            </span>
+                            <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $impact[0] }}</h3>
+                        </div>
+                        <div class="mt-7 flex flex-wrap gap-2">
+                            @foreach ($goals as $goal)
+                                <span class="inline-flex h-11 min-w-11 items-center justify-center rounded-xl bg-navy-800 px-2.5 font-display text-[13px] font-bold text-white">
+                                    <span class="mr-1 text-[10px] font-semibold text-gold-300">SDG</span>{{ $num($goal) }}
+                                </span>
+                            @endforeach
+                        </div>
+                        @if ($themes)
+                            <p class="mt-5 text-[14px] leading-relaxed text-ink-600">{{ rtrim($themes, '।. ') }}</p>
+                        @endif
+                    </article>
+                @endif
+
+                {{-- Anything else the document adds later, as a plain card --}}
+                @foreach ($others as $item)
+                    <article class="reveal rounded-[2rem] border border-ink-100 bg-white p-8 lg:col-span-6">
+                        <h3 class="font-display text-[22px] font-bold text-ink-950">{{ $item[0] }}</h3>
+                        <p class="mt-4 text-[15px] leading-[1.8] text-ink-700">{{ $item[1] }}</p>
+                    </article>
+                @endforeach
+            </div>
+        </div>
     </section>
 
     {{-- ---------------- Innovation areas ----------------
@@ -246,76 +401,6 @@
             <p class="reveal mt-8 max-w-5xl font-display text-[21px] font-semibold leading-[1.6] !text-white sm:text-[28px]">
                 {{ $doc['purpose'] }}
             </p>
-        </div>
-    </section>
-
-    {{-- ---------------- Vision, Mission & Focus ---------------- --}}
-    <section id="focus" class="scroll-mt-28 bg-white py-20 sm:py-24">
-        <div class="container-rich">
-            <span class="{{ $rule }}" aria-hidden="true"></span>
-            <h2 class="{{ $h2 }}">{{ $title('focus') }}</h2>
-
-            <div class="mt-12 grid gap-5 lg:grid-cols-6">
-                @foreach ($doc['focus'] as $i => [$pillar, $direction])
-                    @php
-                        /* Only the development path is a chain: several short steps
-                           joined by arrows. A sentence that happens to use an arrow
-                           stays a sentence. */
-                        $steps = collect(explode('→', rtrim($direction, '।. ')))->map(fn ($step) => trim($step))->filter();
-                        $isPath = $steps->count() >= 3 && $steps->max(fn ($step) => mb_strlen($step)) <= 30;
-                    @endphp
-
-                    <article @class([
-                        'reveal group relative overflow-hidden rounded-[1.75rem] p-8 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5',
-                        'lg:col-span-6 bg-gradient-to-br from-brand-700 to-brand-600 shadow-[0_30px_70px_-45px_var(--color-brand-600)]' => $i === 0,
-                        'lg:col-span-6 border border-ink-100 bg-ink-50/70' => $isPath,
-                        'lg:col-span-3 border border-ink-100 bg-white hover:border-brand-200 hover:shadow-[0_30px_60px_-42px_rgba(2,34,81,0.45)]' => $i !== 0 && ! $isPath,
-                    ]) style="{{ $delay($i, 55) }}">
-
-                        <span @class([
-                            'pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full transition duration-500',
-                            'border border-white/15 group-hover:border-white/30' => $i === 0,
-                            'border border-ink-100 group-hover:border-brand-200' => $i !== 0,
-                        ]) aria-hidden="true"></span>
-
-                        <span @class([
-                            'flex h-12 w-12 items-center justify-center rounded-2xl transition duration-500 group-hover:rotate-[-6deg]',
-                            'bg-white text-brand-700' => $i === 0,
-                            'bg-brand-50 text-brand-600' => $i !== 0,
-                        ])>
-                            <x-ui-icon :name="$focusIcons[$i] ?? 'check'" class="h-5 w-5" />
-                        </span>
-
-                        <h3 @class([
-                            'relative mt-6 font-display text-[22px] font-bold sm:text-[24px]',
-                            '!text-white' => $i === 0,
-                            'text-ink-950' => $i !== 0,
-                        ])>{{ $pillar }}</h3>
-
-                        @if ($isPath)
-                            <ol class="relative mt-6 flex flex-wrap items-center gap-2">
-                                @foreach ($steps as $step)
-                                    <li class="flex items-center gap-2">
-                                        <span class="flex items-center gap-2.5 rounded-2xl border border-brand-100 bg-white px-4 py-2.5 shadow-[0_10px_24px_-20px_rgba(2,34,81,0.6)]">
-                                            <span class="flex h-6 w-6 items-center justify-center rounded-md bg-brand-600 font-display text-[11px] font-bold text-white">{{ $num($loop->iteration) }}</span>
-                                            <span class="font-display text-[14.5px] font-semibold text-brand-800">{{ $step }}</span>
-                                        </span>
-                                        @unless ($loop->last)
-                                            <x-ui-icon name="arrow-right" class="h-4 w-4 shrink-0 text-ink-300" />
-                                        @endunless
-                                    </li>
-                                @endforeach
-                            </ol>
-                        @else
-                            <p @class([
-                                'relative mt-4 text-[15.5px] leading-[1.8]',
-                                'text-white/85' => $i === 0,
-                                'text-ink-700' => $i !== 0,
-                            ])>{{ $direction }}</p>
-                        @endif
-                    </article>
-                @endforeach
-            </div>
         </div>
     </section>
 
