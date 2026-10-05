@@ -1,5 +1,5 @@
 {{--
- | The RICH inauguration — /udbodhon.
+ | The RICH inauguration — /inaugurate (formerly /udbodhon, which redirects here).
  |
  | A page of its own, outside the site layout, and in English only: a closed
  | stage of green velvet with a satin ribbon and one button. Pressing it
@@ -271,7 +271,7 @@
             font-size: clamp(64px, 12vw, 150px); color: #fff;
             text-shadow: 0 10px 30px rgba(0, 0, 0, .45);
         }
-        .intro .title span { color: var(--gold-300); }
+        .intro .title span { color: var(--brand-300); }   /* the home hero's highlight colour */
         .intro .subtitle {
             margin-top: 14px; font-family: var(--display); font-weight: 600; color: rgba(255, 255, 255, .85);
             font-size: clamp(14px, 1.6vw, 18px);

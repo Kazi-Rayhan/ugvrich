@@ -26,20 +26,18 @@
     {{-- ---------------- What this area covers ---------------- --}}
     <section id="focus" class="scroll-mt-32 bg-white py-20 sm:py-24">
         <div class="container-rich">
-            <div class="grid gap-x-10 gap-y-10 lg:grid-cols-4 lg:[grid-auto-flow:dense]">
-
-                {{-- Heading: the left half of the first row --}}
-                <div class="reveal lg:col-span-2">
+            {{-- Text on the left, the picture on the right at one fixed shape --}}
+            <div class="grid items-center gap-x-12 gap-y-8 lg:grid-cols-2">
+                <div class="reveal">
                     <p class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600">
                         <span class="text-brand-300">//</span> {{ __('site.innovation.focus_eyebrow') }}
                     </p>
 
-                    <h2 class="mt-4 font-display text-[30px] font-bold leading-[1.1] tracking-tight text-ink-950 sm:text-[42px]">
+                    <h2 class="mt-4 font-display text-[30px] font-bold leading-[1.1] tracking-tight text-ink-950 sm:text-[40px]">
                         {{ $area->name }}
                     </h2>
 
                     <div class="mt-4 flex flex-wrap items-center gap-2.5">
-
                         <span class="rounded-full bg-brand-50 px-3 py-1.5 font-numeric text-[12.5px] font-bold tabular-nums text-brand-700">
                             {{ trans_choice('site.innovation.innovation_count', $area->innovations->count(), ['count' => $num($area->innovations->count())]) }}
                         </span>
@@ -50,12 +48,12 @@
                     @endif
                 </div>
 
-                {{-- The image (or a video in its place) holds the top-right corner across two rows --}}
-                <div class="reveal lg:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1">
-                    @if ($area->video)
-                        {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
-                        <div class="relative aspect-[16/11] h-full overflow-hidden rounded-[1.5rem] bg-brand-50">
-                            <video class="h-full w-full object-cover"
+                {{-- The picture (or a video in its place), always 16:10 --}}
+                <div class="reveal">
+                    <div class="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] bg-brand-50">
+                        @if ($area->video)
+                            {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
+                            <video class="absolute inset-0 h-full w-full object-cover"
                                    autoplay muted loop playsinline preload="auto"
                                    @if ($area->image) poster="{{ Storage::url($area->image) }}" @endif
                                    x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
@@ -63,24 +61,25 @@
                                 <source src="{{ Storage::url($area->video) }}"
                                         type="{{ str_ends_with(strtolower($area->video), '.webm') ? 'video/webm' : 'video/mp4' }}">
                             </video>
-                        </div>
-                    @elseif ($area->image)
-                        <x-media-frame :src="$area->image" :alt="$area->name"
-                                       ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
-                    @else
-                        {{-- No photograph yet: the department's own drawn poster. --}}
-                        <div class="aspect-[16/11] h-full overflow-hidden rounded-[1.5rem]">
-                            <x-service-poster :sector="$area->department" :seed="$area->slug" class="h-full w-full object-cover" />
-                        </div>
-                    @endif
+                        @elseif ($area->image)
+                            <img src="{{ Storage::url($area->image) }}" alt="{{ $area->name }}" loading="lazy"
+                                 class="absolute inset-0 h-full w-full object-cover">
+                        @else
+                            {{-- No photograph yet: the department's own drawn poster. --}}
+                            <x-service-poster :sector="$area->department" :seed="$area->slug" class="absolute inset-0 h-full w-full object-cover" />
+                        @endif
+                    </div>
                 </div>
-
-                {{-- The innovations, as small cards (photo, type, name), filling every
-                     cell the image leaves, as a service category lists its services. --}}
-                @foreach ($area->innovations as $j => $innovation)
-                    <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
-                @endforeach
             </div>
+
+            {{-- The innovations, as compact cards in a row under the area --}}
+            @if ($area->innovations->isNotEmpty())
+                <div class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach ($area->innovations as $j => $innovation)
+                        <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
+                    @endforeach
+                </div>
+            @endif
 
             {{-- What this area can be asked for --}}
             <div class="reveal mt-14 flex flex-wrap items-center gap-4 border-t border-ink-100 pt-8">

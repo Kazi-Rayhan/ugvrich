@@ -134,20 +134,19 @@
             <div class="mt-14 space-y-20 sm:space-y-28">
                 @foreach ($areas as $area)
                     <section id="area-{{ $area->slug }}" class="scroll-mt-28 border-t border-ink-100 pt-12 first:border-0 first:pt-0">
-                        <div class="grid gap-x-10 gap-y-10 lg:grid-cols-4 lg:[grid-auto-flow:dense]">
-
-                            {{-- Heading: the left half of the first row --}}
-                            <div class="reveal lg:col-span-2">
+                        {{-- Text on the left, the picture on the right at one fixed shape, so
+                             every area's picture is the same size whatever sits beside it. --}}
+                        <div class="grid items-center gap-x-12 gap-y-8 lg:grid-cols-2">
+                            <div class="reveal">
                                 <p class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600">
                                     <span class="text-brand-300">//</span> {{ __('site.innovation.focus_eyebrow') }}
                                 </p>
 
-                                <h2 class="mt-4 font-display text-[28px] font-bold leading-[1.1] tracking-tight text-ink-950 sm:text-[40px]">
+                                <h2 class="mt-4 font-display text-[28px] font-bold leading-[1.1] tracking-tight text-ink-950 sm:text-[38px]">
                                     <a href="{{ route('innovation.area', $area) }}" class="transition-colors hover:text-brand-700">{{ $area->name }}</a>
                                 </h2>
 
                                 <div class="mt-4 flex flex-wrap items-center gap-2.5">
-
                                     <span class="rounded-full bg-brand-50 px-3 py-1.5 font-numeric text-[12.5px] font-bold tabular-nums text-brand-700">
                                         {{ trans_choice('site.innovation.innovation_count', $area->innovations->count(), ['count' => $num($area->innovations->count())]) }}
                                     </span>
@@ -162,14 +161,23 @@
                                 @if ($area->description)
                                     <p class="mt-5 text-[14.5px] leading-[1.9] text-ink-600">{{ $area->description }}</p>
                                 @endif
+
+                                <div class="mt-7 flex flex-wrap items-center gap-4">
+                                    <a href="{{ route('innovation.area', $area) }}" class="btn-ghost">
+                                        {{ __('site.innovation.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
+                                    </a>
+                                    <a href="{{ route('ideas.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
+                                        {{ __('site.actions.submit_idea') }}
+                                    </a>
+                                </div>
                             </div>
 
-                            {{-- The image (or a video in its place) holds the top-right corner across two rows --}}
-                            <div class="reveal lg:col-span-2 lg:col-start-3 lg:row-span-2 lg:row-start-1">
-                                @if ($area->video)
-                                    {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
-                                    <div class="relative aspect-[16/11] h-full overflow-hidden rounded-[1.5rem] bg-brand-50">
-                                        <video class="h-full w-full object-cover"
+                            {{-- The picture (or a video in its place), always 16:10 --}}
+                            <div class="reveal">
+                                <div class="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] bg-brand-50">
+                                    @if ($area->video)
+                                        {{-- Muted and looped. With reduced motion it stays on its first frame. --}}
+                                        <video class="absolute inset-0 h-full w-full object-cover"
                                                autoplay muted loop playsinline preload="metadata"
                                                @if ($area->image) poster="{{ Storage::url($area->image) }}" @endif
                                                x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
@@ -177,33 +185,25 @@
                                             <source src="{{ Storage::url($area->video) }}"
                                                     type="{{ str_ends_with(strtolower($area->video), '.webm') ? 'video/webm' : 'video/mp4' }}">
                                         </video>
-                                    </div>
-                                @elseif ($area->image)
-                                    <x-media-frame :src="$area->image" :alt="$area->name"
-                                                   ratio="aspect-[16/11]" class="h-full rounded-[1.5rem] bg-brand-50" />
-                                @else
-                                    {{-- No photograph yet: the department's own drawn poster. --}}
-                                    <div class="aspect-[16/11] h-full overflow-hidden rounded-[1.5rem]">
-                                        <x-service-poster :sector="$area->department" :seed="$area->slug" class="h-full w-full object-cover" />
-                                    </div>
-                                @endif
+                                    @elseif ($area->image)
+                                        <img src="{{ Storage::url($area->image) }}" alt="{{ $area->name }}" loading="lazy"
+                                             class="absolute inset-0 h-full w-full object-cover">
+                                    @else
+                                        {{-- No photograph yet: the department's own drawn poster. --}}
+                                        <x-service-poster :sector="$area->department" :seed="$area->slug" class="absolute inset-0 h-full w-full object-cover" />
+                                    @endif
+                                </div>
                             </div>
-
-                            {{-- The innovations, as small cards (photo, type, name), filling every
-                                 cell the image leaves, as a service category lists its services. --}}
-                            @foreach ($area->innovations as $j => $innovation)
-                                <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
-                            @endforeach
                         </div>
 
-                        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
-                            <a href="{{ route('innovation.area', $area) }}" class="btn-ghost">
-                                {{ __('site.innovation.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
-                            </a>
-                            <a href="{{ route('ideas.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
-                                {{ __('site.actions.submit_idea') }}
-                            </a>
-                        </div>
+                        {{-- The innovations, as compact cards in a row under the area --}}
+                        @if ($area->innovations->isNotEmpty())
+                            <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                @foreach ($area->innovations as $j => $innovation)
+                                    <x-cards.innovation-mini :innovation="$innovation" :slug="$innovationSlugs[$innovation->id] ?? null" :index="$j" />
+                                @endforeach
+                            </div>
+                        @endif
                     </section>
                 @endforeach
             </div>

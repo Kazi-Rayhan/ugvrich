@@ -1,5 +1,5 @@
 {{--
- | The flowers that follow a visitor home from the inauguration (/udbodhon).
+ | The flowers that follow a visitor home from the inauguration (/inaugurate).
  |
  | The inauguration leaves a note in sessionStorage just before it sends the
  | visitor here. If the note is there, this picks up where that page ended —
