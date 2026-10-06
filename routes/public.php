@@ -54,7 +54,7 @@ Route::get('/services/{serviceCategory}/{service}', [ServiceController::class, '
     ->name('services.detail');
 
 // The RICH inauguration: curtains, a ribbon and one button.
-Route::view('/inaugurate', 'pages.udbodhon')->name('inaugurate');
+// Route::view('/inaugurate', 'pages.udbodhon')->name('inaugurate');
 // Its first address, kept so links already shared still arrive.
 Route::permanentRedirect('/udbodhon', '/inaugurate');
 
