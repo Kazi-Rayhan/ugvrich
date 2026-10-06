@@ -23,7 +23,7 @@ return [
         'projects' => 'আমার গবেষণা প্রকল্প',
         'submit_paper' => 'প্রবন্ধ জমা দিন',
         'papers' => 'আমার প্রবন্ধ',
-        'opportunities' => 'গবেষণার সুযোগ',
+        'opportunities' => 'অর্থায়ন',
         'notifications' => 'বিজ্ঞপ্তি',
         'support' => 'সহায়তা',
         'settings' => 'অ্যাকাউন্ট সেটিংস',

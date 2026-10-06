@@ -23,7 +23,7 @@ return [
         'projects' => 'My Research Projects',
         'submit_paper' => 'Submit Paper',
         'papers' => 'My Papers',
-        'opportunities' => 'Research Opportunities',
+        'opportunities' => 'Fundings',
         'notifications' => 'Notifications',
         'support' => 'Support',
         'settings' => 'Account Settings',

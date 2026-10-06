@@ -182,6 +182,27 @@ class ManageSiteSettings extends Page implements HasSchemas
                                             ->maxSize(204800)
                                             ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped behind the Innovation page banner. Leave empty for the plain navy banner.'),
                                     ]),
+
+                                Section::make('Research page')
+                                    ->description('The banner at the top of the Research page. A video plays behind the text; the cover image shows while it loads, or on its own without a video.')
+                                    ->columns(2)
+                                    ->schema([
+                                        FileUpload::make('research_image')
+                                            ->label('Research page cover image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('hero')
+                                            ->imageEditor()
+                                            ->helperText('Wide photo, at least 1920 × 900.'),
+
+                                        FileUpload::make('research_video')
+                                            ->label('Research page video')
+                                            ->disk('public')
+                                            ->directory('hero')
+                                            ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                                            ->maxSize(204800)
+                                            ->helperText('MP4 or WebM, up to 200 MB. Plays muted and looped. Leave both empty for the plain navy banner.'),
+                                    ]),
                             ]),
 
                             Tabs\Tab::make('About')->icon('heroicon-o-information-circle')->schema([

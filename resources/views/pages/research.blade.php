@@ -69,11 +69,36 @@
 
     @endphp
 
-    {{-- ---------------- 1. Hero ---------------- --}}
+    {{-- ---------------- 1. Hero ----------------
+         A cover image and/or video from Site Settings (Hero → Research page)
+         sits behind the text under a navy wash; without them, the plain navy. --}}
+    @php
+        $heroImage = $site->get('research_image');
+        $heroVideo = $site->get('research_video');
+    @endphp
     <section class="relative isolate overflow-hidden bg-navy-700 text-white">
-        <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.15]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -right-40 -top-48 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[130px]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-52 -left-32 -z-10 h-[30rem] w-[30rem] rounded-full border border-white/10" aria-hidden="true"></div>
+        @if ($heroVideo)
+            {{-- Muted, looped and decorative. With reduced motion it stays on its first frame. --}}
+            <video class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+                   autoplay muted loop playsinline preload="auto"
+                   @if ($heroImage) poster="{{ Storage::url($heroImage) }}" @endif
+                   x-data x-init="if (matchMedia('(prefers-reduced-motion: reduce)').matches) { $el.removeAttribute('autoplay'); $el.pause() }"
+                   aria-hidden="true" tabindex="-1">
+                <source src="{{ Storage::url($heroVideo) }}" type="{{ str_ends_with(strtolower($heroVideo), '.webm') ? 'video/webm' : 'video/mp4' }}">
+            </video>
+        @elseif ($heroImage)
+            <img src="{{ Storage::url($heroImage) }}" alt="" aria-hidden="true" fetchpriority="high"
+                 class="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover">
+        @endif
+
+        @if ($heroVideo || $heroImage)
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-navy-900/70" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-navy-900/90 via-navy-800/60 to-transparent" aria-hidden="true"></div>
+        @else
+            <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-[0.15]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -right-40 -top-48 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-600/35 blur-[130px]" aria-hidden="true"></div>
+            <div class="pointer-events-none absolute -bottom-52 -left-32 -z-10 h-[30rem] w-[30rem] rounded-full border border-white/10" aria-hidden="true"></div>
+        @endif
 
         <div class="container-rich py-20 sm:py-28">
             <p class="reveal eyebrow-invert">{{ __('research_hub.hero.eyebrow') }}</p>
