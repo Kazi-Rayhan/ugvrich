@@ -5,7 +5,7 @@
         :title="__('site.about.hero_title')"
         :lead="$site->get('about_intro')"
         :breadcrumbs="[__('site.about.meta_title') => null]">
-        <a href="{{ route('contact') }}" class="btn-primary">
+        <a href="{{ route('consultancy.create') }}" class="btn-primary">
             {{ __('site.actions.request_consultancy') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
         </a>
         <a href="{{ route('services.index') }}" class="btn-ghost">

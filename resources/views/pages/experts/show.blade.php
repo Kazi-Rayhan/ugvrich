@@ -61,7 +61,7 @@
                         @endforeach
                     </div>
 
-                    <a href="{{ route('contact') }}" class="btn-primary mt-6 w-full">
+                    <a href="{{ route('consultancy.create') }}" class="btn-primary mt-6 w-full">
                         {{ __('site.actions.request_consultancy') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
                     </a>
                 </div>

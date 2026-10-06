@@ -68,7 +68,7 @@
                    class="btn !px-6 bg-white text-ink-950 hover:-translate-y-0.5 hover:bg-brand-50">
                     {{ __('site.actions.submit_idea') }}
                 </a>
-                <a href="{{ route('contact') }}"
+                <a href="{{ route('consultancy.create') }}"
                    class="btn !px-6 text-white underline-offset-4 hover:underline">
                     {{ __('site.actions.collaborate_with_us') }}
                 </a>
