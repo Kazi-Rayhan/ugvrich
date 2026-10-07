@@ -131,4 +131,14 @@ return [
         'startup' => 'Startup formed',
         'market' => 'On the market',
     ],
+
+    // Internship tracks a student membership application can join.
+    'internship_tracks' => [
+        'electrical' => 'Smart Electrical Systems & Automation Services',
+        'ict' => 'Smart ICT Services',
+        'infrastructure' => 'Smart Infrastructure Services',
+        'mechanical' => 'Smart Mechanical & Automobile Services',
+        'business' => 'Business Advisory & Income Tax Services',
+        'language' => 'Language Services',
+    ],
 ];
