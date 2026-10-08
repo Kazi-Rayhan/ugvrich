@@ -5,7 +5,6 @@ use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\IdeaSubmissionController;
 use App\Http\Controllers\InnovationController;
-use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PostController;
@@ -105,7 +104,8 @@ Route::get('/membership', [MembershipController::class, 'create'])->name('member
 Route::get('/membership/thank-you', [MembershipController::class, 'thanks'])->name('membership.thanks');
 Route::post('/membership', [MembershipController::class, 'store'])->name('membership.store');
 
-// Internship applications: the form, its thank-you page, and the submit.
-Route::get('/internship', [InternshipController::class, 'create'])->name('internship.create');
-Route::get('/internship/thank-you', [InternshipController::class, 'thanks'])->name('internship.thanks');
-Route::post('/internship', [InternshipController::class, 'store'])->name('internship.store');
+// Internship: the membership form under its public name. /membership keeps
+// working for old links; both send applications to the same place.
+Route::get('/internship', [MembershipController::class, 'create'])->name('internship.create');
+Route::get('/internship/thank-you', [MembershipController::class, 'thanks'])->name('internship.thanks');
+Route::post('/internship', [MembershipController::class, 'store'])->name('internship.store');

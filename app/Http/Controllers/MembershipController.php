@@ -70,7 +70,7 @@ class MembershipController extends Controller
         RateLimiter::hit($this->computerKey($request), 10 * 60);
 
         return redirect()
-            ->route('membership.thanks')
+            ->route($this->family($request).'.thanks')
             ->with('membership_application', [
                 'reference' => $application->reference,
                 'name' => $application->name,
@@ -78,15 +78,24 @@ class MembershipController extends Controller
             ]);
     }
 
-    public function thanks()
+    public function thanks(Request $request)
     {
         if (! session()->has('membership_application')) {
-            return redirect()->route('membership.create');
+            return redirect()->route($this->family($request).'.create');
         }
 
         return view('pages.membership-thanks', [
             'application' => session('membership_application'),
         ]);
+    }
+
+    /**
+     * The form answers at /internship (its public name) and at /membership
+     * (for old links); each keeps the visitor on the address they came by.
+     */
+    protected function family(Request $request): string
+    {
+        return $request->routeIs('internship.*', 'en.internship.*') ? 'internship' : 'membership';
     }
 
     /** A second application from the same computer has to wait out the window. */

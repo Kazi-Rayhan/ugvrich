@@ -21,9 +21,9 @@ class StudentMembershipResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $modelLabel = 'Student membership';
+    protected static ?string $modelLabel = 'Internship application';
 
-    protected static ?string $pluralModelLabel = 'Student memberships';
+    protected static ?string $pluralModelLabel = 'Internship applications';
 
     public static function form(Schema $schema): Schema
     {

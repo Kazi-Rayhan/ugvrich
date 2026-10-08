@@ -31,7 +31,6 @@ use App\Filament\Resources\Services\ServiceResource;
 use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Stats\StatResource;
 use App\Filament\Resources\StudentMemberships\StudentMembershipResource;
-use App\Filament\Resources\InternshipApplications\InternshipApplicationResource;
 use App\Filament\Resources\StudentTeams\StudentTeamResource;
 use App\Filament\Resources\Subscribers\SubscriberResource;
 use App\Filament\Resources\Testimonials\TestimonialResource;
@@ -45,7 +44,6 @@ use App\Models\ResearchManuscript;
 use App\Models\ResearchProposal;
 use App\Models\ResearchSupport;
 use App\Models\StudentMembership;
-use App\Models\InternshipApplication;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
@@ -140,10 +138,9 @@ class AdminNavigation
                         ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
-                    $this->resource('Student Memberships', null, StudentMembershipResource::class)
+                    // The /internship form (formerly "membership") files its applications here.
+                    $this->resource('Internship Applications', null, StudentMembershipResource::class)
                         ->badge(fn () => ($n = StudentMembership::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
-                    $this->resource('Internship Applications', null, InternshipApplicationResource::class)
-                        ->badge(fn () => ($n = InternshipApplication::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Research Ideas', null, ResearchIdeaResource::class)
                         ->badge(fn () => ($n = ResearchIdea::whereIn('status', ['submitted', 'under_review'])->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Manuscripts', null, ResearchManuscriptResource::class)

@@ -13,15 +13,16 @@ class MembershipApplicationTest extends TestCase
 
     public function test_the_form_lists_every_internship_track(): void
     {
-        $this->get(route('membership.create'))
+        // The Bangla address itself: route() answers in the test's default (English).
+        $this->get('/membership')
             ->assertOk()
-            ->assertSee('শিক্ষার্থী সদস্যপদ', false)
+            ->assertSee('ইন্টার্নশিপ আবেদন', false)
             ->assertSee('স্মার্ট আইসিটি সেবা', false)
             ->assertDontSee('Send code', false);
 
         $this->get(route('en.membership.create'))
             ->assertOk()
-            ->assertSee('Student membership')
+            ->assertSee('Internship application')
             ->assertSee('Smart Electrical Systems & Automation Services')
             ->assertSee('Smart ICT Services')
             ->assertSee('Smart Infrastructure Services')
@@ -33,7 +34,22 @@ class MembershipApplicationTest extends TestCase
             ->assertSee('you@ugv.edu.bd')
             ->assertSee('Semester 8')
             ->assertDontSee('Semester 9')
-            ->assertSee('One application every 10 minutes');
+            ->assertDontSee('Membership');   // the visitor reads "Internship" throughout
+    }
+
+    public function test_the_form_answers_at_internship_and_stays_there(): void
+    {
+        $this->get(route('en.internship.create'))
+            ->assertOk()
+            ->assertSee('Internship application')
+            ->assertSee(route('en.internship.store'), false);
+
+        $this->post(route('en.internship.store'), $this->application())
+            ->assertRedirect(route('en.internship.thanks'));
+
+        $this->assertDatabaseHas(StudentMembership::class, ['student_id' => '221-115-001']);
+
+        $this->get(route('en.internship.thanks'))->assertOk()->assertSee('Smart ICT Services');
     }
 
     public function test_an_application_is_stored(): void

@@ -27,7 +27,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('membership.store') }}" method="POST"
+                <form action="{{ request()->routeIs('internship.*', 'en.internship.*') ? route('internship.store') : route('membership.store') }}" method="POST"
                       class="reveal overflow-hidden rounded-[2rem] border border-ink-100 bg-white shadow-[0_30px_70px_-50px_rgba(7,20,38,0.45)]">
                     @csrf
 
