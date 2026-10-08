@@ -944,7 +944,7 @@ return [
         'hero_title' => 'Join a RICH internship <span class="text-accent">track</span>.',
         'hero_lead' => 'UGV students apply here. Choose a track and the application is stored for the RICH office.',
         'form_title' => 'Membership application',
-        'form_note' => 'One application per student ID. Each computer can send one application every 10 minutes.',
+        'form_note' => 'One application per student ID.',
         'student_id' => 'Student ID',
         'student_id_placeholder' => 'e.g. 12222008',
         'semester' => 'Semester',

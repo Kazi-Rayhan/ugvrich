@@ -8,7 +8,7 @@
         :breadcrumbs="[__('site.membership.meta_title') => null]" />
 
     <section class="bg-white py-16 sm:py-20">
-        <div class="container-rich grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:gap-14">
+        <div class="container-rich mx-auto max-w-3xl">
 
             <div>
                 @if ($errors->any())
@@ -138,36 +138,6 @@
                     </div>
                 </form>
             </div>
-
-            <aside class="space-y-5 lg:sticky lg:top-28 lg:self-start">
-                <div class="reveal rounded-[2rem] border border-ink-100 bg-white p-6 sm:p-7">
-                    <h2 class="font-display text-[18px] font-bold text-ink-950">{{ __('site.membership.aside_title') }}</h2>
-                    <p class="mt-2 text-[13.5px] leading-relaxed muted">{{ __('site.membership.aside_body') }}</p>
-                    <ol class="mt-5 space-y-3">
-                        @foreach ($tracks as $key => $label)
-                            <li class="flex items-start gap-3">
-                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                                    <x-ui-icon :name="\App\Models\StudentMembership::TRACK_ICONS[$key] ?? 'sparkles'" class="h-4 w-4" />
-                                </span>
-                                <span class="pt-1 text-[13.5px] leading-snug text-ink-800">
-                                    <span class="font-semibold tabular-nums text-ink-400">{{ $loop->iteration }}.</span>
-                                    {{ $label }}
-                                </span>
-                            </li>
-                        @endforeach
-                    </ol>
-                </div>
-
-                <div class="reveal relative isolate overflow-hidden rounded-[2rem] bg-navy-700 p-6 text-white sm:p-7">
-                    <div class="pointer-events-none absolute inset-0 -z-10 text-white grid-overlay opacity-20" aria-hidden="true"></div>
-                    <div class="pointer-events-none absolute -right-16 -top-16 -z-10 h-44 w-44 rounded-full bg-brand-600/50" aria-hidden="true"></div>
-                    <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-navy-700">
-                        <x-ui-icon name="clock" class="h-5 w-5" />
-                    </span>
-                    <h2 class="mt-5 font-display text-[18px] font-bold !text-white">{{ __('site.membership.aside_limit_title') }}</h2>
-                    <p class="mt-2 text-[13.5px] leading-relaxed text-white/75">{{ __('site.membership.aside_limit_body') }}</p>
-                </div>
-            </aside>
         </div>
     </section>
 </x-layouts.app>
