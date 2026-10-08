@@ -23,10 +23,9 @@ class ConsultancyRequestsTable
             ->paginationPageOptions([25, 50, 100])
 
             /*
-             | Six columns, not nine: each one carries its secondary detail
-             | underneath rather than in a column of its own, so a row reads
-             | top to bottom instead of running off the side of the screen.
-             | Everything else is a toggle.
+             | Six columns: received, requester, phone, email, area (the main
+             | category only) and status. The rest is a toggle, and the meeting
+             | the requester asked for is on the record itself.
              */
             ->columns([
                 TextColumn::make('created_at')
@@ -61,22 +60,13 @@ class ConsultancyRequestsTable
                     ->copyMessage('Email copied')
                     ->placeholder('Not given'),
 
+                // The main category only; the specific service is on the record itself.
                 TextColumn::make('category.name')
                     ->label('Area')
                     ->badge()
                     ->color('gray')
                     ->placeholder('Not chosen')
-                    ->description(fn ($record) => $record->area_of_interest)
                     ->wrap(),
-
-                TextColumn::make('preferred_date')
-                    ->label('Meeting')
-                    ->date('j M Y')
-                    ->description(fn ($record) => $record->preferred_slot
-                        ? str_replace('-', ' – ', $record->preferred_slot)
-                        : null)
-                    ->placeholder('No preference')
-                    ->sortable(),
 
                 TextColumn::make('status')
                     ->badge()
@@ -118,10 +108,6 @@ class ConsultancyRequestsTable
 
                 Group::make('created_at')
                     ->label('Month received')
-                    ->date(),
-
-                Group::make('preferred_date')
-                    ->label('Meeting date')
                     ->date(),
             ])
 
