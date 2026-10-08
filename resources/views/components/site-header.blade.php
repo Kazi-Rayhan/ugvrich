@@ -30,6 +30,7 @@
         ['key' => 'team', 'label' => __('site.nav.team'), 'route' => 'experts.index', 'match' => ['experts.*']],
         ['key' => 'about', 'label' => __('site.nav.about'), 'route' => 'about', 'match' => ['about']],
         ['key' => 'startup', 'label' => __('site.nav.startup'), 'route' => 'startup', 'match' => ['startup', 'ideas.*']],
+        ['key' => 'internship', 'label' => __('site.nav.internship'), 'route' => 'internship.create', 'match' => ['internship.*']],
         ['key' => 'news', 'label' => __('site.nav.news'), 'route' => 'news.index', 'match' => ['news.*', 'events']],
     ];
 

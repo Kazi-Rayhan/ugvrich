@@ -119,4 +119,24 @@ return [
         'business' => 'Business Advisory & Income Tax Services',
         'language' => 'Language Services',
     ],
+
+    'internship_years' => [
+        '1' => '1st year',
+        '2' => '2nd year',
+        '3' => '3rd year',
+        '4' => '4th year',
+        'final' => 'Final semester',
+        'graduate' => 'Recent graduate',
+    ],
+    'internship_durations' => [
+        '1' => '1 month',
+        '2' => '2 months',
+        '3' => '3 months',
+        '6' => '6 months',
+    ],
+    'internship_modes' => [
+        'onsite' => 'On-site',
+        'remote' => 'Remote',
+        'hybrid' => 'Hybrid',
+    ],
 ];

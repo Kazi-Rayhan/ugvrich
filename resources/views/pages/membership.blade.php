@@ -103,29 +103,31 @@
                                           :placeholder="__('site.membership.email_placeholder')" autocomplete="email" />
                         </div>
 
-                        <fieldset>
-                            <legend class="text-[13px] font-semibold text-ink-700">
+                        {{-- The track, as a dropdown like the semester and department --}}
+                        <div>
+                            <label for="track" class="mb-2 block text-[13px] font-semibold text-ink-700">
                                 {{ __('site.membership.track_label') }} <span class="text-brand-600">*</span>
-                            </legend>
-                            <p class="mt-1 text-[13.5px] muted">{{ __('site.membership.track_note') }}</p>
-
-                            <div class="mt-4 grid gap-2.5">
-                                @foreach ($tracks as $key => $label)
-                                    <label class="group relative flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 transition has-[:checked]:border-brand-400 has-[:checked]:bg-brand-50 has-[:checked]:ring-4 has-[:checked]:ring-brand-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-600 {{ $errors->has('track') ? 'border-red-200' : 'border-ink-200 hover:border-ink-300 hover:bg-ink-50/60' }}">
-                                        <input type="radio" name="track" value="{{ $key }}" class="sr-only" required @checked(old('track') === $key)>
-                                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink-50 text-brand-600">
-                                            <x-ui-icon :name="\App\Models\StudentMembership::TRACK_ICONS[$key] ?? 'sparkles'" class="h-4 w-4" />
-                                        </span>
-                                        <span class="min-w-0 text-[13.5px] font-medium leading-snug text-ink-800">
-                                            <span class="mr-1.5 tabular-nums text-ink-400">{{ $loop->iteration }}.</span>{{ $label }}
-                                        </span>
-                                    </label>
-                                @endforeach
+                            </label>
+                            <div class="group relative">
+                                <x-ui-icon name="briefcase" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-400 transition-colors group-focus-within:text-brand-600" />
+                                <select id="track" name="track" required
+                                        @class([
+                                            'w-full appearance-none rounded-2xl border bg-ink-50/60 py-3.5 pl-11 pr-10 text-[15px] text-ink-900 transition focus:bg-white focus:outline-none focus:ring-4',
+                                            'border-red-300 focus:border-red-400 focus:ring-red-100' => $errors->has('track'),
+                                            'border-ink-200 hover:border-ink-300 focus:border-brand-400 focus:ring-brand-100' => ! $errors->has('track'),
+                                        ])>
+                                    <option value="">{{ __('site.membership.track_placeholder') }}</option>
+                                    @foreach ($tracks as $key => $label)
+                                        <option value="{{ $key }}" @selected(old('track') === $key)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <x-ui-icon name="chevron-down" class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
                             </div>
+                            <p class="mt-1.5 text-[13px] muted">{{ __('site.membership.track_note') }}</p>
                             @error('track')
                                 <p class="mt-1.5 text-[13px] text-red-600">{{ $message }}</p>
                             @enderror
-                        </fieldset>
+                        </div>
 
                         <div>
                             <button type="submit" class="btn-primary group w-full sm:w-auto">
