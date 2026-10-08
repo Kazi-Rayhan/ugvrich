@@ -5,11 +5,12 @@ use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\IdeaSubmissionController;
 use App\Http\Controllers\InnovationController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\Researcher\AuthController;
-use App\Http\Controllers\ResearchRequestController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\Researcher\AuthController;
+use App\Http\Controllers\ResearchRequestController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SubscriberController;
 use Illuminate\Support\Facades\Route;
@@ -98,3 +99,7 @@ Route::post('/contact-message', ContactMessageController::class)
 Route::post('/subscribe', SubscriberController::class)
     ->middleware('throttle:8,1')
     ->name('subscribe');
+
+Route::get('/membership', [MembershipController::class, 'create'])->name('membership.create');
+Route::get('/membership/thank-you', [MembershipController::class, 'thanks'])->name('membership.thanks');
+Route::post('/membership', [MembershipController::class, 'store'])->name('membership.store');

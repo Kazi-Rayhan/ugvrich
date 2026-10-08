@@ -11,37 +11,39 @@ use App\Filament\Resources\CoreAreas\CoreAreaResource;
 use App\Filament\Resources\Experts\ExpertResource;
 use App\Filament\Resources\Facilities\FacilityResource;
 use App\Filament\Resources\Faqs\FaqResource;
-use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
-use App\Filament\Resources\Innovations\InnovationResource;
-use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
-use App\Filament\Resources\Partners\PartnerResource;
 use App\Filament\Resources\FundingOpportunities\FundingOpportunityResource;
-use App\Filament\Resources\ResearchFundings\ResearchFundingResource;
-use App\Models\ResearchFunding;
-use App\Filament\Resources\ResearchManuscripts\ResearchManuscriptResource;
-use App\Models\ResearchManuscript;
-use App\Filament\Resources\ResearchIdeas\ResearchIdeaResource;
-use App\Models\ResearchIdea;
-use App\Filament\Resources\ResearchProposals\ResearchProposalResource;
-use App\Filament\Resources\ResearchSupports\ResearchSupportResource;
-use App\Models\ResearchProposal;
-use App\Models\ResearchSupport;
+use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
+use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
+use App\Filament\Resources\Innovations\InnovationResource;
+use App\Filament\Resources\Partners\PartnerResource;
+use App\Filament\Resources\Permissions\PermissionResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Publications\PublicationResource;
+use App\Filament\Resources\ResearchFundings\ResearchFundingResource;
+use App\Filament\Resources\ResearchIdeas\ResearchIdeaResource;
+use App\Filament\Resources\ResearchManuscripts\ResearchManuscriptResource;
+use App\Filament\Resources\ResearchProposals\ResearchProposalResource;
+use App\Filament\Resources\ResearchSupports\ResearchSupportResource;
+use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\ServiceCategories\ServiceCategoryResource;
 use App\Filament\Resources\Services\ServiceResource;
 use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Stats\StatResource;
+use App\Filament\Resources\StudentMemberships\StudentMembershipResource;
 use App\Filament\Resources\StudentTeams\StudentTeamResource;
 use App\Filament\Resources\Subscribers\SubscriberResource;
 use App\Filament\Resources\Testimonials\TestimonialResource;
-use App\Filament\Resources\Permissions\PermissionResource;
-use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
 use App\Models\IdeaSubmission;
+use App\Models\ResearchFunding;
+use App\Models\ResearchIdea;
+use App\Models\ResearchManuscript;
+use App\Models\ResearchProposal;
+use App\Models\ResearchSupport;
+use App\Models\StudentMembership;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
@@ -136,6 +138,8 @@ class AdminNavigation
                         ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                    $this->resource('Student Memberships', null, StudentMembershipResource::class)
+                        ->badge(fn () => ($n = StudentMembership::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Research Ideas', null, ResearchIdeaResource::class)
                         ->badge(fn () => ($n = ResearchIdea::whereIn('status', ['submitted', 'under_review'])->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Manuscripts', null, ResearchManuscriptResource::class)

@@ -43,6 +43,7 @@
         // [__('site.nav.publications'), route('publications'), 'document', ['publications']],   // hidden from the strip on request
         [__('site.nav.patents'), route('patents'), 'key', ['patents']],
         [__('site.nav.industry'), route('industry'), 'handshake', ['industry']],
+        [__('site.nav.membership'), route('membership.create'), 'academic', ['membership.*']],
         // [__('site.nav.labs'), route('labs'), 'cpu', ['labs']],   // hidden from the strip on request
     ];
 
