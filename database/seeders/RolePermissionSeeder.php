@@ -15,6 +15,7 @@ use App\Models\FundingOpportunity;
 use App\Models\IdeaSubmission;
 use App\Models\Innovation;
 use App\Models\InnovationArea;
+use App\Models\InternshipApplication;
 use App\Models\Partner;
 use App\Models\Permission;
 use App\Models\Post;
@@ -32,6 +33,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Setting;
 use App\Models\Stat;
+use App\Models\StudentMembership;
 use App\Models\StudentTeam;
 use App\Models\Subscriber;
 use App\Models\Testimonial;
@@ -68,6 +70,9 @@ class RolePermissionSeeder extends Seeder
         ResearcherProfile::class => ['viewAny', 'view'],
         ConsultancyRequest::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
+        // Applications from the public forms: read, handled and deleted here, never created.
+        InternshipApplication::class => ['viewAny', 'view', 'update', 'delete'],
+        StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
         CoreArea::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Expert::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Facility::class => ['viewAny', 'view', 'create', 'update', 'delete'],
@@ -103,6 +108,8 @@ class RolePermissionSeeder extends Seeder
         Project::class => 'Projects',
         ConsultancyRequest::class => 'Inbox',
         ContactMessage::class => 'Inbox',
+        InternshipApplication::class => 'Inbox',
+        StudentMembership::class => 'Inbox',
         CoreArea::class => 'Website content',
         Expert::class => 'People',
         Facility::class => 'Website content',
