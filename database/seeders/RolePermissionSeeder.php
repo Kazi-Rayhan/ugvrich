@@ -15,7 +15,6 @@ use App\Models\FundingOpportunity;
 use App\Models\IdeaSubmission;
 use App\Models\Innovation;
 use App\Models\InnovationArea;
-use App\Models\InternshipApplication;
 use App\Models\Partner;
 use App\Models\Permission;
 use App\Models\Post;
@@ -70,8 +69,7 @@ class RolePermissionSeeder extends Seeder
         ResearcherProfile::class => ['viewAny', 'view'],
         ConsultancyRequest::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
-        // Applications from the public forms: read, handled and deleted here, never created.
-        InternshipApplication::class => ['viewAny', 'view', 'update', 'delete'],
+        // Internship applications from the public form: read, handled and deleted here, never created.
         StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
         CoreArea::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Expert::class => ['viewAny', 'view', 'create', 'update', 'delete'],
@@ -108,7 +106,6 @@ class RolePermissionSeeder extends Seeder
         Project::class => 'Projects',
         ConsultancyRequest::class => 'Inbox',
         ContactMessage::class => 'Inbox',
-        InternshipApplication::class => 'Inbox',
         StudentMembership::class => 'Inbox',
         CoreArea::class => 'Website content',
         Expert::class => 'People',
@@ -130,6 +127,11 @@ class RolePermissionSeeder extends Seeder
         User::class => 'People and access',
         Role::class => 'People and access',
         Permission::class => 'People and access',
+    ];
+
+    /** Models whose public name differs from the class name. */
+    protected array $labels = [
+        StudentMembership::class => 'internship application',
     ];
 
     public function run(): void
@@ -169,6 +171,11 @@ class RolePermissionSeeder extends Seeder
             }
         }
 
+        // The retired 3-step internship form; its applications now arrive as student memberships.
+        Permission::query()
+            ->whereIn('name', ['view_any_internship_application', 'view_internship_application', 'update_internship_application', 'delete_internship_application'])
+            ->get()->each->delete();
+
         $this->command?->info('Permissions: '.Permission::count());
 
         return Permission::count();
@@ -176,18 +183,19 @@ class RolePermissionSeeder extends Seeder
 
     protected function describe(string $action, string $model): string
     {
-        $thing = str(class_basename($model))->headline()->lower();
+        $thing = $this->labels[$model] ?? str(class_basename($model))->headline()->lower();
+        $a = preg_match('/^[aeiou]/', $thing) ? 'an' : 'a';
 
         return match ($action) {
             'viewAny' => "List {$thing} records",
-            'view' => "Open a {$thing} record",
-            'create' => "Add a {$thing} record",
-            'update' => "Change a {$thing} record",
-            'delete' => "Remove a {$thing} record",
-            'review' => "Assign, review and decide on a {$thing}",
-            'setStatus' => "Set the official status of a {$thing}",
+            'view' => "Open {$a} {$thing} record",
+            'create' => "Add {$a} {$thing} record",
+            'update' => "Change {$a} {$thing} record",
+            'delete' => "Remove {$a} {$thing} record",
+            'review' => "Assign, review and decide on {$a} {$thing}",
+            'setStatus' => "Set the official status of {$a} {$thing}",
             'impersonate' => 'Sign in as another account to see what they see',
-            default => str($action)->headline()->toString()." a {$thing}",
+            default => str($action)->headline()->toString()." {$a} {$thing}",
         };
     }
 
