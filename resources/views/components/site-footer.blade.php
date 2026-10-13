@@ -116,7 +116,7 @@
                         ['site.nav.projects', 'projects.index'],
                         ['site.footer.experts', 'experts.index'],
                         ['site.nav.news', 'news.index'],
-                        ['site.nav.internship', 'internship.create'],
+                        ['site.nav.apprenticeship', 'apprenticeship.create'],
                         ['site.nav.contact', 'contact'],
                     ] as [$label, $routeName])
                         <li>

@@ -138,8 +138,8 @@ class AdminNavigation
                         ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
-                    // The /internship form (formerly "membership") files its applications here.
-                    $this->resource('Internship Applications', null, StudentMembershipResource::class)
+                    // The /apprenticeship form (formerly "membership") files its applications here.
+                    $this->resource('Apprenticeship Applications', null, StudentMembershipResource::class)
                         ->badge(fn () => ($n = StudentMembership::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Research Ideas', null, ResearchIdeaResource::class)
                         ->badge(fn () => ($n = ResearchIdea::whereIn('status', ['submitted', 'under_review'])->count()) ? (string) $n : null, 'warning'),

@@ -69,7 +69,7 @@ class RolePermissionSeeder extends Seeder
         ResearcherProfile::class => ['viewAny', 'view'],
         ConsultancyRequest::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
-        // Internship applications from the public form: read, handled and deleted here, never created.
+        // Apprenticeship applications from the public form: read, handled and deleted here, never created.
         StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
         CoreArea::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Expert::class => ['viewAny', 'view', 'create', 'update', 'delete'],
@@ -131,7 +131,7 @@ class RolePermissionSeeder extends Seeder
 
     /** Models whose public name differs from the class name. */
     protected array $labels = [
-        StudentMembership::class => 'internship application',
+        StudentMembership::class => 'apprenticeship application',
     ];
 
     public function run(): void

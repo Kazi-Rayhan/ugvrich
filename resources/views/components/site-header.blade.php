@@ -30,7 +30,7 @@
         ['key' => 'team', 'label' => __('site.nav.team'), 'route' => 'experts.index', 'match' => ['experts.*']],
         ['key' => 'about', 'label' => __('site.nav.about'), 'route' => 'about', 'match' => ['about']],
         ['key' => 'startup', 'label' => __('site.nav.startup'), 'route' => 'startup', 'match' => ['startup', 'ideas.*']],
-        ['key' => 'internship', 'label' => __('site.nav.internship'), 'route' => 'internship.create', 'match' => ['internship.*']],
+        ['key' => 'apprenticeship', 'label' => __('site.nav.apprenticeship'), 'route' => 'apprenticeship.create', 'match' => ['apprenticeship.*']],
         ['key' => 'news', 'label' => __('site.nav.news'), 'route' => 'news.index', 'match' => ['news.*', 'events']],
     ];
 
@@ -44,7 +44,7 @@
         // [__('site.nav.publications'), route('publications'), 'document', ['publications']],   // hidden from the strip on request
         [__('site.nav.patents'), route('patents'), 'key', ['patents']],
         [__('site.nav.industry'), route('industry'), 'handshake', ['industry']],
-        // [__('site.nav.membership'), route('membership.create'), 'academic', ['membership.*']],   // hidden: the Internship page in the main menu covers it
+        // [__('site.nav.membership'), route('membership.create'), 'academic', ['membership.*']],   // hidden: the Apprenticeship page in the main menu covers it
         // [__('site.nav.labs'), route('labs'), 'cpu', ['labs']],   // hidden from the strip on request
     ];
 

@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/** The internship inbox follows the role system like every other part of the dashboard. */
+/** The apprenticeship inbox follows the role system like every other part of the dashboard. */
 class ApplicationInboxPermissionTest extends TestCase
 {
     use RefreshDatabase;
@@ -30,13 +30,13 @@ class ApplicationInboxPermissionTest extends TestCase
         return User::factory()->create(['role' => User::ADMIN, 'role_id' => $role->id]);
     }
 
-    public function test_the_permissions_exist_under_the_inbox_as_internship_applications(): void
+    public function test_the_permissions_exist_under_the_inbox_as_apprenticeship_applications(): void
     {
         foreach (['view_any', 'view', 'update', 'delete'] as $action) {
             $this->assertDatabaseHas('permissions', ['name' => "{$action}_student_membership", 'group' => 'Inbox']);
         }
 
-        $this->assertSame('List internship application records', Permission::where('name', 'view_any_student_membership')->value('description'));
+        $this->assertSame('List apprenticeship application records', Permission::where('name', 'view_any_student_membership')->value('description'));
     }
 
     public function test_the_retired_internship_form_permissions_are_removed(): void

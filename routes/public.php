@@ -104,8 +104,11 @@ Route::get('/membership', [MembershipController::class, 'create'])->name('member
 Route::get('/membership/thank-you', [MembershipController::class, 'thanks'])->name('membership.thanks');
 Route::post('/membership', [MembershipController::class, 'store'])->name('membership.store');
 
-// Internship: the membership form under its public name. /membership keeps
+// Apprenticeship: the membership form under its public name. /membership keeps
 // working for old links; both send applications to the same place.
-Route::get('/internship', [MembershipController::class, 'create'])->name('internship.create');
-Route::get('/internship/thank-you', [MembershipController::class, 'thanks'])->name('internship.thanks');
-Route::post('/internship', [MembershipController::class, 'store'])->name('internship.store');
+Route::get('/apprenticeship', [MembershipController::class, 'create'])->name('apprenticeship.create');
+Route::get('/apprenticeship/thank-you', [MembershipController::class, 'thanks'])->name('apprenticeship.thanks');
+Route::post('/apprenticeship', [MembershipController::class, 'store'])->name('apprenticeship.store');
+
+// The page's previous address, kept for links already shared.
+Route::get('/internship', fn () => redirect()->route('apprenticeship.create', status: 301));

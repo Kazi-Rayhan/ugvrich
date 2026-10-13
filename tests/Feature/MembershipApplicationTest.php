@@ -16,13 +16,13 @@ class MembershipApplicationTest extends TestCase
         // The Bangla address itself: route() answers in the test's default (English).
         $this->get('/membership')
             ->assertOk()
-            ->assertSee('ইন্টার্নশিপ আবেদন', false)
+            ->assertSee('শিক্ষানবিশ আবেদন', false)
             ->assertSee('স্মার্ট আইসিটি সেবা', false)
             ->assertDontSee('Send code', false);
 
         $this->get(route('en.membership.create'))
             ->assertOk()
-            ->assertSee('Internship application')
+            ->assertSee('Apprenticeship application')
             ->assertSee('Smart Electrical Systems & Automation Services')
             ->assertSee('Smart ICT Services')
             ->assertSee('Smart Infrastructure Services')
@@ -34,22 +34,29 @@ class MembershipApplicationTest extends TestCase
             ->assertSee('you@ugv.edu.bd')
             ->assertSee('Semester 8')
             ->assertDontSee('Semester 9')
-            ->assertDontSee('Membership');   // the visitor reads "Internship" throughout
+            ->assertDontSee('Membership');   // the visitor reads "Apprenticeship" throughout
     }
 
-    public function test_the_form_answers_at_internship_and_stays_there(): void
+    public function test_the_form_answers_at_apprenticeship_and_stays_there(): void
     {
-        $this->get(route('en.internship.create'))
+        $this->get(route('en.apprenticeship.create'))
             ->assertOk()
-            ->assertSee('Internship application')
-            ->assertSee(route('en.internship.store'), false);
+            ->assertSee('Apprenticeship application')
+            ->assertSee(route('en.apprenticeship.store'), false);
 
-        $this->post(route('en.internship.store'), $this->application())
-            ->assertRedirect(route('en.internship.thanks'));
+        $this->post(route('en.apprenticeship.store'), $this->application())
+            ->assertRedirect(route('en.apprenticeship.thanks'));
 
         $this->assertDatabaseHas(StudentMembership::class, ['student_id' => '221-115-001']);
 
-        $this->get(route('en.internship.thanks'))->assertOk()->assertSee('Smart ICT Services');
+        $this->get(route('en.apprenticeship.thanks'))->assertOk()->assertSee('Smart ICT Services');
+    }
+
+    public function test_the_old_internship_address_forwards_to_apprenticeship(): void
+    {
+        $this->get('/internship')->assertRedirect('/apprenticeship')->assertStatus(301);
+        $this->get('/en/internship')->assertRedirect('/en/apprenticeship')->assertStatus(301);
+        $this->get('/apprenticeship')->assertOk()->assertSee('শিক্ষানবিশ আবেদন', false);
     }
 
     public function test_an_application_is_stored(): void

@@ -90,12 +90,12 @@ class MembershipController extends Controller
     }
 
     /**
-     * The form answers at /internship (its public name) and at /membership
+     * The form answers at /apprenticeship (its public name) and at /membership
      * (for old links); each keeps the visitor on the address they came by.
      */
     protected function family(Request $request): string
     {
-        return $request->routeIs('internship.*', 'en.internship.*') ? 'internship' : 'membership';
+        return $request->routeIs('apprenticeship.*', 'en.apprenticeship.*') ? 'apprenticeship' : 'membership';
     }
 
     /** A second application from the same computer has to wait out the window. */

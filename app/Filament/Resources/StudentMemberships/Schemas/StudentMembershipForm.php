@@ -27,7 +27,7 @@ class StudentMembershipForm
                         TextInput::make('phone')->disabled(),
                         TextInput::make('email')->disabled(),
                         TextInput::make('track')
-                            ->label('Internship track')
+                            ->label('Apprenticeship track')
                             ->formatStateUsing(fn (?string $state) => Vocabulary::label('internship_tracks', $state) ?? $state)
                             ->disabled()
                             ->columnSpanFull(),
