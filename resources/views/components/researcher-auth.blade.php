@@ -37,7 +37,10 @@
             <p class="mt-5 max-w-sm text-[14.5px] leading-[1.85] text-white/65">{{ __('research_hub.hero.lead') }}</p>
         </div>
 
-        <p class="text-[12.5px] text-white/40">{{ __('researcher.auth.staff_note') }}</p>
+        <a href="{{ url('/admin/login') }}" class="inline-flex items-center gap-1.5 self-start text-[12.5px] text-white/50 transition-colors hover:text-white">
+            {{ __('researcher.auth.staff_note') }}
+            <x-ui-icon name="arrow-up-right" class="h-3.5 w-3.5" />
+        </a>
     </div>
 
     {{-- The side that asks --}}

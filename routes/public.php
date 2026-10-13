@@ -3,6 +3,7 @@
 use App\Http\Controllers\ConsultancyRequestController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ExpertController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\IdeaSubmissionController;
 use App\Http\Controllers\InnovationController;
 use App\Http\Controllers\MembershipController;
@@ -26,6 +27,14 @@ Route::get('/', [PageController::class, 'home'])->name('home');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+
+    // Forgot password: ask for the link, then choose a new password from it.
+    Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'email'])
+        ->middleware('throttle:6,1')
+        ->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.store');
 });
 
 Route::get('/about', [PageController::class, 'about'])->name('about');

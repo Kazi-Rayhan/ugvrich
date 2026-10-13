@@ -39,6 +39,12 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    /** The "forgot password" email, in the site's own words and language. */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetAccountPassword($token));
+    }
+
     /** Staff, who run the site from the admin panel. */
     public const ADMIN = 'admin';
 
