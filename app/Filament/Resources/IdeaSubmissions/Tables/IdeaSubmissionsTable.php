@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\IdeaSubmissions\Tables;
 
+use App\Filament\Support\PdfExport;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -88,7 +89,10 @@ class IdeaSubmissionsTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([DeleteBulkAction::make()]),
+                BulkActionGroup::make([
+                    PdfExport::bulkAction('exports.idea-submissions'),
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

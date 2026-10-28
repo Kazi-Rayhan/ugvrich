@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\IdeaSubmissionExportController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\SalesPrintController;
 use App\Http\Middleware\SetLocale;
@@ -34,6 +35,10 @@ Route::middleware('auth')->prefix('admin/print')->name('sales.')->group(function
     Route::get('/proposals/{proposal}', [SalesPrintController::class, 'proposal'])->name('proposals.print');
     Route::get('/orders/{order}', [SalesPrintController::class, 'order'])->name('orders.print');
 });
+
+// "Export PDF" on the idea submissions list.
+Route::middleware('auth')->get('/admin/export/idea-submissions', IdeaSubmissionExportController::class)
+    ->name('exports.idea-submissions');
 
 Route::prefix('en')->name('en.')->group(function () {
     Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
