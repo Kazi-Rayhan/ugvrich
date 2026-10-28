@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ManageSiteSettings;
 use App\Filament\Pages\ReportsAnalytics;
+use App\Filament\Resources\Clients\ClientResource;
 use App\Filament\Resources\ConsultancyRequests\ConsultancyRequestResource;
 use App\Filament\Resources\ContactMessages\ContactMessageResource;
 use App\Filament\Resources\CoreAreas\CoreAreaResource;
@@ -15,9 +16,11 @@ use App\Filament\Resources\FundingOpportunities\FundingOpportunityResource;
 use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
 use App\Filament\Resources\Innovations\InnovationResource;
+use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Resources\Partners\PartnerResource;
 use App\Filament\Resources\Permissions\PermissionResource;
 use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Publications\PublicationResource;
 use App\Filament\Resources\ResearchFundings\ResearchFundingResource;
@@ -38,6 +41,7 @@ use App\Filament\Resources\Users\UserResource;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
 use App\Models\IdeaSubmission;
+use App\Models\Proposal;
 use App\Models\ResearchFunding;
 use App\Models\ResearchIdea;
 use App\Models\ResearchManuscript;
@@ -101,6 +105,17 @@ class AdminNavigation
                 ->items([
                     $this->resource('Innovation Areas', null, InnovationAreaResource::class),
                     $this->resource('Innovations', null, InnovationResource::class),
+                ]),
+
+            // Proposal → order → payments, for the consultancy services.
+            NavigationGroup::make('Consultancy Sales')
+                ->icon(Heroicon::OutlinedBanknotes)
+                ->collapsible()
+                ->items([
+                    $this->resource('Proposals', null, ProposalResource::class)
+                        ->badge(fn () => ($n = Proposal::where('status', 'accepted')->count()) ? (string) $n : null, 'success'),
+                    $this->resource('Orders', null, OrderResource::class),
+                    $this->resource('Clients', null, ClientResource::class),
                 ]),
 
             NavigationGroup::make('Website Content')

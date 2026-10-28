@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ConsultancyRequests\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -145,6 +146,13 @@ class ConsultancyRequestsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                // Starts a proposal with the requester as the client (matched to an existing one if known).
+                Action::make('proposal')
+                    ->label('Create proposal')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('primary')
+                    ->authorize('create', \App\Models\Proposal::class)
+                    ->url(fn ($record) => \App\Filament\Resources\Proposals\ProposalResource::getUrl('create', ['request' => $record->id])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

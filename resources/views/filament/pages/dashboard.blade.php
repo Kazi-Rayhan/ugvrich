@@ -113,6 +113,23 @@
             @endforeach
         </div>
 
+        {{-- Consultancy sales: proposals, orders and money received --}}
+        @if (! empty($d['sales']))
+            <div class="rd-kpis">
+                @foreach ($d['sales'] as [$label, $value, $icon, $tone, $href])
+                    <a href="{{ $href }}" wire:navigate class="rd-kpi">
+                        <span class="rd-kpi-icon rd-tone-{{ $tone }}">
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icons[$icon] }}"/></svg>
+                        </span>
+                        <span>
+                            <span class="rd-kpi-value" style="font-size:{{ strlen($value) > 9 ? '20px' : '30px' }}">{{ $value }}</span>
+                            <span class="rd-kpi-label" style="display:block; margin-top:6px">{{ $label }}</span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
         @if ($d['access']['pipeline'] || $d['access']['projects'])
         <div class="rd-main">
             {{-- Innovation pipeline --}}

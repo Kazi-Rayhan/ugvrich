@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Support\Bilingual;
+use App\Filament\Support\SalesConditions;
 use App\Models\Service;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -47,6 +48,14 @@ class ServiceForm
                                 ->options(config('rich.departments'))
                                 ->helperText('Groups the service under a department on the consultancy page.'),
 
+                            TextInput::make('price')
+                                ->label('Default price')
+                                ->numeric()
+                                ->minValue(0)
+                                ->step('0.01')
+                                ->prefix('BDT')
+                                ->helperText('Filled in when this service is added to a proposal, where it can be negotiated. Never shown on the site. Changing it does not alter existing proposals or orders.'),
+
                             Textarea::make('description')
                                 ->rows(3)
                                 ->columnSpanFull()
@@ -85,6 +94,13 @@ class ServiceForm
 
                             Toggle::make('is_active')->label('Visible on the site')->default(true),
                         ]),
+
+                    // Not on the website: what a proposal for this service says it includes.
+                    Section::make('Proposal template')
+                        ->description('Scope and conditions loaded into a proposal when this service is chosen, then adjusted for each client.')
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->collapsible()
+                        ->schema([SalesConditions::templateEditor()->hiddenLabel()]),
                 ]),
             ]);
     }

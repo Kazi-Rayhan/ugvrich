@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Helpers\PolicyHelper;
 use App\Filament\Pages\ManageSiteSettings;
 use App\Filament\Pages\ReportsAnalytics;
+use App\Models\Client;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
 use App\Models\CoreArea;
@@ -15,10 +16,13 @@ use App\Models\FundingOpportunity;
 use App\Models\IdeaSubmission;
 use App\Models\Innovation;
 use App\Models\InnovationArea;
+use App\Models\Order;
 use App\Models\Partner;
+use App\Models\Payment;
 use App\Models\Permission;
 use App\Models\Post;
 use App\Models\Project;
+use App\Models\Proposal;
 use App\Models\Publication;
 use App\Models\ResearchFunding;
 use App\Models\ResearchIdea;
@@ -71,6 +75,13 @@ class RolePermissionSeeder extends Seeder
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         // Apprenticeship applications from the public form: read, handled and deleted here, never created.
         StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
+        // Consultancy sales. Accepting and converting a proposal, and confirming
+        // or reversing a payment, are their own permissions so they can be given
+        // to fewer people than writing a proposal or recording a payment.
+        Client::class => ['viewAny', 'view', 'create', 'update', 'delete'],
+        Proposal::class => ['viewAny', 'view', 'create', 'update', 'delete', 'accept', 'convert'],
+        Order::class => ['viewAny', 'view', 'create', 'update', 'delete'],
+        Payment::class => ['viewAny', 'view', 'create', 'confirm', 'reverse'],
         CoreArea::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Expert::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Facility::class => ['viewAny', 'view', 'create', 'update', 'delete'],
@@ -107,6 +118,10 @@ class RolePermissionSeeder extends Seeder
         ConsultancyRequest::class => 'Inbox',
         ContactMessage::class => 'Inbox',
         StudentMembership::class => 'Inbox',
+        Client::class => 'Consultancy sales',
+        Proposal::class => 'Consultancy sales',
+        Order::class => 'Consultancy sales',
+        Payment::class => 'Consultancy sales',
         CoreArea::class => 'Website content',
         Expert::class => 'People',
         Facility::class => 'Website content',
@@ -195,6 +210,10 @@ class RolePermissionSeeder extends Seeder
             'review' => "Assign, review and decide on {$a} {$thing}",
             'setStatus' => "Set the official status of {$a} {$thing}",
             'impersonate' => 'Sign in as another account to see what they see',
+            'accept' => "Mark {$a} {$thing} as accepted by the client",
+            'convert' => "Convert an accepted {$thing} into an order",
+            'confirm' => "Confirm or fail {$a} pending {$thing}",
+            'reverse' => "Reverse {$a} confirmed {$thing} (refund or correction)",
             default => str($action)->headline()->toString()." {$a} {$thing}",
         };
     }

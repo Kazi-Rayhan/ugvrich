@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Admin\SalesPrintController;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate.start');
 });
 Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+
+// Printable proposals and orders, opened from the admin panel.
+Route::middleware('auth')->prefix('admin/print')->name('sales.')->group(function () {
+    Route::get('/proposals/{proposal}', [SalesPrintController::class, 'proposal'])->name('proposals.print');
+    Route::get('/orders/{order}', [SalesPrintController::class, 'order'])->name('orders.print');
+});
 
 Route::prefix('en')->name('en.')->group(function () {
     Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impersonate.stop');

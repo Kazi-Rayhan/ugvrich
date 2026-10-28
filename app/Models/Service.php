@@ -26,6 +26,7 @@ class Service extends Model
         'is_active' => 'boolean',
         'highlights' => 'array',
         'highlights_bn' => 'array',
+        'proposal_conditions' => 'array',
     ];
 
     public function category(): BelongsTo

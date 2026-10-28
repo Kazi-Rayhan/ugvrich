@@ -47,6 +47,14 @@ class ServicesRelationManager extends RelationManager
                     ->rows(3)
                     ->columnSpanFull(),
 
+                TextInput::make('price')
+                    ->label('Default price')
+                    ->numeric()
+                    ->minValue(0)
+                    ->step('0.01')
+                    ->prefix('BDT')
+                    ->helperText('Used as the starting price on proposals.'),
+
                 Toggle::make('is_active')
                     ->label('Visible on the site')
                     ->default(true),

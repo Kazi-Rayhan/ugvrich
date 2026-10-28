@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ServiceCategories\Schemas;
 
 use App\Filament\Support\Bilingual;
+use App\Filament\Support\SalesConditions;
 use App\Models\ServiceCategory;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -133,6 +134,13 @@ class ServiceCategoryForm
                                 ->label('Visible on the site')
                                 ->default(true),
                         ]),
+
+                    // Not on the website: what a proposal for this area says it includes.
+                    Section::make('Proposal template')
+                        ->description('Scope and conditions loaded into a proposal when this area is chosen, then adjusted for each client.')
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->collapsible()
+                        ->schema([SalesConditions::templateEditor()->hiddenLabel()]),
                 ]),
             ]);
     }

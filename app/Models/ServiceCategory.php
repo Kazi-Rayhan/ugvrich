@@ -23,6 +23,7 @@ class ServiceCategory extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'proposal_conditions' => 'array',
     ];
 
     /** The sector that runs this service, spelled out. */

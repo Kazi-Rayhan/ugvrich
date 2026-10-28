@@ -34,6 +34,41 @@ class Dashboard extends BaseDashboard
         return 'Research & Innovation Management System';
     }
 
+    /**
+     * Consultancy sales at a glance, for those who can see proposals or orders.
+     * Money is summed from confirmed payments, never from stored totals.
+     *
+     * @return list<array{0: string, 1: string, 2: string, 3: string, 4: string}>
+     */
+    protected function salesFigures(): array
+    {
+        $user = auth()->user();
+        $figures = [];
+
+        if ($user?->can('viewAny', \App\Models\Proposal::class)) {
+            $proposalUrl = fn (array $filters = []) => \App\Filament\Resources\Proposals\ProposalResource::getUrl('index', $filters ? ['filters' => $filters] : []);
+            $figures[] = ['Proposals', number_format(\App\Models\Proposal::count()), 'document-text', 'slate', $proposalUrl()];
+            $figures[] = ['Accepted, not yet ordered', number_format(\App\Models\Proposal::where('status', 'accepted')->count()), 'document-text', 'green',
+                $proposalUrl(['status' => ['values' => ['accepted']]])];
+        }
+
+        if ($user?->can('viewAny', \App\Models\Order::class)) {
+            $orderUrl = fn (array $filters = []) => \App\Filament\Resources\Orders\OrderResource::getUrl('index', $filters ? ['filters' => $filters] : []);
+            $orders = \App\Models\Order::where('status', '!=', 'cancelled')->with('payments')->get(['id', 'total']);
+            $paid = $orders->sum(fn ($order) => $order->paidMinor());
+            $outstanding = $orders->sum(fn ($order) => $order->outstandingMinor());
+
+            $figures[] = ['Orders', number_format(\App\Models\Order::count()), 'briefcase', 'blue', $orderUrl()];
+            $figures[] = ['Partially paid orders', number_format($orders->where('payment_status', 'partially_paid')->count()), 'briefcase', 'amber',
+                $orderUrl(['payment_status' => ['value' => 'partially_paid']])];
+            $figures[] = ['Payments received', \App\Support\Money::format($paid, true), 'key', 'green', $orderUrl()];
+            $figures[] = ['Outstanding balance', \App\Support\Money::format($outstanding, true), 'key', 'violet',
+                $orderUrl(['payment_status' => ['value' => 'partially_paid']])];
+        }
+
+        return $figures;
+    }
+
     /** @return array<string, mixed> */
     public function getData(): array
     {
@@ -99,6 +134,7 @@ class Dashboard extends BaseDashboard
 
         return [
             'kpis' => $kpis,
+            'sales' => $this->salesFigures(),
             'pipeline' => $pipeline,
             'pipelineMax' => $pipeline ? max(1, max(array_column($pipeline, 1))) : 1,
             'projects' => $projects->where('type', 'innovation')->sortBy(fn ($p) => $p->title)->values(),
