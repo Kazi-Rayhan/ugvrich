@@ -5,7 +5,9 @@ namespace App\Filament\Resources\IdeaSubmissions\Tables;
 use App\Filament\Support\PdfExport;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -85,8 +87,11 @@ class IdeaSubmissionsTable
 
                 SelectFilter::make('department')->options(config('rich.departments')),
             ])
+            ->recordUrl(fn ($record) => \App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource::getUrl('view', ['record' => $record]))
             ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
