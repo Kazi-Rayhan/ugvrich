@@ -44,7 +44,7 @@
         @php
             $options = [
                 ['icon' => 'academic', 'href' => route('researcher.register'), 'title' => __('researcher.auth.option_researcher_title'), 'body' => __('researcher.auth.option_researcher_body')],
-                ['icon' => 'lightbulb', 'href' => route('ideas.create'), 'title' => __('researcher.auth.option_innovator_title'), 'body' => __('researcher.auth.option_innovator_body')],
+                ...($site->ideasOpen() ? [['icon' => 'lightbulb', 'href' => route('ideas.create'), 'title' => __('researcher.auth.option_innovator_title'), 'body' => __('researcher.auth.option_innovator_body')]] : []),
                 ['icon' => 'shield', 'href' => url('/admin/login'), 'title' => __('researcher.auth.option_staff_title'), 'body' => __('researcher.auth.option_staff_body')],
             ];
         @endphp

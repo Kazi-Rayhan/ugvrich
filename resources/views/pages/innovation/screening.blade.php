@@ -6,9 +6,11 @@
         :title="__('site.screening.hero_title')"
         :lead="__('site.screening.hero_lead')"
         :breadcrumbs="[__('site.nav.innovation') => route('innovation.index'), __('site.screening.nav') => null]">
+        @ideasopen
         <a href="{{ route('ideas.create') }}" class="btn-primary">
             {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
         </a>
+        @endideasopen
         <a href="#pipeline" class="btn-ghost">{{ __('site.screening.see_pipeline') }}</a>
     </x-page-hero>
 
@@ -330,9 +332,11 @@
                     <h3 class="font-display text-[19px] font-bold text-ink-950">{{ __('site.screening.cta_title') }}</h3>
                     <p class="mt-1 text-[14px] text-ink-600">{{ __('site.screening.cta_text') }}</p>
                 </div>
+                @ideasopen
                 <a href="{{ route('ideas.create') }}" class="btn-primary shrink-0">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
+                @endideasopen
             </div>
         </div>
     </section>

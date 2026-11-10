@@ -6,9 +6,11 @@
         :title="__('site.startup.hero_title')"
         :lead="__('site.startup.hero_lead')"
         :breadcrumbs="[__('site.nav.startup') => null]">
+        @ideasopen
         <a href="{{ route('ideas.create') }}" class="btn-primary">
             {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
         </a>
+        @endideasopen
         <a href="#journey" class="btn-ghost">{{ __('site.startup.see_journey') }}</a>
     </x-page-hero>
 
@@ -87,9 +89,11 @@
                     :title="__('site.startup.support_title')"
                     :lead="__('site.startup.support_lead')" />
 
+                @ideasopen
                 <a href="{{ route('ideas.create') }}" class="btn-primary reveal mt-8">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
+                @endideasopen
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -128,9 +132,11 @@
                         <p class="mt-4 max-w-xl text-[15.5px] leading-relaxed text-white/75">
                             {{ __('site.startup.cta_body') }}
                         </p>
+                        @ideasopen
                         <a href="{{ route('ideas.create') }}" class="btn-invert mt-8">
                             {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                         </a>
+                        @endideasopen
                     </div>
 
                     <div class="flex flex-wrap gap-2">

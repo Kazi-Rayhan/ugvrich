@@ -698,6 +698,8 @@ return [
     ],
 
     'ideas' => [
+        'closed_title' => 'Idea submissions are closed',
+        'closed_body' => 'The Innovation Wing is not taking new ideas right now. Please check back soon.',
         'category_label' => 'Idea category',
         'category_placeholder' => 'Select a category',
         'step_register' => 'Register',

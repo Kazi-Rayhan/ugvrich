@@ -68,12 +68,12 @@
                     </div>
 
                     <nav class="space-y-1 p-3" aria-label="{{ __('innovator.portal') }}">
-                        @foreach ([
+                        @foreach (array_filter([
                             ['#overview', 'grid', __('innovator.nav_overview'), true],
                             ['#ideas', 'lightbulb', __('innovator.ideas_title'), false],
-                            [route('ideas.create'), 'plus', __('innovator.submit_another'), false],
+                            $site->ideasOpen() ? [route('ideas.create'), 'plus', __('innovator.submit_another'), false] : null,
                             [route('home'), 'globe', __('innovator.back_to_site'), false],
-                        ] as [$href, $icon, $label, $current])
+                        ]) as [$href, $icon, $label, $current])
                             <a href="{{ $href }}"
                                @class([
                                    'flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14px] font-medium transition',
@@ -119,10 +119,12 @@
                                 {{ __('innovator.welcome', ['name' => $firstName]) }}
                             </h1>
                             <p class="mt-3 text-[15.5px] leading-[1.75] text-white/70">{{ __('innovator.lead') }}</p>
+                            @ideasopen
                             <a href="{{ route('ideas.create') }}" class="btn-lead group mt-7" data-magnetic>
                                 <span class="relative">{{ __('innovator.submit_another') }}</span>
                                 <x-ui-icon name="plus" class="relative h-[18px] w-[18px]" />
                             </a>
+                            @endideasopen
                         </div>
 
                         @if ($furthest !== null)
@@ -286,9 +288,11 @@
                                 </span>
                                 <p class="mt-5 font-display text-[19px] font-bold text-ink-950">{{ __('innovator.empty_title') }}</p>
                                 <p class="mt-1.5 max-w-sm text-[14px] text-ink-500">{{ __('innovator.empty_body') }}</p>
+                                @ideasopen
                                 <a href="{{ route('ideas.create') }}" class="btn-primary mt-6">
                                     <x-ui-icon name="plus" class="h-4 w-4" /> {{ __('innovator.submit_another') }}
                                 </a>
+                                @endideasopen
                             </div>
                         @endforelse
                     </div>

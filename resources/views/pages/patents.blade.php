@@ -109,9 +109,11 @@
                     :lead="__('site.patents.support_lead')" />
 
                 <div class="reveal mt-8 flex flex-wrap gap-3">
+                    @ideasopen
                     <a href="{{ route('ideas.create') }}" class="btn-primary">
                         {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                     </a>
+                    @endideasopen
                     <a href="{{ route('consultancy.create') }}" class="btn-ghost">{{ __('site.patents.licensing_enquiry') }}</a>
                 </div>
             </div>

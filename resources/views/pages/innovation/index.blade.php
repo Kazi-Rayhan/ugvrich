@@ -91,10 +91,12 @@
                     {{ __('site.screening.nav') }}
                     <x-ui-icon name="arrow-up-right" class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
+                @ideasopen
                 <a href="{{ route('ideas.create') }}" class="btn-lead group">
                     <span class="relative">{{ __('site.actions.submit_idea') }}</span>
                     <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
+                @endideasopen
             </div>
         </div>
 
@@ -286,9 +288,11 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <x-section-heading :eyebrow="__('site.innovation.catalogue_eyebrow')" :title="__('site.innovation.catalogue_heading')" size="lg" />
 
+                @ideasopen
                 <a href="{{ route('ideas.create') }}" class="btn-primary reveal shrink-0">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
+                @endideasopen
             </div>
 
             <div class="mt-14 space-y-20 sm:space-y-28">
@@ -326,9 +330,11 @@
                                     <a href="{{ route('innovation.area', $area) }}" class="btn-ghost">
                                         {{ __('site.innovation.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
                                     </a>
+                                    @ideasopen
                                     <a href="{{ route('ideas.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
                                         {{ __('site.actions.submit_idea') }}
                                     </a>
+                                    @endideasopen
                                 </div>
                             </div>
 

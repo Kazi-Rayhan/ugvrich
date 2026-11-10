@@ -21,9 +21,11 @@
                 <span class="relative">{{ __('site.actions.request_consultancy') }}</span>
                 <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
             </a>
+            @ideasopen
             <a href="{{ route('ideas.create') }}" class="btn-invert px-7 py-4 text-[15px]" data-magnetic>
                 {{ __('site.actions.submit_idea') }}
             </a>
+            @endideasopen
         </div>
     </div>
 </section>

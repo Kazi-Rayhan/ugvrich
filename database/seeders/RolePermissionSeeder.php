@@ -41,6 +41,7 @@ use App\Models\StudentTeam;
 use App\Models\Subscriber;
 use App\Models\Testimonial;
 use App\Models\User;
+use App\Models\WorkOrder;
 use Illuminate\Database\Seeder;
 
 /**
@@ -82,6 +83,7 @@ class RolePermissionSeeder extends Seeder
         Proposal::class => ['viewAny', 'view', 'create', 'update', 'delete', 'accept', 'convert'],
         Order::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Payment::class => ['viewAny', 'view', 'create', 'confirm', 'reverse'],
+        WorkOrder::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         CoreArea::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Expert::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Facility::class => ['viewAny', 'view', 'create', 'update', 'delete'],
@@ -122,6 +124,7 @@ class RolePermissionSeeder extends Seeder
         Proposal::class => 'Consultancy sales',
         Order::class => 'Consultancy sales',
         Payment::class => 'Consultancy sales',
+        WorkOrder::class => 'Consultancy sales',
         CoreArea::class => 'Website content',
         Expert::class => 'People',
         Facility::class => 'Website content',

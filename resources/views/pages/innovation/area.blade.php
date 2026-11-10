@@ -15,9 +15,11 @@
         :image="$area->hero_image"
         :video="$area->hero_video"
         :breadcrumbs="[__('site.nav.innovation') => route('innovation.index'), $area->name => null]">
+        @ideasopen
         <a href="{{ route('ideas.create') }}" class="btn-primary">
             {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
         </a>
+        @endideasopen
         <a href="#focus" class="btn-ghost">
             {{ __('site.innovation.see_focus') }}
         </a>
@@ -83,9 +85,11 @@
 
             {{-- What this area can be asked for --}}
             <div class="reveal mt-14 flex flex-wrap items-center gap-4 border-t border-ink-100 pt-8">
+                @ideasopen
                 <a href="{{ route('ideas.create') }}" class="btn-primary">
                     {{ __('site.actions.submit_idea') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
+                @endideasopen
                 <a href="{{ route('innovation.index') }}#areas" class="btn-ghost">
                     {{ __('site.innovation.others_link') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
                 </a>

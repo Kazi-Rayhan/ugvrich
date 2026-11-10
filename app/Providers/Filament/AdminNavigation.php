@@ -38,6 +38,7 @@ use App\Filament\Resources\StudentTeams\StudentTeamResource;
 use App\Filament\Resources\Subscribers\SubscriberResource;
 use App\Filament\Resources\Testimonials\TestimonialResource;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
 use App\Models\IdeaSubmission;
@@ -114,6 +115,7 @@ class AdminNavigation
                 ->items([
                     $this->resource('Proposals', null, ProposalResource::class)
                         ->badge(fn () => ($n = Proposal::where('status', 'accepted')->count()) ? (string) $n : null, 'success'),
+                    $this->resource('Work Orders', null, WorkOrderResource::class),
                     $this->resource('Orders', null, OrderResource::class),
                     $this->resource('Clients', null, ClientResource::class),
                 ]),

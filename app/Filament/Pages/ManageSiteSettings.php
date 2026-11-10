@@ -15,6 +15,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
@@ -84,6 +85,10 @@ class ManageSiteSettings extends Page implements HasSchemas
     /** A stored value as the form wants it: lists unpacked, everything else as-is. */
     protected function decode(string $key, mixed $value): mixed
     {
+        if ($key === 'idea_submissions_open') {
+            return $value === null || $value === '' || $value === '1';
+        }
+
         if ($key === 'pipeline_counts') {
             $decoded = json_decode((string) $value, true);
 
@@ -106,6 +111,11 @@ class ManageSiteSettings extends Page implements HasSchemas
     /** A form value as the database wants it. */
     protected function encode(string $key, mixed $value): mixed
     {
+        // Stored as '1' / '0': an empty string would read as "never set", which means open.
+        if ($key === 'idea_submissions_open') {
+            return $value ? '1' : '0';
+        }
+
         if (! in_array($key, self::JSON_KEYS, true)) {
             return $value;
         }
@@ -302,6 +312,13 @@ class ManageSiteSettings extends Page implements HasSchemas
                                             ->values()
                                             ->all()
                                     ),
+                            ]),
+
+                            Tabs\Tab::make('Submissions')->icon('heroicon-o-light-bulb')->schema([
+                                Toggle::make('idea_submissions_open')
+                                    ->label('Accept idea submissions')
+                                    ->default(true)
+                                    ->helperText('When off, every "Submit Your Idea" button is hidden across the site, /submit-idea shows a "submissions are closed" message, and no new submissions or their welcome emails go out. Ideas already submitted are not affected.'),
                             ]),
 
                             Tabs\Tab::make('Booking')->icon('heroicon-o-calendar-days')->schema([

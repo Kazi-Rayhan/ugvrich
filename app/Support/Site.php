@@ -24,6 +24,16 @@ class Site
     }
 
     /** Decode a JSON-valued setting into an array. */
+    /**
+     * Whether the public idea submission form is open. On until an admin turns it off.
+     */
+    public function ideasOpen(): bool
+    {
+        $value = Setting::all_cached()['idea_submissions_open']['en'] ?? null;
+
+        return $value === null || $value === '' || $value === '1';
+    }
+
     public function list(string $key): array
     {
         $raw = Setting::get($key);

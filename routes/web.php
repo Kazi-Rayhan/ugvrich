@@ -34,6 +34,7 @@ Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impe
 Route::middleware('auth')->prefix('admin/print')->name('sales.')->group(function () {
     Route::get('/proposals/{proposal}', [SalesPrintController::class, 'proposal'])->name('proposals.print');
     Route::get('/orders/{order}', [SalesPrintController::class, 'order'])->name('orders.print');
+    Route::get('/work-orders/{workOrder}', [SalesPrintController::class, 'workOrder'])->name('work-orders.print');
 });
 
 // "Export PDF" on the idea submissions list.

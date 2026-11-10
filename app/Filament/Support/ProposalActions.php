@@ -22,7 +22,7 @@ class ProposalActions
     /** @return array<int, Action> */
     public static function all(): array
     {
-        return [self::print(), self::send(), self::accept(), self::reject(), self::expire(), self::convert()];
+        return [self::print(), self::workOrder(), self::send(), self::accept(), self::reject(), self::expire(), self::convert()];
     }
 
     public static function print(): Action
@@ -33,6 +33,17 @@ class ProposalActions
             ->color('gray')
             ->url(fn (Proposal $record) => route('sales.proposals.print', $record))
             ->openUrlInNewTab();
+    }
+
+    /** The controlled work order (সেবা কার্যাদেশ) for this proposal, pre-filled from it. */
+    public static function workOrder(): Action
+    {
+        return Action::make('workOrder')
+            ->authorize('create', \App\Models\WorkOrder::class)
+            ->label('Work order')
+            ->icon('heroicon-o-clipboard-document-check')
+            ->color('gray')
+            ->url(fn (Proposal $record) => \App\Filament\Resources\WorkOrders\WorkOrderResource::getUrl('create', ['proposal' => $record->id]));
     }
 
     public static function send(): Action

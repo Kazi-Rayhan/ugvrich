@@ -64,10 +64,12 @@
                     {{ __('site.home.explore_innovation') }}
                     <x-ui-icon name="arrow-up-right" class="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
                 </a>
+                @ideasopen
                 <a href="{{ route('ideas.create') }}"
                    class="btn !px-6 bg-white text-ink-950 hover:-translate-y-0.5 hover:bg-brand-50">
                     {{ __('site.actions.submit_idea') }}
                 </a>
+                @endideasopen
                 <a href="{{ route('consultancy.create') }}"
                    class="btn !px-6 text-white underline-offset-4 hover:underline">
                     {{ __('site.actions.collaborate_with_us') }}

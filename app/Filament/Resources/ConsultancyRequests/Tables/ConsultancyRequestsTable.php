@@ -153,6 +153,13 @@ class ConsultancyRequestsTable
                     ->color('primary')
                     ->authorize('create', \App\Models\Proposal::class)
                     ->url(fn ($record) => \App\Filament\Resources\Proposals\ProposalResource::getUrl('create', ['request' => $record->id])),
+                // The controlled service work order (সেবা কার্যাদেশ), started from this request.
+                Action::make('workOrder')
+                    ->label('Create work order')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->color('gray')
+                    ->authorize('create', \App\Models\WorkOrder::class)
+                    ->url(fn ($record) => \App\Filament\Resources\WorkOrders\WorkOrderResource::getUrl('create', ['request' => $record->id])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

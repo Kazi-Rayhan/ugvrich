@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\IdeaSubmission;
 use App\Models\User;
 use App\Notifications\SetInnovatorPassword;
+use App\Support\Site;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +20,12 @@ use Throwable;
  */
 class IdeaSubmissionController extends Controller
 {
-    public function create(Request $request)
+    public function create(Request $request, Site $site)
     {
+        if (! $site->ideasOpen()) {
+            return view('pages.ideas-closed');
+        }
+
         // A signed-in innovator has registered already: their details are filled in.
         $innovator = $request->user()?->isInnovator() ? $request->user() : null;
 
@@ -30,8 +35,13 @@ class IdeaSubmissionController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Site $site)
     {
+        // Closed: nothing is saved and no welcome email is sent.
+        if (! $site->ideasOpen()) {
+            return redirect()->route('ideas.create');
+        }
+
         // Two steps on the form: register (who, how to reach them, a working
         // title), then the idea itself as one uploaded file.
         $data = $request->validate([

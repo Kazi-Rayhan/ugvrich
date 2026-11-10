@@ -84,10 +84,12 @@
                 </nav>
 
                 <div class="flex items-center gap-5">
+                    @ideasopen
                     <a href="{{ route('ideas.create') }}" class="group hidden items-center gap-1.5 font-medium transition hover:opacity-100 lg:flex">
                         {{ __('site.actions.have_an_idea') }}
                         <x-ui-icon name="arrow-right" class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
                     </a>
+                    @endideasopen
 
                     <x-language-switch class="!py-1" />
 

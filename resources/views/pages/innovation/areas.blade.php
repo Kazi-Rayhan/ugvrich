@@ -7,9 +7,11 @@
         :lead="__('site.innovation.areas_lead')"
         image="projects/sun-car.jpg"
         :breadcrumbs="[__('site.nav.innovation') => route('innovation.index'), __('site.innovation.areas_title') => null]">
+        @ideasopen
         <a href="{{ route('ideas.create') }}" class="btn-primary group">
             <x-ui-icon name="lightbulb" class="h-4 w-4" /> {{ __('site.actions.submit_idea') }}
         </a>
+        @endideasopen
         <a href="#areas" class="btn-ghost">{{ __('site.innovation.explore_areas') }}</a>
     </x-page-hero>
 
@@ -71,7 +73,9 @@
                     </span>
                     <p class="mt-5 font-display text-lg font-bold text-ink-950">{{ __('site.innovation.empty_title') }}</p>
                     <p class="mx-auto mt-2 max-w-md text-[14.5px] muted">{{ __('site.innovation.empty_body') }}</p>
+                    @ideasopen
                     <a href="{{ route('ideas.create') }}" class="btn-primary mt-6">{{ __('site.actions.submit_idea') }}</a>
+                    @endideasopen
                 </div>
             @else
                 <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -98,7 +102,9 @@
                     Students and faculty can submit an innovation idea. The Innovation Wing evaluates it, connects mentors and supports it from prototype to market.
                 </p>
                 <div class="mt-8 flex flex-wrap justify-center gap-3">
+                    @ideasopen
                     <a href="{{ route('ideas.create') }}" class="btn-invert">Submit Your Idea <x-ui-icon name="arrow-up-right" class="h-4 w-4" /></a>
+                    @endideasopen
                     <a href="{{ route('projects.index') }}" class="btn border border-white/30 text-white hover:bg-white/10">All projects</a>
                 </div>
             </div>

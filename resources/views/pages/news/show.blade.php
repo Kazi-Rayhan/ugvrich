@@ -300,12 +300,14 @@
                         @endif
 
                         {{-- The one highlighted action --}}
+                        @ideasopen
                         <div class="mt-6 border-t hairline pt-6">
                             <a href="{{ route('ideas.create') }}" class="btn-lead group w-full" data-magnetic>
                                 <span class="relative">{{ __('site.news.register_and_submit') }}</span>
                                 <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
                             </a>
                         </div>
+                        @endideasopen
 
                         {{-- Share --}}
                         <div class="mt-6 flex items-center justify-between gap-3 border-t hairline pt-5"
