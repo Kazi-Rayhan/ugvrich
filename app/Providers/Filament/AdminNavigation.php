@@ -78,7 +78,7 @@ class AdminNavigation
                 $this->resource('Idea Submission', Heroicon::OutlinedInboxArrowDown, IdeaSubmissionResource::class)
                     ->badge(fn () => ($n = IdeaSubmission::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
 
-                $this->resource('Expert', Heroicon::OutlinedAcademicCap, ExpertResource::class),
+                $this->resource('Experts', Heroicon::OutlinedAcademicCap, ExpertResource::class),
                 $this->resource('Students / Teams', Heroicon::OutlinedUserGroup, StudentTeamResource::class),
                 $this->filtered('Publications', Heroicon::OutlinedDocumentText, PublicationResource::class, 'kind', null),
                 $this->filtered('Patent & IP', Heroicon::OutlinedKey, ProjectResource::class, 'ip', 'protected'),
