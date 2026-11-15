@@ -24,7 +24,9 @@ class IdeaSelectionNoticeTest extends TestCase
         $mail->assertSeeInHtml('Team Innovation');
         $mail->assertSeeInHtml('A greener campus');
         $mail->assertSeeInHtml($submission->reference);
-        $mail->assertSeeInHtml('16 November 2026');
+        $mail->assertSeeInHtml('Primary selection result:');
+        $mail->assertSeeInHtml('16 November 2026, by 12:00 PM (Bangladesh time)');
+        $mail->assertSeeInHtml('Final Round:');
         $mail->assertSeeInHtml('20 November 2026');
         $mail->assertSeeInHtml('email and SMS');
     }

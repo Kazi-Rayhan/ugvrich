@@ -1,6 +1,6 @@
 # November 2026 idea submission notice
 
-The personalised email thanks each submitter, includes their idea title and reference, and announces primary selection on 16 November 2026 and final selection on 20 November 2026. It says updates will be communicated by email and SMS; this command sends email only. It does not change selection status.
+The personalised email thanks each submitter, includes their idea title and reference, and announces the primary selection result by 12:00 PM (Bangladesh time) on 16 November 2026 and the Final Round on 20 November 2026. It says updates will be communicated by email and SMS; this command sends email only. It does not change selection status.
 
 ## Run on the deployed server
 

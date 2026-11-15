@@ -12,8 +12,8 @@ Your submission has been received and will be considered through our selection p
 <x-mail::panel>
 **Selection schedule**
 
-- **Primary selection:** 16 November 2026
-- **Final selection:** 20 November 2026
+- **Primary selection result:** 16 November 2026, by 12:00 PM (Bangladesh time)
+- **Final Round:** 20 November 2026
 </x-mail::panel>
 
 We will notify you of selection updates and any further instructions by **email and SMS**, using the contact details provided in your submission. Please check your inbox, spam or junk folder, and SMS messages regularly.
