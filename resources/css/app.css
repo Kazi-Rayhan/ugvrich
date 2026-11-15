@@ -1186,3 +1186,9 @@ html:lang(bn) [class*='tracking-wide'] {
     .kpi-ring-progress { transition: none; stroke-dashoffset: 0; }
     .kpi-ring-item:hover .kpi-ring { transform: none; }
 }
+
+/* Explicit display utilities must not override measured badge visibility. */
+[data-expertise-tag][hidden],
+[data-expertise-more][hidden] {
+    display: none !important;
+}

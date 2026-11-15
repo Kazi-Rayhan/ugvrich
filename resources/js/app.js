@@ -5,6 +5,52 @@ import intersect from '@alpinejs/intersect';
 Alpine.plugin(collapse);
 Alpine.plugin(intersect);
 
+// Fit expertise badges into two actual rows, including space for the remainder.
+Alpine.data('expertTagRows', () => ({
+    observer: null,
+    frame: null,
+    width: null,
+
+    init() {
+        this.$nextTick(() => this.fit());
+        document.fonts?.ready.then(() => this.fit());
+        this.observer = new ResizeObserver(([entry]) => {
+            if (entry.contentRect.width === this.width) return;
+            this.width = entry.contentRect.width;
+            cancelAnimationFrame(this.frame);
+            this.frame = requestAnimationFrame(() => this.fit());
+        });
+        this.observer.observe(this.$el);
+    },
+
+    fit() {
+        if (!this.$el.isConnected || !this.$el.clientWidth) return;
+        const tags = [...this.$el.querySelectorAll('[data-expertise-tag]')];
+        const more = this.$el.querySelector('[data-expertise-more]');
+        tags.forEach(tag => { tag.hidden = false; });
+        more.hidden = true;
+
+        const limit = 72; // Two 32px badges with an 8px row gap.
+        let visible = tags.findIndex(tag => tag.offsetTop + tag.offsetHeight > limit);
+        if (visible === -1) return;
+        tags.slice(visible).forEach(tag => { tag.hidden = true; });
+        more.hidden = false;
+        more.textContent = `+${tags.length - visible}`;
+
+        // The count must fit on the second row too; free space one badge at a time.
+        while (visible > 0 && more.offsetTop + more.offsetHeight > limit) {
+            tags[--visible].hidden = true;
+            more.textContent = `+${tags.length - visible}`;
+        }
+    },
+
+    destroy() {
+        this.observer?.disconnect();
+        cancelAnimationFrame(this.frame);
+    },
+}));
+
+
 /* ---------------------------------------------------------------------
  | Header — the sliding highlight, scroll progress and the mobile menu.
  --------------------------------------------------------------------- */

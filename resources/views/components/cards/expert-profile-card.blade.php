@@ -2,8 +2,7 @@
 
 @php
     $url = route('experts.show', $expert);
-    $tags = array_slice($expert->expertise ?? [], 0, 3);
-    $moreTags = max(count($expert->expertise ?? []) - 3, 0);
+    $tags = $expert->expertise ?? [];
     $department = \Illuminate\Support\Str::after($expert->department ?? '', 'Department of ');
     $area = $expert->category?->name;
     $iconBtn = 'relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-navy-700 shadow-sm transition hover:border-brand-600 hover:bg-brand-600 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
@@ -13,14 +12,14 @@
 <div {{ $attributes->merge(['class' => 'reveal']) }} style="transition-delay: {{ min($index * 80, 400) }}ms">
     <article class="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink-200 bg-white shadow-[0_12px_40px_-22px_rgba(2,34,81,0.3)] transition-[transform,box-shadow,border-color] duration-300 motion-safe:hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-[0_24px_60px_-24px_rgba(2,34,81,0.35)]">
 
-        {{-- A soft image backdrop fills the frame; the foreground preserves the full portrait. --}}
+        {{-- Anchor portraits at the top so cover cropping removes the bottom first. --}}
         <div class="relative isolate aspect-[4/3] overflow-hidden bg-navy-900">
             @if ($expert->photo)
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="" aria-hidden="true" loading="lazy" decoding="async"
                      class="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-xl">
                 <div class="absolute inset-0 bg-gradient-to-tr from-navy-900/70 via-transparent to-brand-600/20" aria-hidden="true"></div>
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="{{ $expert->name }}" loading="lazy" decoding="async"
-                     class="absolute inset-0 h-full w-full object-contain object-center">
+                     class="absolute inset-0 h-full w-full object-cover object-top">
             @else
                 <div class="absolute inset-0 bg-gradient-to-br from-navy-700 via-navy-900 to-brand-800" aria-hidden="true"></div>
                 <span class="absolute left-1/2 top-1/2 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-white/10 font-display text-5xl font-semibold text-white shadow-xl backdrop-blur-sm" aria-hidden="true">{{ $expert->initials }}</span>
@@ -56,13 +55,13 @@
             @endif
 
             @if ($tags)
-                <div class="mt-5 flex flex-wrap gap-2">
+                <div x-data="expertTagRows" class="relative mt-5 flex max-h-[72px] flex-wrap gap-2 overflow-hidden" aria-label="{{ __('site.experts.expertise') }}">
                     @foreach ($tags as $tag)
-                        <span class="max-w-full rounded-full border border-brand-100 bg-brand-50/80 px-3 py-1.5 text-[11px] font-medium leading-relaxed text-brand-800 break-words">{{ $tag }}</span>
+                        <span data-expertise-tag title="{{ $tag }}" class="inline-flex h-8 min-w-0 max-w-full items-center rounded-full border border-brand-100 bg-brand-50/80 px-3 text-[11px] font-medium text-brand-800">
+                            <span class="truncate">{{ $tag }}</span>
+                        </span>
                     @endforeach
-                    @if ($moreTags)
-                        <span class="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold leading-relaxed text-ink-500">+{{ $moreTags }}</span>
-                    @endif
+                    <span data-expertise-more hidden class="inline-flex h-8 shrink-0 items-center rounded-full border border-ink-200 bg-white px-3 text-[11px] font-semibold text-ink-500"></span>
                 </div>
             @endif
 
