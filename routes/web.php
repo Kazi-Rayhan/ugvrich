@@ -48,6 +48,6 @@ Route::prefix('en')->name('en.')->group(function () {
 });
 
 Route::get('test/email',function () {
-    $submission = \App\Models\IdeaSubmission::find(1);
+    $submission = \App\Models\IdeaSubmission::find(91);
     Mail::to('dev.tamim0@gmail.com')->send(new IdeaSelectionNotice($submission));
 });
