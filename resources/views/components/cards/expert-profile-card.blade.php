@@ -2,80 +2,70 @@
 
 @php
     $url = route('experts.show', $expert);
-    $tags = array_slice($expert->expertise ?? [], 0, 3);
-    $moreTags = max(count($expert->expertise ?? []) - 3, 0);
-    $department = \Illuminate\Support\Str::after($expert->department, 'Department of ');
-    $area = $expert->category ? \Illuminate\Support\Str::before($expert->category->name, ' &') : null;
-    $ease = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
-    $iconBtn = 'relative z-20 flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 text-ink-600 transition hover:border-brand-600 hover:bg-brand-600 hover:text-white';
+    $tags = array_slice($expert->expertise ?? [], 0, 2);
+    $moreTags = max(count($expert->expertise ?? []) - 2, 0);
+    $department = \Illuminate\Support\Str::after($expert->department ?? '', 'Department of ');
+    $area = $expert->category?->name;
+    $iconBtn = 'relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-500 transition hover:border-brand-600 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
 @endphp
 
 {{-- The scroll-reveal lives on the wrapper so its transform and delay never fight the card's hover. --}}
 <div {{ $attributes->merge(['class' => 'reveal']) }} style="transition-delay: {{ min($index * 80, 400) }}ms">
-    <article class="group relative flex h-full flex-col rounded-[1.75rem] border border-ink-100 bg-white p-2 shadow-[0_8px_24px_-18px_rgba(11,15,24,0.35)] transition-[transform,box-shadow,border-color] duration-500 {{ $ease }} hover:-translate-y-1.5 hover:border-brand-100 hover:shadow-[0_32px_60px_-30px_rgba(2,34,81,0.4)]">
+    <article class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-[0_4px_20px_-12px_rgba(7,20,38,0.16)] transition-[transform,box-shadow,border-color] duration-300 motion-safe:hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_16px_40px_-20px_rgba(7,20,38,0.24)]">
 
-        {{-- Portrait --}}
-        <div class="relative isolate aspect-[5/4] overflow-hidden rounded-[1.4rem] bg-ink-100">
+        {{-- Full portrait stays visible regardless of the uploaded image proportions. --}}
+        <div class="relative flex aspect-[3/2] items-center justify-center overflow-hidden border-b border-ink-100 bg-gradient-to-br from-ink-50 to-ink-100">
             @if ($expert->photo)
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="{{ $expert->name }}" loading="lazy"
-                     class="absolute inset-0 -z-10 h-full w-full object-cover object-[center_22%] transition-transform duration-[900ms] {{ $ease }} group-hover:scale-[1.06]">
+                <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="{{ $expert->name }}" loading="lazy" decoding="async"
+                     class="h-full w-full object-contain object-center">
             @else
-                <div class="absolute inset-0 -z-10 flex items-center justify-center bg-brand-600" aria-hidden="true">
-                    <span class="font-display text-7xl font-bold text-white/90">{{ $expert->initials }}</span>
-                </div>
-            @endif
-
-            <div class="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-ink-950/55 to-transparent" aria-hidden="true"></div>
-
-            {{-- Designation --}}
-            @if ($expert->designation)
-                <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-900 backdrop-blur-md">
-                    <span class="h-1.5 w-1.5 rounded-full bg-brand-600"></span>
-                    {{ $expert->designation }}
-                </span>
-            @endif
-
-            {{-- Consultancy area --}}
-            @if ($area)
-                <span class="absolute bottom-3 left-3 inline-flex max-w-[calc(100%-1.5rem)] items-center gap-1.5 truncate rounded-full border border-white/25 bg-ink-950/40 px-3 py-1.5 text-[11.5px] font-medium text-white backdrop-blur-md">
-                    <x-ui-icon :name="$expert->category->icon ?? 'briefcase'" class="h-3.5 w-3.5 shrink-0" />
-                    <span class="truncate">{{ $area }} consultancy</span>
-                </span>
+                <span class="flex h-28 w-28 items-center justify-center rounded-full border border-brand-200 bg-brand-50 font-display text-4xl font-semibold text-brand-700" aria-hidden="true">{{ $expert->initials }}</span>
             @endif
         </div>
 
         {{-- Details --}}
-        <div class="flex flex-1 flex-col px-4 pb-4 pt-5">
-            <h3 class="font-display text-xl font-bold leading-snug">
+        <div class="flex flex-1 flex-col p-6">
+            @if ($expert->designation)
+                <p class="mb-2 text-xs font-semibold leading-relaxed tracking-wide text-brand-700">{{ $expert->designation }}</p>
+            @endif
+
+            <h3 class="font-display text-xl font-bold leading-snug text-ink-950 break-words">
                 {{-- Stretched link: the whole card is clickable; contact buttons sit above it --}}
-                <a href="{{ $url }}" class="transition-colors group-hover:text-brand-700 after:absolute after:inset-0 after:z-10 after:rounded-[1.75rem] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-600">
+                <a href="{{ $url }}" class="transition-colors group-hover:text-brand-700 after:absolute after:inset-0 after:z-10 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-600">
                     {{ $expert->name }}
                 </a>
             </h3>
 
             @if ($department)
-                <p class="mt-1.5 flex items-center gap-1.5 text-[13.5px] muted">
-                    <x-ui-icon name="building" class="h-4 w-4 shrink-0 text-ink-400" />
-                    <span class="truncate">{{ $department }}</span>
+                <p class="mt-1.5 flex items-start gap-2 text-[13px] leading-relaxed text-ink-500">
+                    <x-ui-icon name="building" class="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
+                    <span class="break-words">{{ $department }}</span>
+                </p>
+            @endif
+
+            @if ($area)
+                <p class="mt-3 flex items-start gap-2 text-[13px] leading-relaxed text-ink-600">
+                    <x-ui-icon :name="$expert->category->icon ?? 'briefcase'" class="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                    <span class="break-words">{{ $area }}</span>
                 </p>
             @endif
 
             @if ($tags)
-                <div class="mt-4 flex flex-wrap gap-1.5">
+                <div class="mt-5 flex flex-wrap gap-2">
                     @foreach ($tags as $tag)
-                        <span class="rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11.5px] font-medium text-brand-700">{{ $tag }}</span>
+                        <span class="max-w-full rounded-md bg-ink-50 px-2.5 py-1.5 text-xs leading-relaxed text-ink-600 break-words">{{ $tag }}</span>
                     @endforeach
                     @if ($moreTags)
-                        <span class="rounded-full border border-ink-200 px-2.5 py-1 text-[11.5px] font-medium muted">+{{ $moreTags }}</span>
+                        <span class="rounded-md border border-ink-200 px-2.5 py-1.5 text-xs leading-relaxed text-ink-500">+{{ $moreTags }}</span>
                     @endif
                 </div>
             @endif
 
-            <div class="min-h-5 flex-1"></div>
+            <div class="min-h-6 flex-1"></div>
 
             {{-- Footer: contact + profile --}}
-            <div class="flex items-center justify-between gap-3 border-t border-ink-100 pt-4">
-                <div class="flex items-center gap-1.5">
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-4 border-t border-ink-100 pt-5">
+                <div class="flex flex-wrap items-center gap-2">
                     @if ($expert->email)
                         <a href="mailto:{{ $expert->email }}" aria-label="Email {{ $expert->name }}" title="{{ $expert->email }}" class="{{ $iconBtn }}">
                             <x-ui-icon name="mail" class="h-4 w-4" />
@@ -98,9 +88,9 @@
                     @endif
                 </div>
 
-                <span class="inline-flex items-center gap-2 text-[13px] font-semibold text-ink-900 transition-colors group-hover:text-brand-700" aria-hidden="true">
+                <span class="ml-auto inline-flex items-center gap-2 text-[13px] font-semibold text-brand-700" aria-hidden="true">
                     {{ __('site.cards.view_profile') }}
-                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 text-white transition duration-500 {{ $ease }} group-hover:rotate-45 group-hover:bg-brand-600">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
                         <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                     </span>
                 </span>
