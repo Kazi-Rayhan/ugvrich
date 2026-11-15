@@ -28,13 +28,11 @@ class SendIdeaSelectionNotices extends Command
         if ($delay === false || $delay < 0 || $delay > 60 ||
             ($limit !== null && (! ctype_digit((string) $limit) || (int) $limit < 1)) ||
             collect($ids)->contains(fn ($id) => ! ctype_digit((string) $id) || (int) $id < 1)) {
-        
 
             return self::FAILURE;
         }
 
         if (! $this->option('dry-run') && in_array(config('mail.default'), ['log', 'array'], true)) {
-           
 
             return self::FAILURE;
         }
@@ -42,7 +40,6 @@ class SendIdeaSelectionNotices extends Command
         // A shared lock prevents overlapping runs from sending the same campaign.
         $lock = Cache::lock('ideas:november-2026-selection-notices', 86400);
         if (! $lock->get()) {
-            
 
             return self::FAILURE;
         }
@@ -60,7 +57,6 @@ class SendIdeaSelectionNotices extends Command
                 $processed++;
 
                 if (! filter_var($submission->email, FILTER_VALIDATE_EMAIL)) {
-                    $this->warn("Skipped {$submission->reference}: missing or invalid email.");
                     $failed++;
 
                     continue;
@@ -80,17 +76,11 @@ class SendIdeaSelectionNotices extends Command
                     Mail::to($submission->email)->send(new IdeaSelectionNotice($submission));
                     $submission->forceFill(['selection_notice_sent_at' => now()])->save();
                     $sent++;
-                 
-                } catch (Throwable $exception) {
-                    report($exception);
+
+                } catch (Throwable) {
                     $failed++;
-                    $this->error("Failed {$submission->reference}; check the application log before retrying.");
                 }
             }
-
-            $this->info($this->option('dry-run')
-                ? "Dry run complete: {$processed} submissions checked. No emails sent."
-                : "Complete: {$sent} sent, {$failed} failed or invalid. Previously sent submissions were skipped.");
 
             return $failed > 0 ? self::FAILURE : self::SUCCESS;
         } finally {
