@@ -2,36 +2,41 @@
 
 @php
     $url = route('experts.show', $expert);
-    $tags = array_slice($expert->expertise ?? [], 0, 2);
-    $moreTags = max(count($expert->expertise ?? []) - 2, 0);
+    $tags = array_slice($expert->expertise ?? [], 0, 3);
+    $moreTags = max(count($expert->expertise ?? []) - 3, 0);
     $department = \Illuminate\Support\Str::after($expert->department ?? '', 'Department of ');
     $area = $expert->category?->name;
-    $iconBtn = 'relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-500 transition hover:border-brand-600 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
+    $iconBtn = 'relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-navy-700 shadow-sm transition hover:border-brand-600 hover:bg-brand-600 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
 @endphp
 
 {{-- The scroll-reveal lives on the wrapper so its transform and delay never fight the card's hover. --}}
 <div {{ $attributes->merge(['class' => 'reveal']) }} style="transition-delay: {{ min($index * 80, 400) }}ms">
-    <article class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-[0_4px_20px_-12px_rgba(7,20,38,0.16)] transition-[transform,box-shadow,border-color] duration-300 motion-safe:hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_16px_40px_-20px_rgba(7,20,38,0.24)]">
+    <article class="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink-200 bg-white shadow-[0_12px_40px_-22px_rgba(2,34,81,0.3)] transition-[transform,box-shadow,border-color] duration-300 motion-safe:hover:-translate-y-1.5 hover:border-brand-300 hover:shadow-[0_24px_60px_-24px_rgba(2,34,81,0.35)]">
 
-        {{-- Full portrait stays visible regardless of the uploaded image proportions. --}}
-        <div class="relative flex aspect-[3/2] items-center justify-center overflow-hidden border-b border-ink-100 bg-gradient-to-br from-ink-50 to-ink-100">
+        {{-- A soft image backdrop fills the frame; the foreground preserves the full portrait. --}}
+        <div class="relative isolate aspect-[4/3] overflow-hidden bg-navy-900">
             @if ($expert->photo)
+                <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="" aria-hidden="true" loading="lazy" decoding="async"
+                     class="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-xl">
+                <div class="absolute inset-0 bg-gradient-to-tr from-navy-900/70 via-transparent to-brand-600/20" aria-hidden="true"></div>
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($expert->photo) }}" alt="{{ $expert->name }}" loading="lazy" decoding="async"
-                     class="h-full w-full object-contain object-center">
+                     class="absolute inset-0 h-full w-full object-contain object-center">
             @else
-                <span class="flex h-28 w-28 items-center justify-center rounded-full border border-brand-200 bg-brand-50 font-display text-4xl font-semibold text-brand-700" aria-hidden="true">{{ $expert->initials }}</span>
+                <div class="absolute inset-0 bg-gradient-to-br from-navy-700 via-navy-900 to-brand-800" aria-hidden="true"></div>
+                <span class="absolute left-1/2 top-1/2 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-white/10 font-display text-5xl font-semibold text-white shadow-xl backdrop-blur-sm" aria-hidden="true">{{ $expert->initials }}</span>
             @endif
+            <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-navy-900/40 to-transparent" aria-hidden="true"></div>
         </div>
 
         {{-- Details --}}
-        <div class="flex flex-1 flex-col p-6">
+        <div class="relative -mt-4 flex flex-1 flex-col rounded-t-[1.5rem] bg-white px-6 pb-6 pt-7">
             @if ($expert->designation)
-                <p class="mb-2 text-xs font-semibold leading-relaxed tracking-wide text-brand-700">{{ $expert->designation }}</p>
+                <p class="mb-3 flex items-start gap-2 text-[11px] font-bold uppercase leading-relaxed tracking-[0.08em] text-brand-700"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500"></span>{{ $expert->designation }}</p>
             @endif
 
-            <h3 class="font-display text-xl font-bold leading-snug text-ink-950 break-words">
+            <h3 class="font-display text-[23px] font-bold leading-tight tracking-tight text-navy-800 break-words">
                 {{-- Stretched link: the whole card is clickable; contact buttons sit above it --}}
-                <a href="{{ $url }}" class="transition-colors group-hover:text-brand-700 after:absolute after:inset-0 after:z-10 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-600">
+                <a href="{{ $url }}" class="transition-colors group-hover:text-brand-700 after:absolute after:inset-0 after:z-10 after:rounded-[1.75rem] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand-600">
                     {{ $expert->name }}
                 </a>
             </h3>
@@ -44,8 +49,8 @@
             @endif
 
             @if ($area)
-                <p class="mt-3 flex items-start gap-2 text-[13px] leading-relaxed text-ink-600">
-                    <x-ui-icon :name="$expert->category->icon ?? 'briefcase'" class="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                <p class="mt-4 flex items-center gap-3 rounded-xl border border-navy-100/70 bg-navy-50/70 p-3 text-[12px] font-medium leading-relaxed text-navy-700">
+                    <x-ui-icon :name="$expert->category->icon ?? 'briefcase'" class="h-5 w-5 shrink-0 text-navy-600" />
                     <span class="break-words">{{ $area }}</span>
                 </p>
             @endif
@@ -53,10 +58,10 @@
             @if ($tags)
                 <div class="mt-5 flex flex-wrap gap-2">
                     @foreach ($tags as $tag)
-                        <span class="max-w-full rounded-md bg-ink-50 px-2.5 py-1.5 text-xs leading-relaxed text-ink-600 break-words">{{ $tag }}</span>
+                        <span class="max-w-full rounded-full border border-brand-100 bg-brand-50/80 px-3 py-1.5 text-[11px] font-medium leading-relaxed text-brand-800 break-words">{{ $tag }}</span>
                     @endforeach
                     @if ($moreTags)
-                        <span class="rounded-md border border-ink-200 px-2.5 py-1.5 text-xs leading-relaxed text-ink-500">+{{ $moreTags }}</span>
+                        <span class="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold leading-relaxed text-ink-500">+{{ $moreTags }}</span>
                     @endif
                 </div>
             @endif
@@ -88,9 +93,9 @@
                     @endif
                 </div>
 
-                <span class="ml-auto inline-flex items-center gap-2 text-[13px] font-semibold text-brand-700" aria-hidden="true">
+                <span class="ml-auto inline-flex min-h-10 items-center gap-3 rounded-full bg-navy-800 py-1.5 pl-4 pr-1.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_-4px_rgba(2,34,81,0.4)] transition-colors group-hover:bg-brand-700" aria-hidden="true">
                     {{ __('site.cards.view_profile') }}
-                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white transition-transform motion-safe:group-hover:rotate-45">
                         <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                     </span>
                 </span>
