@@ -23,6 +23,8 @@ class Expert extends Model
 
     protected $guarded = [];
 
+    protected $attributes = ['type' => 'expert'];
+
     protected $casts = [
         'expertise' => 'array',
         'expertise_bn' => 'array',

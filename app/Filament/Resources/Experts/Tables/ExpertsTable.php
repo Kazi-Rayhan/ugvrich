@@ -30,6 +30,10 @@ class ExpertsTable
                     ->weight('semibold')
                     ->description(fn ($record) => $record->designation),
 
+                TextColumn::make('type')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
+
                 TextColumn::make('department')
                     ->searchable()
                     ->wrap(),
@@ -54,6 +58,9 @@ class ExpertsTable
                     ->boolean(),
             ])
             ->filters([
+                SelectFilter::make('type')
+                    ->options(['expert' => 'Expert', 'administration' => 'Administration']),
+
                 SelectFilter::make('service_category_id')
                     ->label('Area of consultancy')
                     ->relationship('category', 'name')

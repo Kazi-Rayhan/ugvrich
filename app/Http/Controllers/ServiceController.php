@@ -37,7 +37,7 @@ class ServiceController extends Controller
             'category' => $serviceCategory,
             'service' => $service,
             'siblings' => $siblings,
-            'experts' => Expert::with('category')->active()
+            'experts' => Expert::with('category')->active()->where('type', 'expert')
                 ->where('service_category_id', $serviceCategory->id)
                 ->orderBy('sort_order')->take(3)->get(),
         ]);
@@ -52,7 +52,7 @@ class ServiceController extends Controller
         return view('pages.services.show', [
             'category' => $serviceCategory,
             'siblings' => ServiceCategory::active()->with('services')->whereKeyNot($serviceCategory->id)->orderBy('sort_order')->get(),
-            'experts' => Expert::with('category')->active()->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
+            'experts' => Expert::with('category')->active()->where('type', 'expert')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
             'projects' => Project::public()->with('category')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
             'expertCount' => Expert::active()->where('service_category_id', $serviceCategory->id)->count(),
             'projectCount' => Project::public()->where('service_category_id', $serviceCategory->id)->count(),

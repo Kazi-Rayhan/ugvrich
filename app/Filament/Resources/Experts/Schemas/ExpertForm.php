@@ -7,8 +7,8 @@ use App\Models\Expert;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -35,6 +35,13 @@ class ExpertForm
                                 ->required()
                                 ->maxLength(150)
                                 ->unique(ignoreRecord: true),
+
+                            Select::make('type')
+                                ->label('Type')
+                                ->options(['expert' => 'Expert', 'administration' => 'Administration'])
+                                ->default('expert')
+                                ->required()
+                                ->in(['expert', 'administration']),
 
                             TextInput::make('designation')
                                 ->maxLength(150)

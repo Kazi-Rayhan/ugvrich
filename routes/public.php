@@ -3,11 +3,11 @@
 use App\Http\Controllers\ConsultancyRequestController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\ExpertController;
-use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\IdeaSubmissionController;
 use App\Http\Controllers\InnovationController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\Researcher\AuthController;
@@ -87,6 +87,8 @@ Route::post('/submit-idea', [IdeaSubmissionController::class, 'store'])
 
 Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+
+Route::get('/administrations', [ExpertController::class, 'index'])->name('administrations.index');
 
 Route::get('/experts', [ExpertController::class, 'index'])->name('experts.index');
 Route::get('/experts/{expert}', [ExpertController::class, 'show'])->name('experts.show');

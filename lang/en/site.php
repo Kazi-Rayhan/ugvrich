@@ -518,6 +518,7 @@ return [
     ],
 
     'experts' => [
+        'directory_label' => 'Team directory',
         'meta_title' => 'Our Experts',
         'meta_description' => 'A searchable directory of UGV faculty members and professional associates available for consultancy, research collaboration and supervision.',
         'hero_eyebrow' => 'Our experts',
@@ -535,6 +536,41 @@ return [
         'empty_title' => 'No experts match your search',
         'empty_body' => 'Try a broader term or a different area, or clear the filters to see the full directory.',
         'show_all' => 'Show all experts',
+        'ask_us' => 'Ask us to find one',
+
+        'expertise' => 'Areas of expertise',
+        'interests' => 'Research interests',
+        'profile' => 'Profile',
+        'available_for' => 'Available for',
+        'available_consultancy' => 'Consultancy assignments',
+        'available_research' => 'Research collaboration',
+        'available_supervision' => 'Postgraduate supervision',
+        'available_training' => 'Training & workshops',
+        'available_review' => 'Peer review',
+        'available_panels' => 'Expert panels',
+
+        'related_eyebrow' => 'Related expertise',
+        'related_title' => 'Others in this area',
+    ],
+
+    'administrations' => [
+        'meta_title' => 'Administrations',
+        'meta_description' => 'A searchable directory of UGV administration members available for consultancy, research collaboration and supervision.',
+        'hero_eyebrow' => 'Administrations',
+        'hero_title' => 'Meet our <span class="text-accent">administration</span>',
+        'hero_lead' => 'A searchable, filterable directory of UGV administration members. Search by name, department, expertise or research interest.',
+        'breadcrumb' => 'Administrations',
+
+        'search_label' => 'Search administration members',
+        'search_placeholder' => 'Search by name, department, expertise or research interest…',
+        'clear_search' => 'Clear search',
+        'all_areas' => 'All areas',
+        'found' => '{1} :count administration member found|[2,*] :count administration members found',
+        'clear_all' => 'Clear all',
+
+        'empty_title' => 'No administration members match your search',
+        'empty_body' => 'Try a broader term or a different area, or clear the filters to see the full directory.',
+        'show_all' => 'Show all administration members',
         'ask_us' => 'Ask us to find one',
 
         'expertise' => 'Areas of expertise',

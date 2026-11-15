@@ -27,7 +27,7 @@
                 [[__('site.nav.industry'), route('industry'), 'handshake', __('site.nav.industry_note')]],
             ),
         ]],
-        ['key' => 'team', 'label' => __('site.nav.team'), 'route' => 'experts.index', 'match' => ['experts.*']],
+        ['key' => 'team', 'label' => __('site.nav.team'), 'route' => 'experts.index', 'match' => ['experts.*', 'administrations.*']],
         ['key' => 'about', 'label' => __('site.nav.about'), 'route' => 'about', 'match' => ['about']],
         ['key' => 'startup', 'label' => __('site.nav.startup'), 'route' => 'startup', 'match' => ['startup', 'ideas.*']],
         ['key' => 'apprenticeship', 'label' => __('site.nav.apprenticeship'), 'route' => 'apprenticeship.create', 'match' => ['apprenticeship.*']],
@@ -40,6 +40,7 @@
 
     // The rest of the sections, in the strip above the bar.
     $utility = [
+        [__('site.administrations.breadcrumb'), route('administrations.index'), 'users', ['administrations.*']],
         [__('site.nav.projects'), route('projects.index'), 'document', ['projects.*']],
         // [__('site.nav.publications'), route('publications'), 'document', ['publications']],   // hidden from the strip on request
         [__('site.nav.patents'), route('patents'), 'key', ['patents']],

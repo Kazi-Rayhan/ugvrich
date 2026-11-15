@@ -4,7 +4,7 @@
         :eyebrow="$expert->department"
         :title="$expert->name"
         :lead="$expert->designation"
-        :breadcrumbs="[__('site.experts.breadcrumb') => route('experts.index'), $expert->name => null]" />
+        :breadcrumbs="[__($expert->type === 'administration' ? 'site.administrations.breadcrumb' : 'site.experts.breadcrumb') => route($expert->type === 'administration' ? 'administrations.index' : 'experts.index'), $expert->name => null]" />
 
     <section class="py-16 bg-white sm:py-20">
         <div class="container-rich grid gap-12 lg:grid-cols-[0.65fr_1.35fr] lg:gap-16">

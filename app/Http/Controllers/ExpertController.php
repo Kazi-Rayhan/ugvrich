@@ -10,10 +10,12 @@ class ExpertController extends Controller
 {
     public function index(Request $request)
     {
+        $type = $request->routeIs('administrations.*', 'en.administrations.*') ? 'administration' : 'expert';
+
         $search = $request->string('q')->trim()->toString();
         $area = $request->string('area')->toString();
 
-        $experts = Expert::active()
+        $experts = Expert::active()->where('type', $type)
             ->with('category')
             ->when($search, function ($q, $search) {
                 $q->where(function ($inner) use ($search) {
@@ -32,11 +34,13 @@ class ExpertController extends Controller
 
         return view('pages.experts.index', [
             'experts' => $experts,
+            'directoryRoute' => $type === 'administration' ? 'administrations.index' : 'experts.index',
+            'translationPrefix' => $type === 'administration' ? 'site.administrations.' : 'site.experts.',
             'categories' => ServiceCategory::active()
-                ->withCount(['experts' => fn ($q) => $q->active()])
+                ->withCount(['experts' => fn ($q) => $q->active()->where('type', $type)])
                 ->orderBy('sort_order')
                 ->get(),
-            'totalExperts' => Expert::active()->count(),
+            'totalExperts' => Expert::active()->where('type', $type)->count(),
             'search' => $search,
             'area' => $area,
         ]);
@@ -51,6 +55,7 @@ class ExpertController extends Controller
         return view('pages.experts.show', [
             'expert' => $expert,
             'related' => Expert::with('category')->active()
+                ->where('type', $expert->type)
                 ->whereKeyNot($expert->id)
                 ->when($expert->service_category_id, fn ($q) => $q->where('service_category_id', $expert->service_category_id))
                 ->orderBy('sort_order')

@@ -6,13 +6,13 @@ use App\Models\CoreArea;
 use App\Models\Expert;
 use App\Models\Facility;
 use App\Models\Partner;
-use App\Models\StudentTeam;
-use App\Support\ResearchFramework;
 use App\Models\Project;
 use App\Models\Publication;
 use App\Models\ServiceCategory;
 use App\Models\Stat;
+use App\Models\StudentTeam;
 use App\Support\MeetingSlots;
+use App\Support\ResearchFramework;
 
 class PageController extends Controller
 {
@@ -30,7 +30,7 @@ class PageController extends Controller
             'coreAreas' => CoreArea::active()->orderBy('sort_order')->get(),
             'stats' => Stat::active()->orderBy('sort_order')->get(),
             'partners' => Partner::active()->orderBy('sort_order')->get(),
-            'experts' => Expert::with('category')->active()->where('is_featured', true)->orderBy('sort_order')->take(6)->get(),
+            'experts' => Expert::with('category')->active()->where('type', 'expert')->where('is_featured', true)->orderBy('sort_order')->take(6)->get(),
         ]);
     }
 
