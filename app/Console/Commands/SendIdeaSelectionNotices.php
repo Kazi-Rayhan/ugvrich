@@ -28,13 +28,13 @@ class SendIdeaSelectionNotices extends Command
         if ($delay === false || $delay < 0 || $delay > 60 ||
             ($limit !== null && (! ctype_digit((string) $limit) || (int) $limit < 1)) ||
             collect($ids)->contains(fn ($id) => ! ctype_digit((string) $id) || (int) $id < 1)) {
-            $this->error('Use positive IDs and limit, and a delay between 0 and 60 seconds.');
+        
 
             return self::FAILURE;
         }
 
         if (! $this->option('dry-run') && in_array(config('mail.default'), ['log', 'array'], true)) {
-            $this->error('Configure a delivery mailer such as SMTP before sending. The current mailer does not deliver emails.');
+           
 
             return self::FAILURE;
         }
@@ -42,7 +42,7 @@ class SendIdeaSelectionNotices extends Command
         // A shared lock prevents overlapping runs from sending the same campaign.
         $lock = Cache::lock('ideas:november-2026-selection-notices', 86400);
         if (! $lock->get()) {
-            $this->error('Another selection notice command is already running.');
+            
 
             return self::FAILURE;
         }
@@ -80,7 +80,7 @@ class SendIdeaSelectionNotices extends Command
                     Mail::to($submission->email)->send(new IdeaSelectionNotice($submission));
                     $submission->forceFill(['selection_notice_sent_at' => now()])->save();
                     $sent++;
-                    $this->info("Sent {$submission->reference} to {$submission->email}");
+                 
                 } catch (Throwable $exception) {
                     report($exception);
                     $failed++;
