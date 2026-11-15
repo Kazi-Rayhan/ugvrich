@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\IdeaSubmissions\Tables;
 
+use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Support\PdfExport;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -60,6 +61,13 @@ class IdeaSubmissionsTable
                     ->color('info')
                     ->formatStateUsing(fn (?string $state) => config('rich.startup_stages.'.$state, $state)),
 
+                TextColumn::make('selection_notice_sent_at')
+                    ->label('Selection notice emailed')
+                    ->dateTime('j M Y, g:i A')
+                    ->placeholder('Not sent')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => str($state)->replace('_', ' ')->title())
@@ -87,7 +95,7 @@ class IdeaSubmissionsTable
 
                 SelectFilter::make('department')->options(config('rich.departments')),
             ])
-            ->recordUrl(fn ($record) => \App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource::getUrl('view', ['record' => $record]))
+            ->recordUrl(fn ($record) => IdeaSubmissionResource::getUrl('view', ['record' => $record]))
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

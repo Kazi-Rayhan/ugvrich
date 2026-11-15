@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\IdeaSubmissionExportController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\SalesPrintController;
 use App\Http\Middleware\SetLocale;
+use App\Mail\IdeaSelectionNotice;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 // Bangla is the site's own language and answers at the root.
@@ -43,4 +45,9 @@ Route::middleware('auth')->get('/admin/export/idea-submissions', IdeaSubmissionE
 
 Route::prefix('en')->name('en.')->group(function () {
     Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+});
+
+Route::get('test/email',function () {
+    $submission = \App\Models\IdeaSubmission::find(1);
+    Mail::to('dev.tamim0@gmail.com')->send(new IdeaSelectionNotice($submission));
 });
