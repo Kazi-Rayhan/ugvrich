@@ -12,7 +12,7 @@ Your submission has been received and will be considered through our selection p
 <x-mail::panel>
 **Selection schedule**
 
-- **Primary selection result:** 16 November 2026, by 12:00 PM (Bangladesh time)
+- **Primary selection result:** 16 November 2026, by 12:00 PM
 - **Final Round:** 20 November 2026
 </x-mail::panel>
 
