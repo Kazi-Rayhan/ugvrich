@@ -440,12 +440,13 @@ return [
         'client_businesses' => 'Businesses',
 
         'catalogue_eyebrow' => 'Service catalogue',
-        'catalogue_title' => '<span class="text-accent">:services</span> services across :areas consultancy areas',
+        'catalogue_title' => 'Our Services',
         'catalogue_lead' => 'Each area draws on its own faculty and professional associates. Assignments often combine several.',
         'service_count' => '{1} :count service|[2,*] :count services',
         'area_detail' => 'Area detail',
 
         'breadcrumb' => 'Services',
+        'book_appointment' => 'Book your appointment for this service/consultation',
         'request_service' => 'Request this service',
         'see_included' => 'See what is included',
         'included_eyebrow' => 'What is included',

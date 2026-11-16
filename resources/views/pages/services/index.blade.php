@@ -33,7 +33,7 @@
 
             <div class="reveal mt-10 flex flex-wrap gap-3">
                 <a href="{{ route('consultancy.create') }}" class="btn-lead group">
-                    <span class="relative">{{ __('site.actions.request_consultancy') }}</span>
+                    <span class="relative">{{ __('site.services.book_appointment') }}</span>
                     <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
                 <a href="#services" class="btn-invert px-7 py-4 text-[15px]">
@@ -77,7 +77,7 @@
                     :lead="__('site.services.catalogue_lead')" />
 
                 <a href="{{ route('consultancy.create') }}" class="btn-primary reveal shrink-0">
-                    {{ __('site.actions.request_consultancy') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
+                    {{ __('site.services.book_appointment') }} <x-ui-icon name="arrow-up-right" class="h-4 w-4" />
                 </a>
             </div>
 
@@ -174,7 +174,7 @@
                                 {{ __('site.services.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
                             </a>
                             <a href="{{ route('consultancy.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
-                                {{ __('site.actions.request_consultancy') }}
+                                {{ __('site.services.book_appointment') }}
                             </a>
                         </div>
                     </section>

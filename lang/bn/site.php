@@ -441,12 +441,13 @@ return [
         'client_businesses' => 'ব্যবসা প্রতিষ্ঠান',
 
         'catalogue_eyebrow' => 'সেবার তালিকা',
-        'catalogue_title' => ':areas টি পরামর্শ ক্ষেত্রে <span class="text-accent">:services</span> টি সেবা',
+        'catalogue_title' => 'আমাদের সেবাসমূহ',
         'catalogue_lead' => 'প্রতিটি ক্ষেত্র নিজস্ব শিক্ষক ও পেশাদার সহযোগীদের উপর নির্ভর করে। একেকটি কাজে প্রায়ই একাধিক ক্ষেত্র একসঙ্গে যুক্ত হয়।',
         'service_count' => ':count টি সেবা',
         'area_detail' => 'ক্ষেত্রের বিস্তারিত',
 
         'breadcrumb' => 'সেবাসমূহ',
+        'book_appointment' => 'সার্ভিস/পরামর্শটি পেতে আপনার অ্যাপয়েন্টমেন্ট বুক করুন',
         'request_service' => 'এই সেবাটি চান',
         'see_included' => 'কী কী আছে দেখুন',
         'included_eyebrow' => 'যা যা অন্তর্ভুক্ত',
