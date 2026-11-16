@@ -169,7 +169,7 @@
                             @endforeach
                         </div>
 
-                        <div class="reveal mt-10 flex flex-col gap-3 border-t border-ink-100 pt-6 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
+                        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
                             <a href="{{ route('services.show', $category) }}"
                                class="group inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-brand-600/20 bg-brand-50 px-6 py-3.5 text-center text-[14px] font-semibold text-brand-700 transition duration-200 hover:border-brand-600/40 hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600 motion-reduce:transition-none sm:shrink-0">
                                 <span>{{ __('site.services.area_detail') }}</span>
