@@ -13,7 +13,6 @@ class IdeaSubmission extends Model
     protected $casts = [
         'reviewed_at' => 'datetime',
         'selection_notice_sent_at' => 'datetime',
-        'competition_invitation_sent_at' => 'datetime',
     ];
 
     /** The innovator account it was submitted from. */

@@ -4,8 +4,8 @@ namespace App\Mail;
 
 use App\Models\IdeaSubmission;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Support\HtmlString;
 
 class IdeaCompetitionInvitation extends Mailable
 {
@@ -16,8 +16,8 @@ class IdeaCompetitionInvitation extends Mailable
         return new Envelope(subject: 'Congratulations! You Have Been Selected for the Innovation Idea Competition 2026 – UGV-RICH');
     }
 
-    public function content(): Content
+    public function build(): static
     {
-        return new Content(markdown: 'mail.ideas.competition-invitation');
+        return $this->text(new HtmlString(file_get_contents(resource_path('views/mail/ideas/competition-invitation.txt'))));
     }
 }
