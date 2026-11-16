@@ -77,9 +77,10 @@ class SendIdeaCompetitionInvitations extends Command
                     $submission->forceFill(['competition_invitation_sent_at' => now()])->save();
                     $sent++;
 
-                } catch (Throwable) {
+                } catch (Throwable $exception) {
                     $failed++;
                     $this->error("Failed to send {$submission->reference}.");
+                    $this->error($exception->getMessage());
                 }
             }
 
