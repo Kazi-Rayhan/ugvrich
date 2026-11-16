@@ -1,0 +1,57 @@
+<x-mail::message>
+Dear Selected Team,
+
+On behalf of UGV-RICH (UGV Research, Innovation, and Consultation HUB), University of Global Village (UGV), Barishal, I am delighted to congratulate you!
+
+Your idea has been selected from among many submissions to participate in the Innovation Idea Competition 2026.
+
+We were impressed by the potential of your idea, and we look forward to seeing you present it before our judges' panel for final funding consideration.
+
+Please read the following instructions carefully:
+
+## 1. Competition Day Details
+
+**Date:** Sunday, 22nd November 2026
+
+**Venue:** University of Global Village (UGV), Barishal, Building 1
+
+**Presentation Room:** Meeting Room, 2nd Floor, Room No. 302
+
+**Waiting Room:** Room No. 401 (Library)
+
+**Reporting Time for Registration:** 10:00 AM sharp
+
+All team members are expected to be present on the day. However, only one member will present the idea in front of the judges' panel.
+
+## 2. Presentation Submission Deadline
+
+You must prepare your presentation slides and submit **both PDF and PPTX** versions to **[rich@ugv.edu.bd](mailto:rich@ugv.edu.bd)** by **20th November 2026**.
+
+Please mention your Team Name / Idea Title and Department in the subject line of your email.
+
+Late submissions may not be accepted.
+
+## 3. Presentation Duration
+
+Your presentation will be for **5 minutes only**.
+
+Within these 5 minutes, you must present the main ideas clearly and convincingly enough to be selected for final funding.
+
+## 4. Important Reminders
+
+- Please bring your own laptop for the presentation, along with a backup copy of your presentation on a pen drive.
+- Arrive on time for registration at 10:00 AM.
+- Maintain professional conduct and be ready in the waiting room before your slot.
+- The judges' panel may ask questions after your presentation, if time permits.
+
+Once again, congratulations on your selection. This is a wonderful opportunity to showcase your creativity and innovation at UGV.
+
+We wish you all the best for the competition.
+
+Warm regards,
+
+**Jannatul Tajri**  
+Assistant Professor  
+Director, UGV-RICH  
+University of Global Village (UGV), Barishal
+</x-mail::message>
