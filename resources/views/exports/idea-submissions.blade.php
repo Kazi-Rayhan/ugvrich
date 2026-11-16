@@ -5,6 +5,8 @@
         'new' => ['New', '#b45309', '#fef3c7'],
         'in_review' => ['In review', '#1d4ed8', '#dbeafe'],
         'accepted' => ['Accepted', '#047857', '#d1fae5'],
+        'primary_selected' => ['Primary selected', '#4338ca', '#e0e7ff'],
+        'final_selected' => ['Final selected', '#047857', '#d1fae5'],
         'on_hold' => ['On hold', '#475569', '#e2e8f0'],
         'declined' => ['Declined', '#b91c1c', '#fee2e2'],
     ];

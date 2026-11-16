@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\IdeaSubmission;
+use App\Models\User;
+use App\Filament\Resources\IdeaSubmissions\Pages\ListIdeaSubmissions;
+use App\Filament\Resources\IdeaSubmissions\Pages\EditIdeaSubmission;
+use Livewire\Livewire;
 use Database\Seeders\RichContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -30,6 +34,47 @@ class IdeaSubmissionTest extends TestCase
         foreach (config('rich.startup_stages') as $label) {
             $response->assertSee($label, false);
         }
+    }
+
+    public function test_admin_selects_an_idea_in_two_stages(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $idea = IdeaSubmission::create([
+            'name' => 'Test team', 'email' => 'team@example.com',
+            'phone' => '01700000000', 'title' => 'Test idea',
+            'role' => 'student', 'stage' => 'idea', 'status' => 'new',
+        ]);
+
+        Livewire::test(ListIdeaSubmissions::class)
+            ->assertTableActionVisible('primarySelect', $idea)
+            ->assertTableActionHidden('finalSelect', $idea)
+            ->callTableAction('primarySelect', $idea);
+
+        $this->assertSame('primary_selected', $idea->fresh()->status);
+        $this->assertNotNull($idea->fresh()->reviewed_at);
+
+        Livewire::test(ListIdeaSubmissions::class)
+            ->assertTableActionVisible('finalSelect', $idea)
+            ->callTableAction('finalSelect', $idea);
+
+        $this->assertSame('final_selected', $idea->fresh()->status);
+    }
+
+    public function test_editing_cannot_skip_primary_selection(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $idea = IdeaSubmission::create([
+            'name' => 'Test team', 'email' => 'team@example.com',
+            'phone' => '01700000000', 'title' => 'Test idea',
+            'role' => 'student', 'stage' => 'idea', 'status' => 'new',
+        ]);
+
+        Livewire::test(EditIdeaSubmission::class, ['record' => $idea->getRouteKey()])
+            ->fillForm(['status' => 'final_selected'])
+            ->call('save')
+            ->assertHasFormErrors(['status']);
+
+        $this->assertSame('new', $idea->fresh()->status);
     }
 
     public function test_idea_form_renders(): void

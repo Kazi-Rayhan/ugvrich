@@ -76,6 +76,8 @@ class IdeaSubmissionForm
                             ->options([
                                 'new' => 'New',
                                 'in_review' => 'In review',
+                                'primary_selected' => 'Primary selected',
+                                'final_selected' => 'Final selected',
                                 'accepted' => 'Accepted',
                                 'on_hold' => 'On hold',
                                 'declined' => 'Declined',

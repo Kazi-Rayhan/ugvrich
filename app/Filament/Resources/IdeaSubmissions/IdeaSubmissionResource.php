@@ -55,6 +55,8 @@ class IdeaSubmissionResource extends Resource
             'new' => 'warning',
             'in_review' => 'info',
             'accepted' => 'success',
+            'primary_selected' => 'primary',
+            'final_selected' => 'success',
             'declined' => 'danger',
             default => 'gray',
         };

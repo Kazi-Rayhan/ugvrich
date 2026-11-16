@@ -4,6 +4,8 @@ namespace App\Filament\Resources\IdeaSubmissions\Tables;
 
 use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Support\PdfExport;
+use App\Models\IdeaSubmission;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -74,6 +76,8 @@ class IdeaSubmissionsTable
                     ->color(fn (string $state) => match ($state) {
                         'new' => 'warning',
                         'in_review' => 'info',
+                        'primary_selected' => 'primary',
+                        'final_selected' => 'success',
                         'accepted' => 'success',
                         'declined' => 'danger',
                         default => 'gray',
@@ -83,6 +87,8 @@ class IdeaSubmissionsTable
                 SelectFilter::make('status')->options([
                     'new' => 'New',
                     'in_review' => 'In review',
+                    'primary_selected' => 'Primary selected',
+                    'final_selected' => 'Final selected',
                     'accepted' => 'Accepted',
                     'on_hold' => 'On hold',
                     'declined' => 'Declined',
@@ -97,6 +103,22 @@ class IdeaSubmissionsTable
             ])
             ->recordUrl(fn ($record) => IdeaSubmissionResource::getUrl('view', ['record' => $record]))
             ->recordActions([
+                Action::make('primarySelect')
+                    ->authorize(fn (IdeaSubmission $record) => IdeaSubmissionResource::canEdit($record))
+                    ->label('Primary select')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('primary')
+                    ->visible(fn (IdeaSubmission $record) => in_array($record->status, ['new', 'in_review', 'on_hold']))
+                    ->action(fn (IdeaSubmission $record) => $record->update(['status' => 'primary_selected', 'reviewed_at' => now()])),
+                Action::make('finalSelect')
+                    ->authorize(fn (IdeaSubmission $record) => IdeaSubmissionResource::canEdit($record))
+                    ->label('Final select')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn (IdeaSubmission $record) => $record->status === 'primary_selected')
+                    ->action(fn (IdeaSubmission $record) => IdeaSubmission::whereKey($record->id)
+                        ->where('status', 'primary_selected')
+                        ->update(['status' => 'final_selected', 'reviewed_at' => now()])),
                 ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
