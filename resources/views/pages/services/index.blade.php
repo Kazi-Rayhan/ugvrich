@@ -169,12 +169,18 @@
                             @endforeach
                         </div>
 
-                        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
-                            <a href="{{ route('services.show', $category) }}" class="btn-ghost">
-                                {{ __('site.services.area_detail') }} <x-ui-icon name="arrow-right" class="h-4 w-4" />
+                        <div class="reveal mt-10 flex flex-col gap-3 border-t border-ink-100 pt-6 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
+                            <a href="{{ route('services.show', $category) }}"
+                               class="group inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-brand-600/20 bg-brand-50 px-6 py-3.5 text-center text-[14px] font-semibold text-brand-700 transition duration-200 hover:border-brand-600/40 hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600 motion-reduce:transition-none sm:shrink-0">
+                                <span>{{ __('site.services.area_detail') }}</span>
+                                <x-ui-icon name="arrow-right" class="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transform-none" />
                             </a>
-                            <a href="{{ route('consultancy.create') }}" class="text-[13.5px] font-semibold text-brand-700 transition hover:text-brand-600">
-                                {{ __('site.services.book_appointment') }}
+                            <a href="{{ route('consultancy.create') }}"
+                               class="group inline-flex min-h-14 items-center justify-center gap-4 rounded-2xl border border-brand-600 bg-brand-600 py-3 pl-6 pr-3 text-[14px] font-semibold leading-relaxed text-white shadow-sm transition duration-200 hover:border-brand-700 hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600 motion-reduce:transition-none sm:max-w-xl">
+                                <span>{{ __('site.services.book_appointment') }}</span>
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 transition-colors group-hover:bg-white/25">
+                                    <x-ui-icon name="arrow-up-right" class="h-[18px] w-[18px]" />
+                                </span>
                             </a>
                         </div>
                     </section>
