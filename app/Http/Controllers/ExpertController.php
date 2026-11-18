@@ -27,8 +27,9 @@ class ExpertController extends Controller
                 });
             })
             ->when($area, fn ($q, $slug) => $q->whereHas('category', fn ($c) => $c->where('slug', $slug)))
-            ->orderByDesc('is_featured')
-            ->orderBy('sort_order')
+            ->when($type === 'administration', fn ($q) => $q->orderByDesc('is_featured'))
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id')
             ->paginate(9)
             ->withQueryString();
 
