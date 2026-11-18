@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\StudentMemberships\Pages\ListStudentMemberships;
 use App\Filament\Resources\StudentMemberships\StudentMembershipResource;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\StudentMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /** The apprenticeship inbox follows the role system like every other part of the dashboard. */
@@ -69,5 +71,27 @@ class ApplicationInboxPermissionTest extends TestCase
         $admin = User::factory()->create(['role' => User::ADMIN, 'role_id' => Role::where('name', Role::ADMIN)->value('id')]);
 
         $this->actingAs($admin)->get(StudentMembershipResource::getUrl('index'))->assertOk();
+    }
+
+    public function test_staff_with_inbox_access_can_export_excel(): void
+    {
+        $this->actingAs($this->staff(['view_any_student_membership']));
+
+        StudentMembership::create([
+            'name' => 'Test Student',
+            'student_id' => '00123',
+            'semester' => 2,
+            'department' => 'cse',
+            'phone' => '01700000000',
+            'email' => 'student@example.com',
+            'track' => 'ict',
+        ]);
+
+        Livewire::test(ListStudentMemberships::class)
+            ->callAction('exportExcel')
+            ->assertFileDownloaded(
+                'student-memberships-'.now()->toDateString().'.xlsx',
+                contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            );
     }
 }
