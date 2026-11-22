@@ -15,11 +15,6 @@ class ListExpertWallets extends ListRecords
         return __('expert_wallet.wallet_admin');
     }
 
-    public function getSubheading(): string
-    {
-        return __('expert_wallet.available_to_experts');
-    }
-
     protected function getHeaderActions(): array
     {
         return [

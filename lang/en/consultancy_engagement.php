@@ -128,4 +128,8 @@ return [
     'download' => 'Download',
     'public_phone' => 'Phone',
     'wallet' => 'Wallet',
+    'wallet_methods' => 'Payment methods',
+    'wallet_withdrawals' => 'Withdrawal requests',
+    'nav_workspace' => 'Workspace',
+    'nav_engagement' => 'Engagement and payments',
 ];

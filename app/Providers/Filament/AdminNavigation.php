@@ -84,17 +84,11 @@ class AdminNavigation
                     ->badge(fn () => ($n = IdeaSubmission::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
 
                 $this->resource('Experts', Heroicon::OutlinedAcademicCap, ExpertResource::class),
-                $this->resource('Consultancy Expert Applications', Heroicon::OutlinedClipboardDocumentList, ConsultancyApplicationResource::class),
-                $this->resource(__('consultancy_engagement.engagements'), Heroicon::OutlinedBriefcase, ConsultancyEngagementResource::class),
-                $this->resource(__('consultancy_engagement.policies'), Heroicon::OutlinedDocumentText, ConsultancyEngagementPolicyResource::class),
-                $this->resource(__('expert_wallet.wallet_admin'), Heroicon::OutlinedWallet, ExpertWalletResource::class),
-                $this->resource(__('expert_wallet.withdrawal_admin'), Heroicon::OutlinedBanknotes, WalletWithdrawalResource::class),
                 $this->resource('Students / Teams', Heroicon::OutlinedUserGroup, StudentTeamResource::class),
                 $this->filtered('Publications', Heroicon::OutlinedDocumentText, PublicationResource::class, 'kind', null),
                 $this->filtered('Patent & IP', Heroicon::OutlinedKey, ProjectResource::class, 'ip', 'protected'),
                 $this->filtered('Prototype Management', Heroicon::OutlinedCog6Tooth, ProjectResource::class, 'stage', 'prototype'),
                 $this->filtered('Startup & Incubation', Heroicon::OutlinedRocketLaunch, ProjectResource::class, 'commercialization_status', 'incubating'),
-                $this->filtered('Consultancy Projects', Heroicon::OutlinedBriefcase, ProjectResource::class, 'type', 'consultancy'),
                 $this->resource('Industry Partners', Heroicon::OutlinedBuildingOffice2, PartnerResource::class),
                 $this->resource('Labs & Equipment', Heroicon::OutlinedWrenchScrewdriver, FacilityResource::class),
                 $this->filtered('Funding & Grants', Heroicon::OutlinedBanknotes, PublicationResource::class, 'kind', 'funded-project'),
@@ -116,6 +110,20 @@ class AdminNavigation
                 ->items([
                     $this->resource('Innovation Areas', null, InnovationAreaResource::class),
                     $this->resource('Innovations', null, InnovationResource::class),
+                ]),
+
+            NavigationGroup::make(__('site.nav.consultancy'))
+                ->icon(Heroicon::OutlinedBriefcase)
+                ->collapsible()
+                ->items([
+                    $this->resource('Consultancy Requests', null, ConsultancyRequestResource::class)
+                        ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
+                    $this->filtered('Consultancy Projects', null, ProjectResource::class, 'type', 'consultancy'),
+                    $this->resource('Consultancy Expert Applications', null, ConsultancyApplicationResource::class),
+                    $this->resource(__('consultancy_engagement.engagements'), null, ConsultancyEngagementResource::class),
+                    $this->resource(__('consultancy_engagement.policies'), null, ConsultancyEngagementPolicyResource::class),
+                    $this->resource(__('expert_wallet.wallet_admin'), null, ExpertWalletResource::class),
+                    $this->resource(__('expert_wallet.withdrawal_admin'), null, WalletWithdrawalResource::class),
                 ]),
 
             // Proposal → order → payments, for the consultancy services.
@@ -161,8 +169,6 @@ class AdminNavigation
                 ->icon(Heroicon::OutlinedInbox)
                 ->collapsible()
                 ->items([
-                    $this->resource('Consultancy Requests', null, ConsultancyRequestResource::class)
-                        ->badge(fn () => ($n = ConsultancyRequest::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     $this->resource('Contact Messages', null, ContactMessageResource::class)
                         ->badge(fn () => ($n = ContactMessage::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
                     // The /apprenticeship form (formerly "membership") files its applications here.

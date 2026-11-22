@@ -6,12 +6,12 @@
         $links += [
             'expert.profile.show' => ['user', 'profile'],
             'expert.portfolio.index' => ['document', 'portfolio'],
-            'expert.contract.show' => ['briefcase', 'details'],
-            'expert.wallet.show' => ['wallet', 'wallet'],
         ];
     } else {
         $links['expert.onboarding'] = ['shield', 'onboarding_nav'];
     }
+    $walletActive = request()->routeIs('expert.wallet.*', 'en.expert.wallet.*');
+    $linkClasses = 'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] font-medium text-ink-700 hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-teal-600 aria-[current=page]:bg-teal-50 aria-[current=page]:font-semibold aria-[current=page]:text-teal-900';
 
     $profileName = $application->expert?->name ?? $application->name;
     $profilePhoto = $application->expert?->photo;
@@ -44,14 +44,44 @@
                 </span>
             </a>
 
-            <nav id="expert-sidebar" class="mt-4 flex flex-wrap gap-1.5 lg:mt-9 lg:flex-col" aria-label="{{ __('consultancy_engagement.dashboard_navigation') }}">
-                @foreach ($links as $routeName => [$icon, $label])
-                    <a href="{{ route($routeName) }}" @if (request()->routeIs($routeName, 'en.'.$routeName)) aria-current="page" @endif
-                       class="group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-[14px] font-medium text-ink-700 transition-colors hover:bg-ink-50 hover:text-ink-950 focus-visible:outline-2 focus-visible:outline-teal-600 aria-[current=page]:border-teal-100 aria-[current=page]:bg-teal-50 aria-[current=page]:text-teal-900 lg:px-3.5">
-                        <x-ui-icon :name="$icon" class="size-[18px] shrink-0 text-ink-500 group-aria-[current=page]:text-teal-700" />
-                        {{ __('consultancy_engagement.'.$label) }}
-                    </a>
-                @endforeach
+            <nav id="expert-sidebar" class="mt-4 space-y-3 lg:mt-8 lg:space-y-5" aria-label="{{ __('consultancy_engagement.dashboard_navigation') }}">
+                <div class="space-y-1">
+                    <h2 class="px-3 text-[12px] font-semibold text-ink-600">{{ __('consultancy_engagement.nav_workspace') }}</h2>
+                    <div class="flex flex-wrap gap-1 lg:flex-col">
+                        @foreach ($links as $routeName => [$icon, $label])
+                            <a href="{{ route($routeName) }}" @if (request()->routeIs($routeName, 'en.'.$routeName)) aria-current="page" @endif class="{{ $linkClasses }}">
+                                <x-ui-icon :name="$icon" class="size-[18px] shrink-0 text-ink-500 group-aria-[current=page]:text-teal-700" />
+                                {{ __('consultancy_engagement.'.$label) }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                @if ($application->signed_at)
+                    <div class="space-y-1 border-t border-ink-100 pt-3 lg:pt-4">
+                        <h2 class="px-3 text-[12px] font-semibold text-ink-600">{{ __('consultancy_engagement.nav_engagement') }}</h2>
+                        <a href="{{ route('expert.contract.show') }}" @if (request()->routeIs('expert.contract.show', 'en.expert.contract.show')) aria-current="page" @endif class="{{ $linkClasses }}">
+                            <x-ui-icon name="briefcase" class="size-[18px] shrink-0 text-ink-500 group-aria-[current=page]:text-teal-700" />
+                            {{ __('consultancy_engagement.details') }}
+                        </a>
+                        <details @if ($walletActive) open @endif class="group/wallet">
+                            <summary @class([$linkClasses, 'cursor-pointer list-none [&::-webkit-details-marker]:hidden', 'bg-teal-50 text-teal-900' => $walletActive])>
+                                <x-ui-icon name="wallet" class="size-[18px] shrink-0 text-teal-700" />
+                                <span class="flex-1">{{ __('consultancy_engagement.wallet') }}</span>
+                                <x-ui-icon name="chevron-down" class="size-4 shrink-0 text-ink-500 group-open/wallet:rotate-180" />
+                            </summary>
+                            <ul class="mt-1 ml-5 space-y-0.5 border-l border-ink-200 pl-2">
+                                @foreach (['show' => __('expert_wallet.overview'), 'methods' => __('consultancy_engagement.wallet_methods'), 'withdrawals' => __('expert_wallet.withdrawals')] as $key => $label)
+                                    <li>
+                                        <a href="{{ route('expert.wallet.'.$key) }}" @if (request()->routeIs('expert.wallet.'.$key, 'en.expert.wallet.'.$key)) aria-current="page" @endif class="{{ $linkClasses }}">
+                                            {{ $label }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </details>
+                    </div>
+                @endif
             </nav>
 
             <div class="mt-3 flex flex-wrap items-center gap-3 border-t border-ink-100 pt-3 lg:mt-auto lg:block lg:pt-4">

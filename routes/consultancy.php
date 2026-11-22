@@ -18,6 +18,8 @@ Route::middleware('auth')->prefix('expert/dashboard')->name('expert.')->group(fu
     Route::get('/portfolio', [ConsultancyExpertController::class, 'showPortfolio'])->name('portfolio.index');
     Route::get('/contract', [ConsultancyExpertController::class, 'showContract'])->name('contract.show');
     Route::get('/wallet', [ConsultancyExpertController::class, 'showWallet'])->name('wallet.show');
+    Route::get('/wallet/payment-methods', [ConsultancyExpertController::class, 'showPayoutMethods'])->name('wallet.methods');
+    Route::get('/wallet/withdrawals', [ConsultancyExpertController::class, 'showWithdrawals'])->name('wallet.withdrawals');
     Route::put('/wallet/payout-method', [ConsultancyExpertController::class, 'savePayoutMethod'])->name('wallet.payout');
     Route::post('/wallet/withdrawals', [ConsultancyExpertController::class, 'requestWithdrawal'])->middleware('throttle:12,1')->name('wallet.withdraw');
     Route::post('/signature', [ConsultancyExpertController::class, 'sign'])->name('sign');

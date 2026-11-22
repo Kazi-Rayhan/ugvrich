@@ -7,6 +7,7 @@ use App\Models\ExpertWalletEntry as Entry;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ExpertWallet
@@ -26,27 +27,37 @@ class ExpertWallet
         return ['available' => $credited - $held - $paid, 'held' => $held, 'paid' => $paid];
     }
 
-    public function saveDestination(Application $record, string $method, array $destination): void
+    public function destinations(Application $application): array
     {
-        DB::transaction(function () use ($record, $method, $destination): void {
+        $destinations = [];
+        foreach ($application->wallet_destinations ?? [] as $id => $saved) {
+            $destinations[$id] = isset($saved['method'], $saved['details']) ? $saved : ['method' => $id, 'details' => $saved];
+        }
+
+        return $destinations;
+    }
+
+    public function saveDestination(Application $record, string $method, array $destination, ?string $id = null): void
+    {
+        DB::transaction(function () use ($record, $method, $destination, $id): void {
             $application = $this->lockActiveApplication($record->id);
-            $application->update(['wallet_destinations' => [
-                ...($application->wallet_destinations ?? []),
-                $method => $destination,
-            ]]);
+            $destinations = $this->destinations($application);
+            abort_if($id !== null && ($destinations[$id]['method'] ?? null) !== $method, 404);
+            $destinations[$id ?? (string) Str::uuid()] = ['method' => $method, 'details' => $destination];
+            $application->update(['wallet_destinations' => $destinations]);
         });
     }
 
-    public function withdraw(Application $record, string $method, string $amount, string $key): void
+    public function withdraw(Application $record, string $destinationId, string $amount, string $key): void
     {
-        DB::transaction(function () use ($record, $method, $amount, $key): void {
+        DB::transaction(function () use ($record, $destinationId, $amount, $key): void {
             $application = $this->lockActiveApplication($record->id);
             $requestKey = hash('sha256', 'withdrawal:'.$key);
             if ($application->walletEntries()->where('request_key', $requestKey)->exists()) {
                 return;
             }
 
-            $destination = $application->wallet_destinations[$method] ?? null;
+            $destination = $this->destinations($application)[$destinationId] ?? null;
             if (! $destination) {
                 throw ValidationException::withMessages(['method' => __('expert_wallet.method_missing')]);
             }
@@ -60,8 +71,8 @@ class ExpertWallet
                 'kind' => Entry::WITHDRAWAL,
                 'status' => Entry::PENDING,
                 'amount_minor' => $amountMinor,
-                'method' => $method,
-                'destination' => $destination,
+                'method' => $destination['method'],
+                'destination' => $destination['details'],
                 'request_key' => $requestKey,
             ]);
         });

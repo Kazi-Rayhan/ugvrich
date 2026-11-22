@@ -6,6 +6,7 @@ use App\Filament\Resources\ConsultancyApplications\ConsultancyApplicationResourc
 use App\Models\ConsultancyApplication as Application;
 use App\Models\Expert;
 use App\Models\ExpertPortfolio;
+use App\Models\ExpertWalletEntry;
 use App\Models\ServiceCategory;
 use App\Services\ConsultancyReview;
 use App\Services\ExpertWallet;
@@ -149,31 +150,67 @@ class ConsultancyExpertController extends Controller
     public function savePayoutMethod(Request $request, ExpertWallet $wallet)
     {
         $application = $this->application($request, signed: true);
-        $method = $request->validate(['method' => ['required', Rule::in(ExpertWallet::METHODS)]])['method'];
+        $selection = $request->validate([
+            'method' => ['required', Rule::in(ExpertWallet::METHODS)],
+            'destination_id' => ['nullable', 'string', 'max:36'],
+        ]);
+        $method = $selection['method'];
+        foreach ($method === 'bank' ? ['account_number', 'routing_number'] : ['bkash_number'] as $field) {
+            if (is_string($number = $request->input($field))) {
+                $request->merge([$field => preg_replace('/[\s-]+/u', '', str_replace(
+                    ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'], range(0, 9), $number,
+                ))]);
+            }
+        }
         $destination = $request->validate($method === 'bank' ? [
             'bank_name' => ['required', 'string', 'max:120'],
+            'branch_name' => ['required', 'string', 'max:120'],
+            'district' => ['required', 'string', 'max:120'],
             'account_name' => ['required', 'string', 'max:120'],
             'account_number' => ['required', 'string', 'regex:/^[0-9]{6,30}$/'],
-            'routing_number' => ['nullable', 'string', 'regex:/^[0-9]{9}$/'],
+            'routing_number' => ['required', 'string', 'regex:/^[0-9]{9}$/'],
         ] : [
             'bkash_number' => ['required', 'string', 'regex:/^(?:\+880|0)1[0-9]{9}$/'],
         ]);
-        $wallet->saveDestination($application, $method, $destination);
+        $wallet->saveDestination($application, $method, $destination, $selection['destination_id'] ?? null);
 
-        return back()->with('status', __('expert_wallet.saved'));
+        $request->session()->flash('status', __('expert_wallet.saved'));
+
+        return new RedirectResponse(route('expert.wallet.methods'));
+    }
+
+    public function showPayoutMethods(Request $request, ExpertWallet $wallet)
+    {
+        $application = $this->application($request, signed: true);
+
+        return view('consultancy.wallet-methods', ['application' => $application, 'destinations' => $wallet->destinations($application)]);
+    }
+
+    public function showWithdrawals(Request $request, ExpertWallet $wallet)
+    {
+        $application = $this->application($request, signed: true);
+
+        return view('consultancy.wallet-withdrawals', [
+            'application' => $application,
+            'balances' => $wallet->balances($application),
+            'destinations' => $wallet->destinations($application),
+            'entries' => $application->walletEntries()->where('kind', ExpertWalletEntry::WITHDRAWAL)->latest('id')->paginate(15),
+        ]);
     }
 
     public function requestWithdrawal(Request $request, ExpertWallet $wallet)
     {
         $application = $this->application($request, signed: true);
         $data = $request->validate([
-            'method' => ['required', Rule::in(ExpertWallet::METHODS)],
+            'method' => ['required', 'string', 'max:36'],
             'amount' => ExpertWallet::AMOUNT_RULES,
             'request_key' => ['required', 'uuid'],
         ]);
         $wallet->withdraw($application, $data['method'], $data['amount'], $data['request_key']);
 
-        return back()->with('status', __('expert_wallet.requested'));
+        $request->session()->flash('status', __('expert_wallet.requested'));
+
+        return new RedirectResponse(route('expert.wallet.withdrawals'));
     }
 
     public function sign(Request $request)

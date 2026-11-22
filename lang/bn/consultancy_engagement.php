@@ -128,4 +128,8 @@ return [
     'download' => 'ডাউনলোড করুন',
     'public_phone' => 'ফোন',
     'wallet' => 'ওয়ালেট',
+    'wallet_methods' => 'টাকা গ্রহণের পদ্ধতি',
+    'wallet_withdrawals' => 'উত্তোলনের আবেদনসমূহ',
+    'nav_workspace' => 'কর্মক্ষেত্র',
+    'nav_engagement' => 'চুক্তি ও পেমেন্ট',
 ];
