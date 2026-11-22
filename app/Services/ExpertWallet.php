@@ -98,7 +98,7 @@ class ExpertWallet
 
     public function decide(Entry $record, User $staff, string $status, ?string $reference = null, ?string $note = null): void
     {
-        abort_unless($staff->isAdmin(), 403);
+        abort_unless($staff->can($status === Entry::PAID ? 'markPaid' : 'review', $record), 403);
         DB::transaction(function () use ($record, $staff, $status, $reference, $note): void {
             Application::query()->lockForUpdate()->findOrFail($record->consultancy_application_id);
             $entry = Entry::query()->lockForUpdate()->findOrFail($record->id);

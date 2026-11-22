@@ -6,6 +6,7 @@
  */
 
 return [
+    'users_menu' => 'Researcher Users',
     'portal' => 'RICH Researcher Portal',
     'role' => 'Researcher',
 

@@ -32,7 +32,7 @@ class ConsultancyReview
         DB::transaction(function () use ($record, $reviewer, $approve, $note) {
             $application = Application::query()->lockForUpdate()->findOrFail($record->id);
 
-            if ($application->status !== $record->status || ! $application->canReview($reviewer)) {
+            if ($application->status !== $record->status || ! $reviewer->can('review', $application)) {
                 throw ValidationException::withMessages(['note' => 'This application has already moved on or is assigned to another approval stage.']);
             }
 

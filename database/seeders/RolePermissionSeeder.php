@@ -7,6 +7,9 @@ use App\Filament\Pages\ManageSiteSettings;
 use App\Filament\Pages\ReportsAnalytics;
 use App\Models\Client;
 use App\Models\ConsultancyRequest;
+use App\Models\ConsultancyApplication;
+use App\Models\ConsultancyEngagementPolicy;
+use App\Models\ExpertWalletEntry;
 use App\Models\ContactMessage;
 use App\Models\CoreArea;
 use App\Models\Expert;
@@ -73,6 +76,9 @@ class RolePermissionSeeder extends Seeder
         ResearchReview::class => ['viewAny', 'view', 'create'],
         ResearcherProfile::class => ['viewAny', 'view'],
         ConsultancyRequest::class => ['viewAny', 'view', 'create', 'update', 'delete'],
+        ConsultancyApplication::class => ['viewAny', 'manageReviewers', 'viewEngagement', 'assignEngagement', 'viewWallet'],
+        ConsultancyEngagementPolicy::class => ['viewAny', 'update'],
+        ExpertWalletEntry::class => ['viewAny', 'viewDestination', 'review', 'markPaid'],
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         // Apprenticeship applications from the public form: read, handled and deleted here, never created.
         StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
@@ -101,7 +107,7 @@ class RolePermissionSeeder extends Seeder
         StudentTeam::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Subscriber::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Testimonial::class => ['viewAny', 'view', 'create', 'update', 'delete'],
-        User::class => ['viewAny', 'view', 'create', 'update', 'delete', 'impersonate'],
+        User::class => ['viewAny', 'view', 'create', 'update', 'delete', 'impersonate', 'viewAnyResearcher', 'createResearcher', 'updateResearcher'],
         Role::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         Permission::class => ['viewAny', 'view'],
     ];
@@ -118,6 +124,9 @@ class RolePermissionSeeder extends Seeder
         ResearchSupport::class => 'Support',
         Project::class => 'Projects',
         ConsultancyRequest::class => 'Inbox',
+        ConsultancyApplication::class => 'Consultancy experts',
+        ConsultancyEngagementPolicy::class => 'Consultancy experts',
+        ExpertWalletEntry::class => 'Consultancy experts',
         ContactMessage::class => 'Inbox',
         StudentMembership::class => 'Inbox',
         Client::class => 'Consultancy sales',
@@ -182,7 +191,8 @@ class RolePermissionSeeder extends Seeder
                 Permission::updateOrCreate(
                     ['name' => PolicyHelper::name($action, $model)],
                     [
-                        'group' => $this->groups[$model] ?? 'Other',
+                        'group' => $model === User::class && str_ends_with($action, 'Researcher')
+                            ? 'Researcher users' : ($this->groups[$model] ?? 'Other'),
                         'description' => $this->describe($action, $model),
                     ],
                 );
@@ -217,6 +227,15 @@ class RolePermissionSeeder extends Seeder
             'convert' => "Convert an accepted {$thing} into an order",
             'confirm' => "Confirm or fail {$a} pending {$thing}",
             'reverse' => "Reverse {$a} confirmed {$thing} (refund or correction)",
+            'viewAnyResearcher' => 'List researcher portal accounts',
+            'createResearcher' => 'Create researcher portal accounts',
+            'updateResearcher' => 'Edit researcher portal accounts',
+            'manageReviewers' => 'Assign or remove consultancy reviewers',
+            'viewEngagement' => 'List consultancy expert engagements',
+            'assignEngagement' => 'Assign engagements to approved consultancy experts',
+            'viewWallet' => 'View consultancy expert wallet balances',
+            'viewDestination' => 'View withdrawal payout account details',
+            'markPaid' => 'Record a completed withdrawal payout',
             default => str($action)->headline()->toString()." {$a} {$thing}",
         };
     }

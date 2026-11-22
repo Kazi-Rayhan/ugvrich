@@ -15,7 +15,7 @@ class ConsultancyEngagement
 {
     public static function canAssign(User $user): bool
     {
-        return $user->isAdmin() || $user->consultancyReviewStages()->where('key', Application::DIRECTOR)->exists();
+        return $user->can('assignEngagement', Application::class);
     }
 
     public function assign(Application $record, User $assigner, string $contract, ?string $percentage): void

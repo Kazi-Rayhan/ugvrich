@@ -20,7 +20,7 @@ class ConsultancyEngagementPolicyResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->can('viewAny', ConsultancyEngagementPolicy::class) ?? false;
     }
 
     public static function table(Table $table): Table
@@ -34,7 +34,7 @@ class ConsultancyEngagementPolicyResource extends Resource
             ])
             ->recordActions([
                 Action::make('editPolicy')->label(__('consultancy_engagement.edit_policies'))->icon('heroicon-o-pencil-square')
-                    ->authorize(fn () => self::canViewAny())
+                    ->authorize(fn (ConsultancyEngagementPolicy $record) => auth()->user()->can('update', $record))
                     ->modalHeading(fn (ConsultancyEngagementPolicy $record) => ConsultancyApplication::contractLabel($record->contract_type))
                     ->fillForm(fn (ConsultancyEngagementPolicy $record) => [
                         ...$record->only(ConsultancyEngagementPolicy::CONTENT_FIELDS),
@@ -60,7 +60,7 @@ class ConsultancyEngagementPolicyResource extends Resource
                             ->collapsible(),
                     ])
                     ->action(function (ConsultancyEngagementPolicy $record, array $data): void {
-                        abort_unless(self::canViewAny(), 403);
+                        abort_unless(auth()->user()->can('update', $record), 403);
                         $record->update($data);
                     })
                     ->successNotificationTitle(__('consultancy_engagement.policies_saved')),

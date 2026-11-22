@@ -6,7 +6,6 @@ use App\Filament\Resources\ConsultancyApplications\Pages\ListConsultancyApplicat
 use App\Filament\Resources\ConsultancyApplications\Pages\ViewConsultancyApplication;
 use App\Filament\Resources\ConsultancyApplications\Pages\ViewConsultancyChain;
 use App\Models\ConsultancyApplication as Application;
-use App\Models\User;
 use App\Services\ConsultancyReview;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
@@ -26,8 +25,7 @@ class ConsultancyApplicationResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && ($user->isAdmin() || $user->role === User::ADMIN
-            || $user->consultancyReviewStages()->exists());
+        return $user?->can('viewAny', Application::class) ?? false;
     }
 
     public static function table(Table $table): Table
@@ -62,14 +60,14 @@ class ConsultancyApplicationResource extends Resource
 
     public static function canView(Model $record): bool
     {
-        return self::canViewAny();
+        return auth()->user()?->can('view', $record) ?? false;
     }
 
     public static function decisionAction(bool $approve): Action
     {
         return Action::make($approve ? 'approve' : 'decline')
             ->color($approve ? 'success' : 'danger')
-            ->visible(fn (Application $record) => $record->canReview(auth()->user()))
+            ->authorize(fn (Application $record) => auth()->user()->can('review', $record))
             ->schema(fn (Application $record) => [
                 Textarea::make('note')->label($approve ? 'Internal note' : 'Reason shared with the applicant')
                     ->required(! $approve)->maxLength(1500),

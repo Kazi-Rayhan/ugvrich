@@ -25,7 +25,7 @@ class WalletWithdrawalResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->can('viewAny', Entry::class) ?? false;
     }
 
     public static function getEloquentQuery(): Builder
@@ -55,7 +55,7 @@ class WalletWithdrawalResource extends Resource
             ->filters([SelectFilter::make('status')->label(__('expert_wallet.status'))->options(self::statuses())])
             ->recordActions([
                 Action::make('payoutDetails')->label(__('expert_wallet.payout_details'))->icon('heroicon-o-credit-card')
-                    ->authorize(fn () => self::canViewAny())
+                    ->authorize(fn (Entry $record) => auth()->user()->can('viewDestination', $record))
                     ->modalContent(fn (Entry $record) => view('consultancy.wallet-payout-details', ['entry' => $record]))
                     ->modalSubmitAction(false),
                 self::decision('approve', Entry::APPROVED, [Entry::PENDING], 'info'),
@@ -67,7 +67,7 @@ class WalletWithdrawalResource extends Resource
     private static function decision(string $action, string $status, array $from, string $color): Action
     {
         return Action::make($action)->label(__('expert_wallet.'.$action))->color($color)
-            ->authorize(fn () => self::canViewAny())
+            ->authorize(fn (Entry $record) => auth()->user()->can($status === Entry::PAID ? 'markPaid' : 'review', $record))
             ->visible(fn (Entry $record) => in_array($record->status, $from, true))
             ->requiresConfirmation()
             ->modalDescription($status === Entry::PAID ? __('expert_wallet.manual_payout') : null)

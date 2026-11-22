@@ -28,6 +28,24 @@ class UserPolicy
         return $user->allowedTo('create', User::class);
     }
 
+    public function viewAnyResearcher(User $user): bool
+    {
+        return $user->allowedTo('viewAnyResearcher', User::class);
+    }
+
+    public function createResearcher(User $user): bool
+    {
+        return $user->allowedTo('createResearcher', User::class);
+    }
+
+    public function updateResearcher(User $user, User $subject): bool
+    {
+        return $subject->isResearcher()
+            && $user->allowedTo('updateResearcher', User::class)
+            && ($user->isAdmin() || (! $subject->isAdmin() && ! $subject->hasPermission(User::ACCESS_PANEL)
+                && ! $subject->consultancyReviewStages()->exists()));
+    }
+
     public function update(User $user, User $subject): bool
     {
         return $user->allowedTo('update', User::class);

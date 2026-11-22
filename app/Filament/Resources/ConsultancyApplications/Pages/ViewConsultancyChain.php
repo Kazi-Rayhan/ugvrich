@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ConsultancyApplications\Pages;
 
 use App\Filament\Resources\ConsultancyApplications\ConsultancyApplicationResource;
-use App\Filament\Resources\Users\UserResource;
 use App\Models\ConsultancyApplication;
 use App\Models\ConsultancyReviewStage;
 use App\Models\User;
@@ -82,7 +81,7 @@ class ViewConsultancyChain extends Page
                 DB::transaction(function () use ($assignment): void {
                     $stage = ConsultancyReviewStage::where('key', $assignment['stage'])->lockForUpdate()->sole();
                     $user = User::findOrFail($assignment['user']);
-                    abort_unless(UserResource::canEdit($user), 403);
+
                     $stage->users()->detach($user->id);
                 });
             })
@@ -109,7 +108,6 @@ class ViewConsultancyChain extends Page
                         abort_unless($this->canAssignReviewers(), 403);
 
                         return User::query()->whereKey($values)->get()
-                            ->filter(fn (User $user) => UserResource::canEdit($user))
                             ->mapWithKeys(fn (User $user) => [$user->id => $user->name.' ('.$user->email.')'])
                             ->all();
                     })
@@ -125,10 +123,6 @@ class ViewConsultancyChain extends Page
                 DB::transaction(function () use ($data, $stageKey): void {
                     $stage = ConsultancyReviewStage::where('key', $stageKey)->lockForUpdate()->sole();
                     $users = User::query()->whereKey($data['user_ids'])->get();
-                    foreach ($users as $user) {
-                        abort_unless(UserResource::canEdit($user), 403);
-                    }
-
                     $stage->users()->syncWithoutDetaching($users->modelKeys());
                 });
             })
@@ -145,13 +139,12 @@ class ViewConsultancyChain extends Page
                 fn ($users) => $users->whereLike('name', '%'.$search.'%')->orWhereLike('email', '%'.$search.'%'),
             ))
             ->orderBy('name')->orderBy('id')->limit(30)->get()
-            ->filter(fn (User $user) => UserResource::canEdit($user))
             ->mapWithKeys(fn (User $user) => [$user->id => $user->name.' ('.$user->email.')'])
             ->all();
     }
 
     private function canAssignReviewers(): bool
     {
-        return UserResource::canViewAny() && auth()->user()->allowedTo('update', User::class);
+        return auth()->user()->can('manageReviewers', ConsultancyApplication::class);
     }
 }

@@ -26,7 +26,7 @@ class ConsultancyEngagementResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && ConsultancyEngagement::canAssign($user);
+        return $user?->can('viewEngagement', Application::class) ?? false;
     }
 
     public static function getEloquentQuery(): Builder
@@ -52,12 +52,13 @@ class ConsultancyEngagementResource extends Resource
             ])
             ->recordActions([
                 Action::make('application')->label(__('consultancy_engagement.view_application'))->color('gray')
+                    ->visible(fn (Application $record) => auth()->user()->can('view', $record))
                     ->url(fn (Application $record) => ConsultancyApplicationResource::getUrl('view', ['record' => $record])),
                 Action::make('assign')
                     ->label(__('consultancy_engagement.assign'))->icon('heroicon-o-briefcase')
                     ->modalHeading(fn (Application $record) => __('consultancy_engagement.assign_heading', ['name' => $record->name]))
                     ->modalDescription(__('consultancy_engagement.assign_hint'))
-                    ->authorize(fn () => self::canViewAny())
+                    ->authorize(fn () => ConsultancyEngagement::canAssign(auth()->user()))
                     ->visible(fn (Application $record) => $record->contract_type === null && ! $record->signed_at)
                     ->schema([
                         Select::make('contract')->label(__('consultancy_engagement.engagement_type'))->options(Application::contractOptions())->required(),

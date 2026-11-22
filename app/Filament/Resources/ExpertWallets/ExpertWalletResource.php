@@ -21,7 +21,7 @@ class ExpertWalletResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return auth()->user()?->can('viewWallet', Application::class) ?? false;
     }
 
     public static function getEloquentQuery(): Builder

@@ -15,6 +15,7 @@ use App\Filament\Resources\ConsultancyRequests\ConsultancyRequestResource;
 use App\Filament\Resources\ContactMessages\ContactMessageResource;
 use App\Filament\Resources\CoreAreas\CoreAreaResource;
 use App\Filament\Resources\Experts\ExpertResource;
+use App\Filament\Resources\ResearcherUsers\ResearcherUserResource;
 use App\Filament\Resources\Facilities\FacilityResource;
 use App\Filament\Resources\Faqs\FaqResource;
 use App\Filament\Resources\FundingOpportunities\FundingOpportunityResource;
@@ -84,6 +85,7 @@ class AdminNavigation
                     ->badge(fn () => ($n = IdeaSubmission::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
 
                 $this->resource('Experts', Heroicon::OutlinedAcademicCap, ExpertResource::class),
+                $this->resource(__('researcher.users_menu'), Heroicon::OutlinedUsers, ResearcherUserResource::class),
                 $this->resource('Students / Teams', Heroicon::OutlinedUserGroup, StudentTeamResource::class),
                 $this->filtered('Publications', Heroicon::OutlinedDocumentText, PublicationResource::class, 'kind', null),
                 $this->filtered('Patent & IP', Heroicon::OutlinedKey, ProjectResource::class, 'ip', 'protected'),
