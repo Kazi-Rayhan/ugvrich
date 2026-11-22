@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('consultancy_engagement.wing')" :description="__('consultancy_engagement.wing')">
+<x-layouts.app :title="__('consultancy_engagement.wing')" :description="__('research_hub.consultancy_hero.intro')">
 
     @php
         /*
@@ -102,11 +102,14 @@
 
         <div class="container-rich py-20 sm:py-28">
 
-            <h1 class="reveal mt-7 max-w-4xl font-display text-[38px] font-bold leading-[1.03] tracking-[-0.03em] !text-white sm:text-[62px]">
-                {{ __('consultancy_engagement.wing') }}
+            <h1 class="reveal mt-7 max-w-4xl font-display text-[38px] font-bold leading-[1.05] tracking-[-0.03em] !text-white sm:text-[58px]">
+                {!! __('research_hub.consultancy_hero.title') !!}
             </h1>
 
-            <p class="reveal mt-7 max-w-2xl text-[17.5px] leading-[1.8] text-white/75">{{ __('consultancy_engagement.wing') }}</p>
+            <p class="reveal mt-7 max-w-4xl text-[16px] leading-[1.75] text-white/80 sm:text-[17.5px]">
+                <span class="block">{{ __('research_hub.consultancy_hero.intro') }}</span>
+                <span class="block">{{ __('research_hub.consultancy_hero.services') }}</span>
+            </p>
 
             {{-- The first action on the page is the one a researcher came to
                  take: send in a proposal. The other two lead into the page. --}}

@@ -12,6 +12,12 @@
 
 return [
 
+    'consultancy_hero' => [
+        'title' => 'Consultancy <span class="text-highlight">Wing</span>',
+        'intro' => 'UGV RICH connects university expertise with real challenges facing industry and communities.',
+        'services' => 'Our experts provide practical support through technical advice, testing, training, and applied research.',
+    ],
+
     'hero' => [
         'eyebrow' => 'UGV RICH · Research Wing',
         'title' => 'Research, Innovation & <span class="text-highlight">Collaboration Hub</span>',
