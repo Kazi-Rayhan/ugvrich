@@ -92,6 +92,7 @@ Route::get('/administrations', [ExpertController::class, 'index'])->name('admini
 
 Route::get('/experts', [ExpertController::class, 'index'])->name('experts.index');
 Route::get('/experts/{expert}', [ExpertController::class, 'show'])->name('experts.show');
+Route::get('/experts/{expert}/portfolio/{portfolio}', [ExpertController::class, 'portfolio'])->name('experts.portfolio');
 
 Route::get('/events', [PostController::class, 'events'])->name('events');
 Route::get('/news', [PostController::class, 'index'])->name('news.index');

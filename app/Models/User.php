@@ -57,6 +57,13 @@ class User extends Authenticatable implements FilamentUser
      */
     public const INNOVATOR = 'innovator';
 
+    public const EXPERT = 'expert';
+
+    public function consultancyApplication(): HasOne
+    {
+        return $this->hasOne(ConsultancyApplication::class);
+    }
+
     /**
      * Researchers register themselves, so this can no longer let everybody in.
      *
@@ -71,7 +78,8 @@ class User extends Authenticatable implements FilamentUser
            is not an administrator gets a way in. */
         return $this->role === self::ADMIN
             || $this->isAdmin()
-            || $this->hasPermission(self::ACCESS_PANEL);
+            || $this->hasPermission(self::ACCESS_PANEL)
+            || ($panel->getId() === 'admin' && $this->consultancyReviewStages()->exists());
     }
 
     public function isAdmin(): bool
@@ -122,6 +130,11 @@ class User extends Authenticatable implements FilamentUser
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
+    }
+
+    public function consultancyReviewStages(): BelongsToMany
+    {
+        return $this->belongsToMany(ConsultancyReviewStage::class);
     }
 
     public function hasRole(string $name): bool

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expert;
+use App\Models\ExpertPortfolio;
 use App\Models\ServiceCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ExpertController extends Controller
 {
@@ -52,9 +54,11 @@ class ExpertController extends Controller
         abort_unless($expert->is_active, 404);
 
         $expert->load('category');
+        $application = $expert->type === 'expert' ? $expert->consultancyApplication()->whereNotNull('signed_at')->first() : null;
 
-        return view('pages.experts.show', [
+        return view($expert->type === 'administration' ? 'pages.experts.show' : 'pages.experts.profile', [
             'expert' => $expert,
+            'portfolios' => $application?->portfolios()->where('is_public', true)->latest()->get() ?? collect(),
             'related' => Expert::with('category')->active()
                 ->where('type', $expert->type)
                 ->whereKeyNot($expert->id)
@@ -63,5 +67,13 @@ class ExpertController extends Controller
                 ->take(3)
                 ->get(),
         ]);
+    }
+
+    public function portfolio(Expert $expert, ExpertPortfolio $portfolio)
+    {
+        abort_unless($expert->is_active && $expert->type === 'expert' && $portfolio->is_public
+            && $expert->consultancyApplication()->whereKey($portfolio->consultancy_application_id)->whereNotNull('signed_at')->exists(), 404);
+
+        return Storage::disk('local')->download($portfolio->path, headers: ['Cache-Control' => 'private, no-store']);
     }
 }

@@ -6,6 +6,11 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ManageSiteSettings;
 use App\Filament\Pages\ReportsAnalytics;
 use App\Filament\Resources\Clients\ClientResource;
+use App\Filament\Resources\ConsultancyApplications\ConsultancyApplicationResource;
+use App\Filament\Resources\ConsultancyEngagementPolicies\ConsultancyEngagementPolicyResource;
+use App\Filament\Resources\ConsultancyEngagements\ConsultancyEngagementResource;
+use App\Filament\Resources\ExpertWallets\ExpertWalletResource;
+use App\Filament\Resources\WalletWithdrawals\WalletWithdrawalResource;
 use App\Filament\Resources\ConsultancyRequests\ConsultancyRequestResource;
 use App\Filament\Resources\ContactMessages\ContactMessageResource;
 use App\Filament\Resources\CoreAreas\CoreAreaResource;
@@ -79,6 +84,11 @@ class AdminNavigation
                     ->badge(fn () => ($n = IdeaSubmission::where('status', 'new')->count()) ? (string) $n : null, 'warning'),
 
                 $this->resource('Experts', Heroicon::OutlinedAcademicCap, ExpertResource::class),
+                $this->resource('Consultancy Expert Applications', Heroicon::OutlinedClipboardDocumentList, ConsultancyApplicationResource::class),
+                $this->resource(__('consultancy_engagement.engagements'), Heroicon::OutlinedBriefcase, ConsultancyEngagementResource::class),
+                $this->resource(__('consultancy_engagement.policies'), Heroicon::OutlinedDocumentText, ConsultancyEngagementPolicyResource::class),
+                $this->resource(__('expert_wallet.wallet_admin'), Heroicon::OutlinedWallet, ExpertWalletResource::class),
+                $this->resource(__('expert_wallet.withdrawal_admin'), Heroicon::OutlinedBanknotes, WalletWithdrawalResource::class),
                 $this->resource('Students / Teams', Heroicon::OutlinedUserGroup, StudentTeamResource::class),
                 $this->filtered('Publications', Heroicon::OutlinedDocumentText, PublicationResource::class, 'kind', null),
                 $this->filtered('Patent & IP', Heroicon::OutlinedKey, ProjectResource::class, 'ip', 'protected'),

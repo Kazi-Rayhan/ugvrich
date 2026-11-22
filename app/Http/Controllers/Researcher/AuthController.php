@@ -74,7 +74,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect(RoleRedirector::pathFor(Auth::user()));
+        return redirect()->intended(RoleRedirector::pathFor(Auth::user()));
     }
 
     public function logout(Request $request)

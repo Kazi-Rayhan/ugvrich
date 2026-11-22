@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasTranslations;
+use App\Support\ExpertBiography;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Expert extends Model
 {
@@ -28,13 +30,43 @@ class Expert extends Model
     protected $casts = [
         'expertise' => 'array',
         'expertise_bn' => 'array',
+        'professional_skills' => 'array',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::updating(function (self $expert): void {
+            foreach (['bio' => 'bio_html', 'bio_bn' => 'bio_html_bn'] as $plain => $rich) {
+                if ($expert->isDirty($plain) && ! $expert->isDirty($rich)) {
+                    $expert->{$rich} = null;
+                }
+            }
+        });
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'service_category_id');
+    }
+
+    public function consultancyApplication(): HasOne
+    {
+        return $this->hasOne(ConsultancyApplication::class);
+    }
+
+    public function biography(?string $locale = null, bool $fallback = true): ?string
+    {
+        $bangla = ($locale ?? app()->getLocale()) === 'bn';
+        $html = ExpertBiography::sanitize($this->{$bangla ? 'bio_html_bn' : 'bio_html'});
+        $plain = $this->getRawOriginal($bangla ? 'bio_bn' : 'bio');
+
+        if ($html || filled($plain)) {
+            return $html ?? nl2br(e($plain));
+        }
+
+        return $bangla && $fallback ? $this->biography('en', false) : null;
     }
 
     public function scopeActive(Builder $q): Builder

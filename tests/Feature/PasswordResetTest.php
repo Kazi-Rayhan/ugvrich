@@ -21,7 +21,9 @@ class PasswordResetTest extends TestCase
             ->assertSee('Forgot password?')
             ->assertSee('/en/forgot-password', false)
             ->assertSee('/en/researcher/register', false)
-            ->assertSee('/en/submit-idea', false)
+            ->assertSee('/en/consultancy/expert-registration', false)
+            ->assertSee('Innovation registration')
+            ->assertDontSee('/en/submit-idea', false)
             ->assertSee('/admin/login', false);
 
         $this->get('/login')->assertOk()->assertSee('পাসওয়ার্ড ভুলে গেছেন?', false);

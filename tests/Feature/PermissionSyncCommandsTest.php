@@ -14,6 +14,8 @@ class PermissionSyncCommandsTest extends TestCase
 
     public function test_permissions_sync_command_syncs_the_application_permissions_only(): void
     {
+        $rolesBeforeSync = Role::orderBy('id')->pluck('id')->all();
+
         $this->artisan('permissions:sync')->assertSuccessful();
 
         $this->assertDatabaseHas('permissions', ['name' => User::ACCESS_PANEL]);
@@ -21,7 +23,7 @@ class PermissionSyncCommandsTest extends TestCase
         $this->assertDatabaseHas('permissions', ['name' => 'view_any_publication']);
         $this->assertDatabaseHas('permissions', ['name' => 'view_reports_analytics']);
         $this->assertDatabaseHas('permissions', ['name' => 'manage_site_settings']);
-        $this->assertDatabaseCount('roles', 0);
+        $this->assertSame($rolesBeforeSync, Role::orderBy('id')->pluck('id')->all());
     }
 
     public function test_admin_permissions_command_syncs_every_permission_to_the_admin_role(): void

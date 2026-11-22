@@ -1192,3 +1192,130 @@ html:lang(bn) [class*='tracking-wide'] {
 [data-expertise-more][hidden] {
     display: none !important;
 }
+
+.receipt-hero {
+    background:
+        radial-gradient(ellipse at 6% 4%, #137c95 0%, transparent 42%),
+        radial-gradient(ellipse at 90% 8%, #6550c4 0%, transparent 46%),
+        linear-gradient(130deg, #102e55 0%, #15234f 55%, #29194f 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .receipt-mark {
+        animation: receipt-mark-in 480ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+    }
+
+    .receipt-mark path {
+        stroke-dasharray: 28;
+        animation: receipt-check-in 360ms ease-out 160ms both;
+    }
+
+    .receipt-details {
+        animation: receipt-details-in 400ms ease-out 100ms both;
+    }
+
+    .receipt-halo {
+        animation: receipt-halo-in 740ms ease-out 100ms both;
+    }
+
+    .receipt-spark {
+        animation: receipt-spark-in 650ms cubic-bezier(0.2, 0.75, 0.25, 1) 210ms both;
+    }
+
+    .receipt-spark-first { --spark-x: 18px; --spark-y: -12px; }
+    .receipt-spark-second { --spark-x: -14px; --spark-y: 10px; }
+    .receipt-spark-third { --spark-x: -15px; --spark-y: -10px; }
+}
+
+@keyframes receipt-mark-in {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes receipt-check-in {
+    from { stroke-dashoffset: 28; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes receipt-details-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes receipt-halo-in {
+    from { opacity: 0; transform: scale(0.65) rotate(-12deg); }
+    55% { opacity: 1; }
+    to { opacity: 0.65; transform: scale(1) rotate(10deg); }
+}
+
+@keyframes receipt-spark-in {
+    from { opacity: 0; transform: scale(0.25); }
+    65% { opacity: 1; }
+    to { transform: translate(var(--spark-x), var(--spark-y)) scale(1); }
+}
+
+.login-background {
+    background:
+        radial-gradient(ellipse at 12% 15%, #dce8ff 0%, transparent 48%),
+        radial-gradient(ellipse at 90% 85%, #d6f4f3 0%, transparent 44%),
+        #f7f9fd;
+}
+
+.login-options {
+    background:
+        radial-gradient(ellipse at 100% 0%, #43408f 0%, transparent 62%),
+        radial-gradient(ellipse at 0% 100%, #0d5669 0%, transparent 65%),
+        #101e42;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .login-shell {
+        animation: login-arrive 440ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+    }
+
+    .login-options-list > * {
+        animation: login-arrive 360ms ease-out both;
+    }
+
+    .login-options-list > :nth-child(1) { animation-delay: 60ms; }
+    .login-options-list > :nth-child(2) { animation-delay: 110ms; }
+    .login-options-list > :nth-child(3) { animation-delay: 160ms; }
+    .login-options-list > :nth-child(4) { animation-delay: 210ms; }
+}
+
+@keyframes login-arrive {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.expert-profile-cover {
+    background:
+        radial-gradient(ellipse at 12% 10%, #157e88 0%, transparent 55%),
+        radial-gradient(ellipse at 88% 0%, #4458aa 0%, transparent 56%),
+        linear-gradient(125deg, #153650, #172349 72%, #1c2c61);
+}
+
+.expert-portfolio-hero {
+    background:
+        radial-gradient(ellipse at 82% 30%, color-mix(in srgb, var(--color-brand-600) 52%, transparent), transparent 48%),
+        radial-gradient(ellipse at 14% 95%, color-mix(in srgb, var(--color-teal-700) 33%, transparent), transparent 46%),
+        var(--color-navy-700);
+}
+
+.expert-portfolio-body {
+    background:
+        radial-gradient(ellipse at 4% 32%, color-mix(in srgb, var(--color-brand-600) 24%, transparent), transparent 42%),
+        radial-gradient(ellipse at 95% 88%, color-mix(in srgb, var(--color-teal-700) 22%, transparent), transparent 40%),
+        linear-gradient(var(--color-navy-700), var(--color-navy-900));
+}
+
+.expert-portfolio-body .expert-biography :is(h3, h4) { color: white; }
+
+.expert-biography :is(p, div, ul, ol, blockquote) + :is(p, div, ul, ol, blockquote) {
+    margin-top: 0.65rem;
+}
+
+.expert-biography ul { list-style: disc; padding-inline-start: 1.4rem; }
+.expert-biography ol { list-style: decimal; padding-inline-start: 1.4rem; }
+.expert-biography blockquote { border-inline-start: 3px solid var(--color-brand-200); padding-inline-start: 0.75rem; }
+.expert-biography :is(h3, h4) { margin-bottom: 0.4rem; font-weight: 700; }

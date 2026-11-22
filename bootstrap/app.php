@@ -45,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // }x`
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['signature', 'account_number', 'routing_number', 'bkash_number', 'account_name', 'bank_name']);
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

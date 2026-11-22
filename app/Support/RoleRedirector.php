@@ -16,6 +16,9 @@ class RoleRedirector
     public static function pathFor(User $user): string
     {
         return match (true) {
+            $user->role === User::EXPERT => route('expert.dashboard', absolute: false),
+            $user->role !== User::ADMIN && $user->consultancyApplication()
+                ->where('status', \App\Models\ConsultancyApplication::APPROVED)->exists() => route('expert.dashboard', absolute: false),
             $user->isResearcher() => route('researcher.dashboard', absolute: false),
             $user->isInnovator() => route('innovator.dashboard', absolute: false),
             default => '/admin',
