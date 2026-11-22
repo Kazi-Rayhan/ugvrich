@@ -1295,22 +1295,6 @@ html:lang(bn) [class*='tracking-wide'] {
         linear-gradient(125deg, #153650, #172349 72%, #1c2c61);
 }
 
-.expert-portfolio-hero {
-    background:
-        radial-gradient(ellipse at 82% 30%, color-mix(in srgb, var(--color-brand-600) 52%, transparent), transparent 48%),
-        radial-gradient(ellipse at 14% 95%, color-mix(in srgb, var(--color-teal-700) 33%, transparent), transparent 46%),
-        var(--color-navy-700);
-}
-
-.expert-portfolio-body {
-    background:
-        radial-gradient(ellipse at 4% 32%, color-mix(in srgb, var(--color-brand-600) 24%, transparent), transparent 42%),
-        radial-gradient(ellipse at 95% 88%, color-mix(in srgb, var(--color-teal-700) 22%, transparent), transparent 40%),
-        linear-gradient(var(--color-navy-700), var(--color-navy-900));
-}
-
-.expert-portfolio-body .expert-biography :is(h3, h4) { color: white; }
-
 .expert-biography :is(p, div, ul, ol, blockquote) + :is(p, div, ul, ol, blockquote) {
     margin-top: 0.65rem;
 }

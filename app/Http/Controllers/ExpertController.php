@@ -35,7 +35,7 @@ class ExpertController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        return view('pages.experts.index', [
+        return view($type === 'expert' ? 'pages.experts.directory' : 'pages.experts.index', [
             'experts' => $experts,
             'directoryRoute' => $type === 'administration' ? 'administrations.index' : 'experts.index',
             'translationPrefix' => $type === 'administration' ? 'site.administrations.' : 'site.experts.',
