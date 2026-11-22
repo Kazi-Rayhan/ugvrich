@@ -15,26 +15,7 @@
         </nav>
 
         <div class="space-y-7">
-            <form method="GET" action="{{ route($directoryRoute) }}" class="grid items-end gap-4 border-y border-ink-200 bg-ink-50/70 px-4 py-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto]">
-                <div class="min-w-0">
-                    <input id="expert-search" name="q" type="search" value="{{ $search }}" class="field-input" aria-label="{{ __($translationPrefix.'search_label') }}" placeholder="{{ __($translationPrefix.'search_placeholder') }}">
-                </div>
-                <div class="min-w-0">
-                    <label for="expert-area" class="field-label">{{ __('consultancy_engagement.category') }}</label>
-                    <select id="expert-area" name="area" class="field-input mt-2">
-                        <option value="">{{ __($translationPrefix.'all_areas') }} ({{ $totalExperts }})</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->slug }}" @selected($area === $category->slug)>{{ $category->name }} ({{ $category->experts_count }})</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-1 lg:min-h-11">
-                    <button type="submit" class="btn-primary">{{ __('site.actions.search') }}</button>
-                    @if ($search !== '' || $area !== '')
-                        <a class="py-2 text-sm font-semibold text-brand-700 hover:underline" href="{{ route($directoryRoute) }}">{{ __($translationPrefix.'clear_all') }}</a>
-                    @endif
-                </div>
-            </form>
+            @include('pages.experts.filters')
 
             <section class="min-w-0" aria-label="{{ __('site.experts.directory_label') }}">
                 @if ($experts->isEmpty())
