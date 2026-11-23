@@ -53,7 +53,6 @@
                 ['icon' => 'academic', 'href' => route('researcher.register'), 'title' => __('researcher.auth.option_researcher_title'), 'body' => __('researcher.auth.option_researcher_body')],
                 ['icon' => 'briefcase', 'href' => route('consultancy.registration.register'), 'title' => __('researcher.auth.option_expert_title'), 'body' => __('researcher.auth.option_expert_body')],
                 ['icon' => 'lightbulb', 'href' => null, 'title' => __('researcher.auth.option_innovation_title'), 'body' => __('researcher.auth.option_innovation_body')],
-                ['icon' => 'shield', 'href' => url('/admin/login'), 'title' => __('researcher.auth.option_staff_title'), 'body' => __('researcher.auth.option_staff_body')],
             ];
         @endphp
 
