@@ -16,6 +16,9 @@ class ExpertController extends Controller
 
         $search = $request->string('q')->trim()->toString();
         $area = $request->string('area')->toString();
+        $serviceArea = $type === 'expert' && $area
+            ? ServiceCategory::active()->where('slug', $area)->first()
+            : null;
 
         $experts = Expert::active()->where('type', $type)
             ->with('category')
@@ -28,21 +31,35 @@ class ExpertController extends Controller
                         ->orWhere('expertise', 'like', "%{$search}%");
                 });
             })
-            ->when($area, fn ($q, $slug) => $q->whereHas('category', fn ($c) => $c->where('slug', $slug)))
+            ->when($area, fn ($q, $slug) => $serviceArea
+                ? $q->forServiceArea($serviceArea)
+                : $q->whereHas('category', fn ($c) => $c->where('slug', $slug)))
             ->when($type === 'administration', fn ($q) => $q->orderByDesc('is_featured'))
             ->orderBy('sort_order', 'asc')
             ->orderBy('id')
             ->paginate(9)
             ->withQueryString();
 
+        $categories = ServiceCategory::query()
+            ->withCount(['experts' => fn ($q) => $q->active()->where('type', $type)])
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($type === 'expert') {
+            foreach ($categories->filter(fn (ServiceCategory $category) => filled($category->department))->groupBy('department') as $departmentCategories) {
+                $count = $departmentCategories->sum('experts_count');
+
+                foreach ($departmentCategories as $category) {
+                    $category->experts_count = $count;
+                }
+            }
+        }
+
         return view($type === 'expert' ? 'pages.experts.directory' : 'pages.experts.index', [
             'experts' => $experts,
             'directoryRoute' => $type === 'administration' ? 'administrations.index' : 'experts.index',
             'translationPrefix' => $type === 'administration' ? 'site.administrations.' : 'site.experts.',
-            'categories' => ServiceCategory::active()
-                ->withCount(['experts' => fn ($q) => $q->active()->where('type', $type)])
-                ->orderBy('sort_order')
-                ->get(),
+            'categories' => $categories->where('is_active', true),
             'totalExperts' => Expert::active()->where('type', $type)->count(),
             'search' => $search,
             'area' => $area,

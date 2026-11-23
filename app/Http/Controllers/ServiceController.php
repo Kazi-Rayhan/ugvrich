@@ -38,8 +38,8 @@ class ServiceController extends Controller
             'service' => $service,
             'siblings' => $siblings,
             'experts' => Expert::with('category')->active()->where('type', 'expert')
-                ->where('service_category_id', $serviceCategory->id)
-                ->orderBy('sort_order')->take(3)->get(),
+                ->forServiceArea($serviceCategory, $service->department ?: null)
+                ->orderBy('sort_order')->orderBy('id')->take(3)->get(),
         ]);
     }
 
@@ -48,13 +48,14 @@ class ServiceController extends Controller
         abort_unless($serviceCategory->is_active, 404);
 
         $serviceCategory->load('services');
+        $experts = Expert::active()->where('type', 'expert')->forServiceArea($serviceCategory);
 
         return view('pages.services.show', [
             'category' => $serviceCategory,
             'siblings' => ServiceCategory::active()->with('services')->whereKeyNot($serviceCategory->id)->orderBy('sort_order')->get(),
-            'experts' => Expert::with('category')->active()->where('type', 'expert')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
+            'experts' => (clone $experts)->with('category')->orderBy('sort_order')->orderBy('id')->take(3)->get(),
             'projects' => Project::public()->with('category')->where('service_category_id', $serviceCategory->id)->orderBy('sort_order')->take(3)->get(),
-            'expertCount' => Expert::active()->where('service_category_id', $serviceCategory->id)->count(),
+            'expertCount' => $experts->count(),
             'projectCount' => Project::public()->where('service_category_id', $serviceCategory->id)->count(),
         ]);
     }

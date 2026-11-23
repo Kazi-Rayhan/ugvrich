@@ -74,6 +74,21 @@ class Expert extends Model
         return $q->where('is_active', true);
     }
 
+    public function scopeForServiceArea(Builder $query, ServiceCategory $category, ?string $department = null): Builder
+    {
+        $department ??= $category->department;
+
+        return $query->where(function (Builder $area) use ($category, $department) {
+            if ($department === $category->department) {
+                $area->where('service_category_id', $category->id);
+            }
+
+            if (filled($department)) {
+                $area->orWhereHas('category', fn (Builder $related) => $related->where('department', $department));
+            }
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
