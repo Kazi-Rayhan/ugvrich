@@ -135,9 +135,14 @@ class AdminNavigation
                 ->icon(Heroicon::OutlinedBanknotes)
                 ->collapsible()
                 ->items([
-                    $this->resource('Proposals', null, ProposalResource::class)
-                        ->badge(fn () => ($n = Proposal::where('status', 'accepted')->count()) ? (string) $n : null, 'success'),
-                    $this->resource('Work Orders', null, WorkOrderResource::class),
+                    NavigationItem::make('Proposals & Work Orders')
+                        ->url(fn () => ProposalResource::canViewAny() ? ProposalResource::getUrl() : WorkOrderResource::getUrl())
+                        ->visible(fn () => ProposalResource::canViewAny() || WorkOrderResource::canViewAny())
+                        ->isActiveWhen(fn () => request()->routeIs(
+                            ProposalResource::getRouteBaseName().'.*',
+                            WorkOrderResource::getRouteBaseName().'.*',
+                        ))
+                        ->badge(fn () => ProposalResource::canViewAny() && ($n = Proposal::where('status', 'accepted')->count()) ? (string) $n : null, 'success'),
                     $this->resource('Orders', null, OrderResource::class),
                     $this->resource('Clients', null, ClientResource::class),
                 ]),

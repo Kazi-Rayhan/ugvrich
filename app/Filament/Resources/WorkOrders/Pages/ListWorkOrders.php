@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\WorkOrders\Pages;
 
+use App\Filament\Pages\ListSalesDocuments;
 use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListWorkOrders extends ListRecords
+class ListWorkOrders extends ListSalesDocuments
 {
     protected static string $resource = WorkOrderResource::class;
 

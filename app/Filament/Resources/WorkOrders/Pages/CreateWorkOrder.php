@@ -11,7 +11,7 @@ class CreateWorkOrder extends CreateRecord
 {
     protected static string $resource = WorkOrderResource::class;
 
-    protected static ?string $title = 'New work order (সেবা কার্যাদেশ)';
+    protected static ?string $title = 'New work order';
 
     public function mount(): void
     {

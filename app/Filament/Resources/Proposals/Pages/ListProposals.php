@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Proposals\Pages;
 
+use App\Filament\Pages\ListSalesDocuments;
 use App\Filament\Resources\Proposals\ProposalResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListProposals extends ListRecords
+class ListProposals extends ListSalesDocuments
 {
     protected static string $resource = ProposalResource::class;
 
