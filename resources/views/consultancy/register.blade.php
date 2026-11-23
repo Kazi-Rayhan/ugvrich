@@ -12,13 +12,13 @@
     </x-slot:sidebar>
 
     <x-slot:header>
-        <header class="px-5 pt-7 sm:px-9 sm:pt-10 xl:px-12">
+        <header class="px-4 pt-7 sm:px-9 sm:pt-10 xl:px-12">
             <h1 class="font-display text-3xl font-bold leading-tight tracking-tight text-ink-950 sm:text-[2.25rem]">Consultancy expert registration</h1>
             <p class="mt-2 text-sm leading-relaxed text-ink-600 sm:text-base">Apply to join the UGV RICH expert directory.</p>
         </header>
     </x-slot:header>
 
-    <form method="POST" action="{{ route('consultancy.registration.store') }}" enctype="multipart/form-data" class="space-y-6 px-5 pt-6 pb-7 sm:px-9 sm:pb-9 xl:px-12" id="expert-registration">
+    <form method="POST" action="{{ route('consultancy.registration.store') }}" enctype="multipart/form-data" class="space-y-6 px-4 pt-6 pb-7 sm:px-9 sm:pb-9 xl:px-12" id="expert-registration">
         @csrf
 
         <div hidden data-progress class="border-b border-ink-100 pb-5">
@@ -52,7 +52,7 @@
                         @endforeach
                     </select>
                 </label>
-                <label class="field-label">
+                <label class="field-label min-w-0">
                     Consultancy category
                     <select name="service_category_id" class="field-input mt-2" required>
                         <option value="">Choose one category</option>
@@ -125,8 +125,8 @@
         <div class="flex flex-wrap items-center gap-3 border-t border-ink-100 pt-5">
             <button type="button" hidden data-back class="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold">Back</button>
             <a class="rounded-lg px-2 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50" href="{{ route('login') }}">Back to sign in</a>
-            <button type="button" hidden data-next class="btn-lead ml-auto">Continue</button>
-            <button type="submit" class="btn-lead ml-auto">Submit application</button>
+            <button type="button" hidden data-next class="btn-lead ml-auto max-sm:w-full">Continue</button>
+            <button type="submit" class="btn-lead ml-auto max-sm:w-full">Submit application</button>
         </div>
     </form>
 
