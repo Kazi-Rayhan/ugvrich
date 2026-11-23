@@ -84,6 +84,7 @@ class ConsultancyApplicationTest extends TestCase
             ],
             'skills' => [['name' => 'Design'], ['name' => 'Planning']],
         ];
+        $this->post(route('consultancy.registration.store'), $form)->assertSessionHasErrors('profile_photo');
         $invalid = $form;
         $invalid['occupations'][1]['end_date'] = '2019-12-31';
         $invalid['profile_photo'] = UploadedFile::fake()->create('resume.pdf', 20, 'application/pdf');

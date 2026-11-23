@@ -82,9 +82,9 @@
                             <img hidden data-photo-preview alt="" class="absolute inset-0 size-full object-cover">
                         </div>
                         <div class="min-w-0 flex-1">
-                            <label for="profile-photo" class="field-label">Profile photo <span class="font-normal text-ink-500">(optional)</span></label>
+                            <label for="profile-photo" class="field-label">Profile photo <span class="font-normal text-ink-500">(required)</span></label>
                             <p id="profile-photo-help" class="mt-1 text-sm text-ink-600">JPG, PNG or WebP up to 3 MB. Shown on your expert profile after activation.</p>
-                            <input id="profile-photo" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="profile-photo-help" class="mt-3 w-full text-sm text-ink-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold file:text-brand-700 file:ring-1 file:ring-inset file:ring-ink-200">
+                            <input id="profile-photo" name="profile_photo" type="file" required accept="image/jpeg,image/png,image/webp" aria-describedby="profile-photo-help" class="mt-3 w-full text-sm text-ink-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold file:text-brand-700 file:ring-1 file:ring-inset file:ring-ink-200">
                         </div>
                     </div>
                 @endif

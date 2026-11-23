@@ -50,7 +50,7 @@ class ConsultancyExpertController extends Controller
             'phone' => ['required', 'string', 'max:40'],
             'location' => ['required', 'string', 'max:150'],
             'affiliation_type' => ['required', Rule::in(Application::AFFILIATIONS)],
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
+            'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
             'service_category_id' => ['required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
             'bio' => ['nullable', 'string', 'max:3000'],
             'website' => ['nullable', 'size:0'],
@@ -70,17 +70,14 @@ class ConsultancyExpertController extends Controller
         }
 
         $data = $request->validate($rules);
-        $photo = $data['profile_photo'] ?? null;
+        $photo = $data['profile_photo'];
         unset($data['website'], $data['profile_photo']);
         $data['occupations'] = array_values($data['occupations']);
         $data['occupation'] = $data['occupations'][0]['title'];
 
-        $photoPath = null;
-        if ($photo) {
-            $photoPath = $photo->store('consultancy-profile-photos', 'local');
-            if (! $photoPath) {
-                throw new RuntimeException('Could not store the profile photo.');
-            }
+        $photoPath = $photo->store('consultancy-profile-photos', 'local');
+        if (! $photoPath) {
+            throw new RuntimeException('Could not store the profile photo.');
         }
 
         try {
@@ -92,9 +89,7 @@ class ConsultancyExpertController extends Controller
                 throw ValidationException::withMessages(['email' => 'An application already exists for this email address.']);
             }
         } catch (Throwable $exception) {
-            if ($photoPath) {
-                Storage::disk('local')->delete($photoPath);
-            }
+            Storage::disk('local')->delete($photoPath);
 
             throw $exception;
         }
