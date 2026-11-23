@@ -70,6 +70,12 @@
     --color-navy-800: #021c42;
     --color-navy-900: #021634;
 
+    --color-auth-canvas: #f1f3ee;
+    --color-auth-panel: #183b2b;
+    --color-auth-heading: #f6f8ed;
+    --color-auth-muted: #d1decf;
+    --color-auth-accent: #d6e8a6;
+
     --radius-4xl: 2rem;
     --radius-5xl: 2.75rem;
 
@@ -1242,11 +1248,11 @@ html:lang(bn) [class*='tracking-wide'] {
 }
 
 .login-background {
-    background-color: var(--color-ink-50);
+    background-color: var(--color-auth-canvas);
 }
 
 .login-options {
-    background-color: var(--color-navy-800);
+    background-color: var(--color-auth-panel);
 }
 
 @media (prefers-reduced-motion: no-preference) {

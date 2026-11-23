@@ -19,7 +19,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body @class(['min-h-full font-sans text-ink-900 antialiased', 'login-background' => $compact, 'bg-ink-50' => $wide && ! isset($sidebar), 'bg-[#f1f3ee]' => isset($sidebar), 'bg-white' => ! $contained])>
+<body @class(['min-h-full font-sans text-ink-900 antialiased', 'login-background' => $compact, 'bg-ink-50' => $wide && ! isset($sidebar), 'bg-auth-canvas' => isset($sidebar), 'bg-white' => ! $contained])>
 @if ($contained)
     <main @class(['mx-auto px-4 py-6 sm:px-8 sm:py-10 lg:py-14', 'flex min-h-svh w-full max-w-6xl flex-col justify-center' => $compact, 'max-w-7xl' => $wide])>
         <a href="{{ $consultancy ? route('experts.index') : route('research') }}" class="mb-5 inline-flex items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600 sm:mb-7">

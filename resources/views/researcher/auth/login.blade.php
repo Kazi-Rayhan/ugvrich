@@ -46,7 +46,7 @@
     <x-slot:options>
         <aside aria-labelledby="login-options" class="login-options min-w-0 px-5 py-6 text-white sm:px-8 md:col-start-1 md:row-start-1 md:py-7 lg:px-10">
             <img src="{{ asset('media/auth/portal-atlas.svg') }}" alt="" width="448" height="190" class="mx-auto mb-5 hidden h-auto w-full max-w-[28rem] md:block">
-            <h2 id="login-options" class="mb-2 font-display text-2xl font-bold tracking-tight !text-white">{{ __('researcher.auth.options_heading') }}</h2>
+            <h2 id="login-options" class="mb-2 font-display text-2xl font-bold tracking-tight !text-auth-heading">{{ __('researcher.auth.options_heading') }}</h2>
 
         @php
             $options = [
@@ -60,7 +60,7 @@
         <div class="login-options-list divide-y divide-white/15">
             @foreach ($options as $option)
                 @if ($option['href'])
-                    <a href="{{ $option['href'] }}" class="group flex min-h-16 items-center gap-3 py-3 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300">
+                    <a href="{{ $option['href'] }}" class="group flex min-h-16 items-center gap-3 py-3 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-auth-accent">
                 @else
                     <div class="flex min-h-16 items-center gap-3 py-3" aria-disabled="true">
                 @endif
@@ -69,10 +69,10 @@
                     </span>
                     <span class="min-w-0 flex-1">
                         <span @class(['block text-[14.5px] font-semibold', 'text-white' => $option['href'], 'text-white/80' => ! $option['href']])>{{ $option['title'] }}</span>
-                        <span class="mt-0.5 block text-[13px] leading-relaxed text-white/75">{{ $option['body'] }}</span>
+                        <span class="mt-0.5 block text-[13px] leading-relaxed text-auth-muted">{{ $option['body'] }}</span>
                     </span>
                 @if ($option['href'])
-                    <x-ui-icon name="arrow-up-right" class="size-4 shrink-0 text-gold-300 motion-safe:transition-transform motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5" />
+                    <x-ui-icon name="arrow-up-right" class="size-4 shrink-0 text-auth-accent motion-safe:transition-transform motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5" />
                     </a>
                 @else
                     </div>

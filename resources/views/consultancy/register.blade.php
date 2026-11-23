@@ -1,10 +1,10 @@
 <x-researcher-auth :consultancy="true" :wide="true" title="Consultancy expert registration" lead="Apply to join the UGV RICH expert directory.">
     <x-slot:sidebar>
-        <aside class="relative isolate hidden min-h-full overflow-hidden rounded-l-[calc(var(--radius-3xl)-1px)] bg-[#183b2b] px-9 py-10 text-white lg:flex lg:flex-col xl:px-11 xl:py-12">
-            <h2 class="max-w-[12ch] font-display text-4xl font-bold leading-[1.08] tracking-tight !text-[#f6f8ed] xl:text-[2.75rem]">Join the expert network.</h2>
-            <p class="mt-4 max-w-60 text-sm leading-relaxed text-[#d1decf]">Bring your professional experience to UGV RICH consultancy projects.</p>
+        <aside class="relative isolate hidden min-h-full overflow-hidden rounded-l-[calc(var(--radius-3xl)-1px)] bg-auth-panel px-9 py-10 text-white lg:flex lg:flex-col xl:px-11 xl:py-12">
+            <h2 class="max-w-[12ch] font-display text-4xl font-bold leading-[1.08] tracking-tight !text-auth-heading xl:text-[2.75rem]">Join the expert network.</h2>
+            <p class="mt-4 max-w-60 text-sm leading-relaxed text-auth-muted">Bring your professional experience to UGV RICH consultancy projects.</p>
             <img src="{{ asset('media/consultancy/expert-network.svg') }}" alt="" width="364" height="320" class="mx-auto my-9 h-auto w-full max-w-90 xl:my-12">
-            <div class="mt-auto border-t border-white/20 pt-5 text-sm leading-relaxed text-[#d1decf]">
+            <div class="mt-auto border-t border-white/20 pt-5 text-sm leading-relaxed text-auth-muted">
                 <p class="font-semibold text-white">Have these ready</p>
                 <p class="mt-1">Your qualifications, work history, and a profile photo.</p>
             </div>
