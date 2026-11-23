@@ -50,7 +50,6 @@ class ConsultancyExpertController extends Controller
             'phone' => ['required', 'string', 'max:40'],
             'location' => ['required', 'string', 'max:150'],
             'affiliation_type' => ['required', Rule::in(Application::AFFILIATIONS)],
-            'current_job' => ['nullable', 'string', 'max:150'],
             'current_designation' => ['nullable', 'string', 'max:150'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
             'service_category_id' => ['required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],

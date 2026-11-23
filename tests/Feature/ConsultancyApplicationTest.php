@@ -53,9 +53,14 @@ class ConsultancyApplicationTest extends TestCase
         $this->post(route('researcher.logout'));
         $category = ServiceCategory::create(['name' => 'Advisory', 'slug' => 'advisory', 'is_active' => true]);
 
-        $this->get('/login')->assertOk()->assertSee(route('consultancy.registration.register'))->assertSee('Innovation registration');
-        $this->get(route('consultancy.registration.register'))->assertOk()->assertSee('Advisory')->assertSee('Occupation history');
+        $this->get('/login')->assertOk()->assertSee(route('consultancy.registration.register'))->assertSee(__('researcher.auth.option_innovation_title'));
         $this->assertSame(url('/consultancy-request'), route('consultancy.store'));
+        $this->get('/consultancy/expert-registration')->assertOk()
+            ->assertSee('lang="en"', false)
+            ->assertSee('Consultancy Wing')
+            ->assertSee('Advisory')
+            ->assertSee('Occupation history')
+            ->assertDontSee('name="current_job"', false);
 
         $form = [
             'name' => 'Example Expert',
@@ -92,6 +97,7 @@ class ConsultancyApplicationTest extends TestCase
         Storage::disk('local')->assertExists($application->profile_photo_path);
         $this->assertSame([], Storage::disk('public')->allFiles());
         $this->assertSame('expert@example.org', $application->email);
+        $this->assertNull($application->current_job);
         $this->assertCount(2, $application->education);
         $this->assertSame('Engineer', $application->occupation);
         $this->assertSame($form['occupations'], $application->occupations);
@@ -224,6 +230,7 @@ class ConsultancyApplicationTest extends TestCase
             'expertise' => 'Systems design, Automation, Automation',
             'professional_skills' => 'Documentation, Mentoring',
             'department' => 'Engineering',
+            'current_job' => 'Gridworks',
             'research_interests' => 'Reliable infrastructure',
         ])->assertRedirect();
         $expert = $application->expert()->sole();

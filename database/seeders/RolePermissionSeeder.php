@@ -10,6 +10,8 @@ use App\Models\ConsultancyRequest;
 use App\Models\ConsultancyApplication;
 use App\Models\ConsultancyEngagementPolicy;
 use App\Models\ExpertWalletEntry;
+use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\ContactMessage;
 use App\Models\CoreArea;
 use App\Models\Expert;
@@ -79,6 +81,8 @@ class RolePermissionSeeder extends Seeder
         ConsultancyApplication::class => ['viewAny', 'manageReviewers', 'viewEngagement', 'assignEngagement', 'viewWallet'],
         ConsultancyEngagementPolicy::class => ['viewAny', 'update'],
         ExpertWalletEntry::class => ['viewAny', 'viewDestination', 'review', 'markPaid'],
+        FinanceAccount::class => ['viewAny', 'create', 'update'],
+        FinanceTransaction::class => ['viewAny', 'create', 'reverse'],
         ContactMessage::class => ['viewAny', 'view', 'create', 'update', 'delete'],
         // Apprenticeship applications from the public form: read, handled and deleted here, never created.
         StudentMembership::class => ['viewAny', 'view', 'update', 'delete'],
@@ -127,6 +131,8 @@ class RolePermissionSeeder extends Seeder
         ConsultancyApplication::class => 'Consultancy experts',
         ConsultancyEngagementPolicy::class => 'Consultancy experts',
         ExpertWalletEntry::class => 'Consultancy experts',
+        FinanceAccount::class => 'Finance',
+        FinanceTransaction::class => 'Finance',
         ContactMessage::class => 'Inbox',
         StudentMembership::class => 'Inbox',
         Client::class => 'Consultancy sales',

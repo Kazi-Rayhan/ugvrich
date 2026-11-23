@@ -23,7 +23,9 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->segment(1) === 'en' ? 'en' : self::DEFAULT;
+        $locale = $request->segment(1) === 'en' || $request->routeIs('consultancy.registration.*')
+            ? 'en'
+            : self::DEFAULT;
 
         /* The portal is a signed-in application and is registered once, not
            mirrored under /en, so it has no locale segment to read. It carries

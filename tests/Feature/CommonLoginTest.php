@@ -14,10 +14,14 @@ class CommonLoginTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
+            ->assertSee('href="'.url('/en/login').'"', escape: false)
+            ->assertSee('hreflang="en"', escape: false)
             ->assertSee('action="'.route('login.store').'"', escape: false);
 
         $this->get('/en/login')
             ->assertOk()
+            ->assertSee('href="'.url('/login').'"', escape: false)
+            ->assertSee('hreflang="bn"', escape: false)
             ->assertSee('action="'.route('en.login.store').'"', escape: false);
     }
 

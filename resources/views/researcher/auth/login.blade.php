@@ -1,9 +1,12 @@
 <x-researcher-auth :title="__('researcher.auth.login_title')" :lead="__('researcher.auth.login_lead')">
     <x-slot:header>
         <header>
-            <span class="mb-4 grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100" aria-hidden="true">
-                <x-ui-icon name="user" class="size-5" />
-            </span>
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <span class="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100" aria-hidden="true">
+                    <x-ui-icon name="user" class="size-5" />
+                </span>
+                <x-language-switch class="min-h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" />
+            </div>
             <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-950 sm:text-4xl">{{ __('researcher.auth.login_title') }}</h1>
             <p class="mt-2 text-sm leading-relaxed text-ink-600">{{ __('researcher.auth.login_lead') }}</p>
         </header>
@@ -51,8 +54,8 @@
         @php
             $options = [
                 ['icon' => 'academic', 'href' => route('researcher.register'), 'title' => __('researcher.auth.option_researcher_title'), 'body' => __('researcher.auth.option_researcher_body')],
-                ['icon' => 'briefcase', 'href' => route('consultancy.registration.register'), 'title' => 'Consultancy expert registration', 'body' => 'Apply to join the Consultancy Wing expert directory.'],
-                ['icon' => 'lightbulb', 'href' => null, 'title' => 'Innovation registration', 'body' => 'Registration is currently unavailable.'],
+                ['icon' => 'briefcase', 'href' => route('consultancy.registration.register'), 'title' => __('researcher.auth.option_expert_title'), 'body' => __('researcher.auth.option_expert_body')],
+                ['icon' => 'lightbulb', 'href' => null, 'title' => __('researcher.auth.option_innovation_title'), 'body' => __('researcher.auth.option_innovation_body')],
                 ['icon' => 'shield', 'href' => url('/admin/login'), 'title' => __('researcher.auth.option_staff_title'), 'body' => __('researcher.auth.option_staff_body')],
             ];
         @endphp

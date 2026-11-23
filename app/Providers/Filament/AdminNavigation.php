@@ -18,6 +18,8 @@ use App\Filament\Resources\Experts\ExpertResource;
 use App\Filament\Resources\ResearcherUsers\ResearcherUserResource;
 use App\Filament\Resources\Facilities\FacilityResource;
 use App\Filament\Resources\Faqs\FaqResource;
+use App\Filament\Resources\FinanceAccounts\FinanceAccountResource;
+use App\Filament\Resources\FinanceTransactions\FinanceTransactionResource;
 use App\Filament\Resources\FundingOpportunities\FundingOpportunityResource;
 use App\Filament\Resources\IdeaSubmissions\IdeaSubmissionResource;
 use App\Filament\Resources\InnovationAreas\InnovationAreaResource;
@@ -138,6 +140,21 @@ class AdminNavigation
                     $this->resource('Work Orders', null, WorkOrderResource::class),
                     $this->resource('Orders', null, OrderResource::class),
                     $this->resource('Clients', null, ClientResource::class),
+                ]),
+
+            NavigationGroup::make('Finance')
+                ->icon(Heroicon::OutlinedWallet)
+                ->collapsible()
+                ->items([
+                    $this->resource('Accounts', null, FinanceAccountResource::class),
+                    NavigationItem::make('Transactions')
+                        ->url(fn () => FinanceTransactionResource::getUrl('index'))
+                        ->visible(fn () => FinanceTransactionResource::canViewAny())
+                        ->isActiveWhen(fn () => request()->routeIs(FinanceTransactionResource::getRouteBaseName().'.index')),
+                    NavigationItem::make('Transfers')
+                        ->url(fn () => FinanceTransactionResource::getUrl('transfers'))
+                        ->visible(fn () => FinanceTransactionResource::canViewAny())
+                        ->isActiveWhen(fn () => request()->routeIs(FinanceTransactionResource::getRouteBaseName().'.transfers')),
                 ]),
 
             NavigationGroup::make('Website Content')
