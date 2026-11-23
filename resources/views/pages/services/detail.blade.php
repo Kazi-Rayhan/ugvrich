@@ -177,7 +177,7 @@
         <div class="container-rich">
             <div class="reveal grid gap-6 rounded-[2rem] bg-navy-700 px-7 py-10 text-white sm:px-12 lg:grid-cols-[1.4fr_0.6fr] lg:items-center">
                 <div>
-                    <h2 class="font-display text-[22px] font-bold leading-tight sm:text-[28px]">
+                    <h2 class="font-display text-[22px] font-bold leading-tight !text-white sm:text-[28px]">
                         {{ __('site.services.cta_title', ['service' => $service->name]) }}
                     </h2>
                     <p class="mt-3 max-w-xl text-[14.5px] leading-[1.8] text-white/70">{{ __('site.services.cta_body') }}</p>
