@@ -1242,11 +1242,11 @@ html:lang(bn) [class*='tracking-wide'] {
 }
 
 .login-background {
-    background-color: #f3f0e7;
+    background-color: var(--color-ink-50);
 }
 
 .login-options {
-    background-color: #1e3038;
+    background-color: var(--color-navy-800);
 }
 
 @media (prefers-reduced-motion: no-preference) {
