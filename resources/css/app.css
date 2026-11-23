@@ -1242,17 +1242,11 @@ html:lang(bn) [class*='tracking-wide'] {
 }
 
 .login-background {
-    background:
-        radial-gradient(ellipse at 12% 15%, #dce8ff 0%, transparent 48%),
-        radial-gradient(ellipse at 90% 85%, #d6f4f3 0%, transparent 44%),
-        #f7f9fd;
+    background-color: #f3f0e7;
 }
 
 .login-options {
-    background:
-        radial-gradient(ellipse at 100% 0%, #43408f 0%, transparent 62%),
-        radial-gradient(ellipse at 0% 100%, #0d5669 0%, transparent 65%),
-        #101e42;
+    background-color: #1e3038;
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -1,13 +1,10 @@
 <x-researcher-auth :title="__('researcher.auth.login_title')" :lead="__('researcher.auth.login_lead')">
     <x-slot:header>
         <header>
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <span class="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100" aria-hidden="true">
-                    <x-ui-icon name="user" class="size-5" />
-                </span>
+            <div class="mb-5 flex justify-end">
                 <x-language-switch class="min-h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" />
             </div>
-            <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-950 sm:text-4xl">{{ __('researcher.auth.login_title') }}</h1>
+            <h1 class="font-display text-[clamp(2.25rem,4vw,3.25rem)] leading-tight font-extrabold tracking-tight text-ink-950">{{ __('researcher.auth.login_title') }}</h1>
             <p class="mt-2 text-sm leading-relaxed text-ink-600">{{ __('researcher.auth.login_lead') }}</p>
         </header>
     </x-slot:header>
@@ -40,16 +37,16 @@
             {{ __('researcher.auth.remember') }}
         </label>
 
-        <button type="submit" class="btn-lead group w-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600">
-            <span class="relative">{{ __('researcher.auth.login') }}</span>
-            <x-ui-icon name="arrow-right" class="relative h-[18px] w-[18px] motion-safe:transition-transform motion-safe:group-hover:translate-x-1" />
+        <button type="submit" class="group flex min-h-13 w-full cursor-pointer items-center justify-between gap-4 rounded-xl bg-[#254a38] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#193728] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600">
+            <span>{{ __('researcher.auth.login') }}</span>
+            <x-ui-icon name="arrow-right" class="size-[18px] motion-safe:transition-transform motion-safe:group-hover:translate-x-1" />
         </button>
     </form>
 
     <x-slot:options>
-        <aside aria-labelledby="login-options" class="login-options relative isolate overflow-hidden px-5 py-7 text-white sm:px-7 sm:py-8 md:col-start-1 md:row-start-1 lg:px-8">
-            <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 grid-overlay opacity-10"></div>
-            <h2 id="login-options" class="mb-5 font-display text-2xl font-bold tracking-tight !text-white">{{ __('researcher.auth.options_heading') }}</h2>
+        <aside aria-labelledby="login-options" class="login-options min-w-0 px-5 py-6 text-white sm:px-8 md:col-start-1 md:row-start-1 md:py-7 lg:px-10">
+            <img src="{{ asset('media/auth/portal-atlas.svg') }}" alt="" width="448" height="190" class="mx-auto mb-5 hidden h-auto w-full max-w-[28rem] md:block">
+            <h2 id="login-options" class="mb-2 font-display text-2xl font-bold tracking-tight !text-[#f8f5e9]">{{ __('researcher.auth.options_heading') }}</h2>
 
         @php
             $options = [
@@ -60,14 +57,14 @@
             ];
         @endphp
 
-        <div class="login-options-list space-y-2.5">
+        <div class="login-options-list divide-y divide-white/15">
             @foreach ($options as $option)
                 @if ($option['href'])
-                    <a href="{{ $option['href'] }}" class="group flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3.5 transition-colors hover:border-cyan-100/60 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    <a href="{{ $option['href'] }}" class="group flex min-h-16 items-center gap-3 py-3 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f4cd82]">
                 @else
-                    <div class="flex items-center gap-3 rounded-2xl border border-dashed border-white/25 p-3.5" aria-disabled="true">
+                    <div class="flex min-h-16 items-center gap-3 py-3" aria-disabled="true">
                 @endif
-                    <span @class(['grid size-10 shrink-0 place-items-center rounded-xl', 'bg-cyan-100 text-indigo-950' => $option['href'], 'bg-white/10 text-white/70' => ! $option['href']])>
+                    <span @class(['grid size-10 shrink-0 place-items-center rounded-xl', 'bg-[#dce9d8] text-[#254a38]' => $option['href'], 'bg-white/10 text-white/80' => ! $option['href']])>
                         <x-ui-icon :name="$option['icon']" class="h-5 w-5" />
                     </span>
                     <span class="min-w-0 flex-1">
@@ -75,7 +72,7 @@
                         <span class="mt-0.5 block text-[13px] leading-relaxed text-white/75">{{ $option['body'] }}</span>
                     </span>
                 @if ($option['href'])
-                    <x-ui-icon name="arrow-up-right" class="size-4 shrink-0 text-cyan-100 motion-safe:transition-transform motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5" />
+                    <x-ui-icon name="arrow-up-right" class="size-4 shrink-0 text-[#f4cd82] motion-safe:transition-transform motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5" />
                     </a>
                 @else
                     </div>

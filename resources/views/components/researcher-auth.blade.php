@@ -21,7 +21,7 @@
 
 <body @class(['min-h-full font-sans text-ink-900 antialiased', 'login-background' => $compact, 'bg-ink-50' => $wide && ! isset($sidebar), 'bg-[#f1f3ee]' => isset($sidebar), 'bg-white' => ! $contained])>
 @if ($contained)
-    <main @class(['mx-auto px-4 py-6 sm:px-8 sm:py-10 lg:py-14', 'flex min-h-svh max-w-5xl flex-col justify-center' => $compact, 'max-w-7xl' => $wide])>
+    <main @class(['mx-auto px-4 py-6 sm:px-8 sm:py-10 lg:py-14', 'flex min-h-svh w-full max-w-6xl flex-col justify-center' => $compact, 'max-w-7xl' => $wide])>
         <a href="{{ $consultancy ? route('experts.index') : route('research') }}" class="mb-5 inline-flex items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600 sm:mb-7">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-ink-100 bg-white p-2 shadow-sm">
                 <img src="{{ asset('media/logo-mark.png') }}" alt="" width="256" height="249" class="h-full w-full object-contain">
@@ -32,7 +32,7 @@
             'rounded-3xl border border-ink-200 bg-white shadow-[0_24px_64px_-48px_rgba(7,20,38,0.45)]',
             'overflow-hidden' => ! isset($sidebar),
             'grid lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.45fr)]' => isset($sidebar),
-            'login-shell grid md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]' => $compact,
+            'login-shell grid md:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]' => $compact,
         ])>
 @else
     <div class="grid min-h-screen lg:grid-cols-2">
