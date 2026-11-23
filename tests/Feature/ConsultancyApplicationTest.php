@@ -307,6 +307,32 @@ class ConsultancyApplicationTest extends TestCase
         Notification::assertSentOnDemand(ConsultancyUpdate::class, fn ($notice) =>
             $notice->title === 'Consultancy application declined' && str_contains($notice->message, 'at capacity')
         );
+
+        $this->actingAs($director);
+        Livewire::test(ViewConsultancyApplication::class, ['record' => $application->id])
+            ->assertActionHidden('delete');
+
+        $admin = User::factory()->create(['role' => User::ADMIN]);
+        $this->actingAs($admin);
+        $approved = $application->replicate()->fill([
+            'email' => 'approved@example.org', 'status' => Application::APPROVED,
+        ]);
+        $approved->save();
+        Livewire::test(ListConsultancyApplications::class)
+            ->assertTableActionVisible('delete', $application)
+            ->assertTableActionHidden('delete', $approved);
+        Livewire::test(ViewConsultancyApplication::class, ['record' => $application->id])
+            ->callAction('delete')
+            ->assertRedirect();
+        $this->assertModelMissing($application);
+        $pending = $approved->replicate()->fill([
+            'email' => 'pending@example.org', 'status' => Application::WING,
+        ]);
+        $pending->save();
+        Livewire::test(ListConsultancyApplications::class)
+            ->callTableBulkAction('delete', [$pending, $approved]);
+        $this->assertModelMissing($pending);
+        $this->assertModelExists($approved);
     }
 
     private function reviewer(string $stage): User

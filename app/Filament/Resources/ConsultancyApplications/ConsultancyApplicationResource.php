@@ -8,6 +8,8 @@ use App\Filament\Resources\ConsultancyApplications\Pages\ViewConsultancyChain;
 use App\Models\ConsultancyApplication as Application;
 use App\Services\ConsultancyReview;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
@@ -55,6 +57,10 @@ class ConsultancyApplicationResource extends Resource
                     ->url(fn (Application $record) => self::getUrl('view', ['record' => $record])),
                 self::decisionAction(true),
                 self::decisionAction(false),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                DeleteBulkAction::make()->authorizeIndividualRecords(),
             ]);
     }
 

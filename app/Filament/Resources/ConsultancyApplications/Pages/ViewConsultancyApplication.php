@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ConsultancyApplications\Pages;
 
 use App\Filament\Resources\ConsultancyApplications\ConsultancyApplicationResource;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewConsultancyApplication extends ViewRecord
@@ -24,6 +25,7 @@ class ViewConsultancyApplication extends ViewRecord
                 ->url(ConsultancyApplicationResource::getUrl('chain')),
             ConsultancyApplicationResource::decisionAction(true)->record($this->getRecord()),
             ConsultancyApplicationResource::decisionAction(false)->record($this->getRecord()),
+            DeleteAction::make(),
         ];
     }
 }

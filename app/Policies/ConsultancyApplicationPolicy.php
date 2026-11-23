@@ -18,6 +18,16 @@ class ConsultancyApplicationPolicy
         return $this->viewAny($user);
     }
 
+    public function delete(User $user, Application $application): bool
+    {
+        return $this->deleteAny($user) && $application->status !== Application::APPROVED;
+    }
+
+    public function deleteAny(User $user): bool
+    {
+        return $user->isAdmin();
+    }
+
     public function review(User $user, Application $application): bool
     {
         return $application->canReview($user);
