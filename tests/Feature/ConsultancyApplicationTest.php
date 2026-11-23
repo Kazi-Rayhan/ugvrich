@@ -60,7 +60,8 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('Consultancy Wing')
             ->assertSee('Advisory')
             ->assertSee('Occupation history')
-            ->assertDontSee('name="current_job"', false);
+            ->assertDontSee('name="current_job"', false)
+            ->assertDontSee('name="current_designation"', false);
 
         $form = [
             'name' => 'Example Expert',
@@ -69,7 +70,6 @@ class ConsultancyApplicationTest extends TestCase
             'location' => 'Barishal, Bangladesh',
             'affiliation_type' => 'external',
             'current_job' => 'Gridworks',
-            'current_designation' => 'Senior Engineer',
             'occupations' => [
                 ['title' => 'Engineer', 'institution' => 'Example', 'start_date' => '2022-01-01', 'end_date' => null],
                 ['title' => 'Research Assistant', 'institution' => 'UGV', 'start_date' => '2020-01-01', 'end_date' => '2021-12-31'],
@@ -98,6 +98,7 @@ class ConsultancyApplicationTest extends TestCase
         $this->assertSame([], Storage::disk('public')->allFiles());
         $this->assertSame('expert@example.org', $application->email);
         $this->assertNull($application->current_job);
+        $this->assertNull($application->current_designation);
         $this->assertCount(2, $application->education);
         $this->assertSame('Engineer', $application->occupation);
         $this->assertSame($form['occupations'], $application->occupations);

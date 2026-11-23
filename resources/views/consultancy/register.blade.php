@@ -23,7 +23,7 @@
             </ol>
         </div>
 
-        <section class="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm sm:p-7" data-step="Personal information" data-invalid="{{ $errors->hasAny(['name', 'email', 'phone', 'location', 'affiliation_type', 'current_designation', 'service_category_id']) ? 'yes' : 'no' }}">
+        <section class="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm sm:p-7" data-step="Personal information" data-invalid="{{ $errors->hasAny(['name', 'email', 'phone', 'location', 'affiliation_type', 'service_category_id']) ? 'yes' : 'no' }}">
             <h2 class="mb-5 border-b border-ink-100 pb-4 font-display text-xl font-bold tracking-tight sm:text-2xl" tabindex="-1">Personal information</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 @foreach (['name' => ['Full name', 'text', 'name'], 'email' => ['Email address', 'email', 'email'], 'phone' => ['Phone number', 'tel', 'tel'], 'location' => ['City and country', 'text', 'address-level2']] as $key => [$label, $type, $autocomplete])
@@ -40,10 +40,6 @@
                             <option value="{{ $type }}" @selected(old('affiliation_type') === $type)>{{ __('consultancy_engagement.'.$type) }}</option>
                         @endforeach
                     </select>
-                </label>
-                <label class="field-label">
-                    {{ __('consultancy_engagement.designation') }}
-                    <input class="field-input mt-2" name="current_designation" value="{{ old('current_designation') }}" maxlength="150">
                 </label>
                 <label class="field-label">
                     Consultancy category
