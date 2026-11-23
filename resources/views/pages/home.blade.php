@@ -3,8 +3,15 @@
     @include('partials.home.hero')
     @include('partials.home.dashboard')
     @include('partials.home.wings')
+    @include('partials.home.marquee', ['homepage' => true])
+    @if ($stats->isNotEmpty())
+        <section class="bg-ink-50 py-16 sm:py-20">
+            <div class="container-rich">
+                @include('partials.innovation-pipeline')
+            </div>
+        </section>
+    @endif
     @include('partials.home.about')
-    @include('partials.home.marquee', ['subdued' => true])
     @include('partials.home.cta')
 
     {{-- Flowers that follow a visitor here from the inauguration at /inaugurate --}}

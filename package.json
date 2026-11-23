@@ -19,6 +19,8 @@
     "dependencies": {
         "@alpinejs/collapse": "^3.16.2",
         "@alpinejs/intersect": "^3.16.2",
-        "alpinejs": "^3.16.2"
+        "alpinejs": "^3.16.2",
+        "jquery": "3.7.1",
+        "select2": "4.1.0-rc.0"
     }
 }

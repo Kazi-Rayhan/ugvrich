@@ -24,6 +24,9 @@
             <div>
                 <h2>{{ $application->name }}</h2>
                 <p>{{ $application->occupation }} &middot; {{ $application->category->name }}</p>
+                @if ($application->expertiseServices->isNotEmpty())
+                    <p>Areas of expertise: {{ $application->expertiseServices->pluck('name')->join(', ') }}</p>
+                @endif
             </div>
             <div class="consultancy-status">
                 <x-filament::badge :color="$statusColor">{{ $application::STATUSES[$application->status] }}</x-filament::badge>

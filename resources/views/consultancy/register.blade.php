@@ -1,30 +1,41 @@
-<x-researcher-auth :consultancy="true" :wide="true" title="Consultancy expert registration" lead="Apply to join the UGV RICH expert directory. Select one consultancy category that matches your expertise.">
-    <form method="POST" action="{{ route('consultancy.registration.store') }}" enctype="multipart/form-data" class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-9 sm:py-8" id="expert-registration">
+<x-researcher-auth :consultancy="true" :wide="true" title="Consultancy expert registration" lead="Apply to join the UGV RICH expert directory.">
+    <x-slot:sidebar>
+        <aside class="relative isolate hidden min-h-full overflow-hidden rounded-l-[calc(var(--radius-3xl)-1px)] bg-[#183b2b] px-9 py-10 text-white lg:flex lg:flex-col xl:px-11 xl:py-12">
+            <h2 class="max-w-[12ch] font-display text-4xl font-bold leading-[1.08] tracking-tight !text-[#f6f8ed] xl:text-[2.75rem]">Join the expert network.</h2>
+            <p class="mt-4 max-w-60 text-sm leading-relaxed text-[#d1decf]">Bring your professional experience to UGV RICH consultancy projects.</p>
+            <img src="{{ asset('media/consultancy/expert-network.svg') }}" alt="" width="364" height="320" class="mx-auto my-9 h-auto w-full max-w-90 xl:my-12">
+            <div class="mt-auto border-t border-white/20 pt-5 text-sm leading-relaxed text-[#d1decf]">
+                <p class="font-semibold text-white">Have these ready</p>
+                <p class="mt-1">Your qualifications, work history, and a profile photo.</p>
+            </div>
+        </aside>
+    </x-slot:sidebar>
+
+    <x-slot:header>
+        <header class="px-5 pt-7 sm:px-9 sm:pt-10 xl:px-12">
+            <h1 class="font-display text-3xl font-bold leading-tight tracking-tight text-ink-950 sm:text-[2.25rem]">Consultancy expert registration</h1>
+            <p class="mt-2 text-sm leading-relaxed text-ink-600 sm:text-base">Apply to join the UGV RICH expert directory.</p>
+        </header>
+    </x-slot:header>
+
+    <form method="POST" action="{{ route('consultancy.registration.store') }}" enctype="multipart/form-data" class="space-y-6 px-5 pt-6 pb-7 sm:px-9 sm:pb-9 xl:px-12" id="expert-registration">
         @csrf
 
-        <div hidden data-progress class="mx-auto max-w-2xl px-1 text-center sm:px-3">
-            <p class="mb-3 text-sm font-semibold text-ink-950 sm:sr-only" aria-live="polite" data-progress-label></p>
-            <ol class="grid grid-cols-5" aria-label="Application steps">
+        <div hidden data-progress class="border-b border-ink-100 pb-5">
+            <p class="mb-2 text-xs font-semibold text-brand-800 sm:sr-only" aria-live="polite" data-progress-label></p>
+            <ol class="grid grid-cols-5 gap-2" aria-label="Application steps">
                 @foreach (['Personal details', 'Education', 'Occupations', 'Work experience', 'Skills'] as $label)
-                    <li data-step-marker class="group relative min-w-0 text-ink-600 aria-[current=step]:text-brand-800 data-[complete]:text-ink-900">
-                        <span aria-hidden="true" class="flex h-10 items-center justify-center">
-                            @unless ($loop->last)
-                                <span class="absolute top-5 left-1/2 h-0.5 w-full -translate-y-1/2 bg-ink-200 transition-colors motion-reduce:transition-none group-data-[complete]:bg-brand-400"></span>
-                            @endunless
-                            <span class="relative z-10 inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-sm font-semibold tabular-nums shadow-sm group-aria-[current=step]:border-brand-600 group-aria-[current=step]:bg-brand-600 group-aria-[current=step]:text-white group-aria-[current=step]:ring-4 group-aria-[current=step]:ring-brand-100 group-data-[complete]:border-brand-300 group-data-[complete]:bg-brand-50 group-data-[complete]:text-brand-700">
-                                <span class="group-data-[complete]:hidden">{{ $loop->iteration }}</span>
-                                <span class="hidden group-data-[complete]:block"><x-ui-icon name="check" class="size-3.5" /></span>
-                            </span>
-                        </span>
-                        <span class="sr-only px-1 text-xs font-semibold leading-tight sm:not-sr-only sm:mt-2 sm:block md:text-sm">{{ $label }}</span>
+                    <li data-step-marker class="group min-w-0 text-ink-600 aria-[current=step]:text-brand-800 data-[complete]:text-brand-800">
+                        <span aria-hidden="true" class="block h-1 rounded-full bg-ink-100 group-data-[complete]:bg-brand-300 group-aria-[current=step]:bg-brand-600"></span>
+                        <span class="sr-only text-xs font-semibold leading-tight sm:not-sr-only sm:mt-2 sm:block">{{ $label }}</span>
                         <span class="sr-only hidden group-data-[complete]:inline"> (completed)</span>
                     </li>
                 @endforeach
             </ol>
         </div>
 
-        <section class="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm sm:p-7" data-step="Personal information" data-invalid="{{ $errors->hasAny(['name', 'email', 'phone', 'location', 'affiliation_type', 'service_category_id']) ? 'yes' : 'no' }}">
-            <h2 class="mb-5 border-b border-ink-100 pb-4 font-display text-xl font-bold tracking-tight sm:text-2xl" tabindex="-1">Personal information</h2>
+        <section data-step="Personal details" data-invalid="{{ $errors->hasAny(['name', 'email', 'phone', 'location', 'affiliation_type', 'service_category_id', 'expertise_service_ids', 'expertise_service_ids.*']) ? 'yes' : 'no' }}">
+            <h2 class="mb-5 font-display text-xl font-bold tracking-tight sm:text-2xl" tabindex="-1">Personal details</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 @foreach (['name' => ['Full name', 'text', 'name'], 'email' => ['Email address', 'email', 'email'], 'phone' => ['Phone number', 'tel', 'tel'], 'location' => ['City and country', 'text', 'address-level2']] as $key => [$label, $type, $autocomplete])
                     <label class="field-label">
@@ -35,7 +46,7 @@
                 <label class="field-label">
                     {{ __('consultancy_engagement.affiliation') }}
                     <select name="affiliation_type" class="field-input mt-2" required>
-                        <option value=""></option>
+                        <option value="">Choose affiliation</option>
                         @foreach (\App\Models\ConsultancyApplication::AFFILIATIONS as $type)
                             <option value="{{ $type }}" @selected(old('affiliation_type') === $type)>{{ __('consultancy_engagement.'.$type) }}</option>
                         @endforeach
@@ -50,6 +61,25 @@
                         @endforeach
                     </select>
                 </label>
+                <div id="expertise-field" class="field-label min-w-0 sm:col-span-2">
+                    <label for="expertise-services">Areas of expertise</label>
+                    <select id="expertise-services" name="expertise_service_ids[]" class="field-input mt-2" multiple size="4" aria-describedby="expertise-help">
+                        @foreach ($categories as $category)
+                            @if ($category->services->isNotEmpty())
+                                <optgroup label="{{ $category->name }}" data-category="{{ $category->id }}">
+                                    @foreach ($category->services as $service)
+                                        <option value="{{ $service->id }}" @selected(in_array($service->id, (array) old('expertise_service_ids', [])))>{{ $service->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                        @endforeach
+                    </select>
+                    <span id="expertise-help" class="field-help block font-normal">Select one or more areas.</span>
+                    <span id="expertise-required" class="mt-1 block text-sm text-red-700" role="status" hidden>Select at least one area of expertise.</span>
+                    @if ($message = $errors->first('expertise_service_ids') ?: $errors->first('expertise_service_ids.*'))
+                        <span class="mt-1 block text-sm text-red-700">{{ $message }}</span>
+                    @endif
+                </div>
             </div>
         </section>
 
@@ -58,8 +88,8 @@
                 $heading = ['education' => 'Education qualifications', 'occupations' => 'Occupation history', 'experience' => 'Work experience', 'skills' => 'Skills and summary'][$group];
                 $rows = old($group, $group === 'experience' ? [] : [[]]);
             @endphp
-            <section class="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm sm:p-7" data-step="{{ $heading }}" data-invalid="{{ $errors->hasAny([$group, $group.'.*', ...($group === 'skills' ? ['bio', 'profile_photo'] : [])]) ? 'yes' : 'no' }}">
-                <h2 class="mb-5 border-b border-ink-100 pb-4 font-display text-xl font-bold tracking-tight sm:text-2xl" tabindex="-1">{{ $heading }}</h2>
+            <section data-step="{{ $heading }}" data-invalid="{{ $errors->hasAny([$group, $group.'.*', ...($group === 'skills' ? ['bio', 'profile_photo'] : [])]) ? 'yes' : 'no' }}">
+                <h2 class="mb-5 font-display text-xl font-bold tracking-tight sm:text-2xl" tabindex="-1">{{ $heading }}</h2>
                 @if ($group === 'occupations') <p class="mb-4 text-sm text-ink-600">List your primary occupation first. Add each additional role separately.</p> @endif
                 @if ($group === 'experience') <p class="mb-4 text-sm text-ink-600">Optional. Add each relevant position separately.</p> @endif
                 <div data-repeater data-group="{{ $group }}" data-min="{{ $group === 'experience' ? 0 : 1 }}">
@@ -92,7 +122,7 @@
         @endforeach
 
         <div hidden><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3 border-t border-ink-100 pt-5">
             <button type="button" hidden data-back class="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold">Back</button>
             <a class="rounded-lg px-2 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50" href="{{ route('login') }}">Back to sign in</a>
             <button type="button" hidden data-next class="btn-lead ml-auto">Continue</button>
@@ -100,100 +130,5 @@
         </div>
     </form>
 
-    <script>
-        (() => {
-            const form = document.querySelector('#expert-registration');
-            const steps = [...form.querySelectorAll('[data-step]')];
-            const progress = form.querySelector('[data-progress]');
-            const markers = [...progress.querySelectorAll('[data-step-marker]')];
-            const back = form.querySelector('[data-back]');
-            const next = form.querySelector('[data-next]');
-            const submit = form.querySelector('[type=submit]');
-            let current = 0;
-            const photo = form.querySelector('#profile-photo');
-            const preview = form.querySelector('[data-photo-preview]');
-            let previewUrl;
-
-            photo.addEventListener('change', () => {
-                if (previewUrl) URL.revokeObjectURL(previewUrl);
-                const file = photo.files[0];
-                previewUrl = file ? URL.createObjectURL(file) : undefined;
-                preview.hidden = !previewUrl;
-                if (previewUrl) preview.src = previewUrl;
-                else preview.removeAttribute('src');
-            });
-
-            function showStep(index, focus = true) {
-                current = index;
-                steps.forEach((step, position) => { step.hidden = position !== index; });
-                markers.forEach((marker, position) => {
-                    marker.setAttribute('aria-current', position === index ? 'step' : 'false');
-                    marker.toggleAttribute('data-complete', position < index);
-                });
-                progress.querySelector('[data-progress-label]').textContent =
-                    `Step ${index + 1} of ${steps.length} · ${steps[index].dataset.step}`;
-                back.hidden = index === 0;
-                next.hidden = index === steps.length - 1;
-                submit.hidden = !next.hidden;
-                if (focus) steps[index].querySelector('h2').focus();
-            }
-
-            function validStep(step) {
-                return [...step.querySelectorAll('input, select, textarea')].every(field => field.reportValidity());
-            }
-
-            function advance() {
-                if (validStep(steps[current])) showStep(current + 1);
-            }
-
-            progress.hidden = false;
-            showStep(Math.max(0, steps.findIndex(step => step.dataset.invalid === 'yes')), false);
-            form.noValidate = true;
-            next.addEventListener('click', advance);
-            back.addEventListener('click', () => showStep(current - 1));
-            form.addEventListener('submit', event => {
-                if (current < steps.length - 1) {
-                    event.preventDefault();
-                    advance();
-                    return;
-                }
-
-                const invalidStep = steps.findIndex(step => step.querySelector(':invalid'));
-                if (invalidStep !== -1) {
-                    event.preventDefault();
-                    showStep(invalidStep, false);
-                    validStep(steps[invalidStep]);
-                }
-            });
-
-            form.querySelectorAll('[data-repeater]').forEach(repeater => {
-                const rows = repeater.querySelector('[data-rows]');
-                const add = repeater.querySelector('[data-add]');
-                const minimum = Number(repeater.dataset.min);
-                let index = rows.children.length;
-
-                function refresh() {
-                    rows.querySelectorAll('[data-remove]').forEach(button => {
-                        button.hidden = rows.children.length <= minimum;
-                    });
-                    add.disabled = rows.children.length >= 15;
-                }
-
-                add.hidden = false;
-                refresh();
-                add.addEventListener('click', () => {
-                    rows.insertAdjacentHTML('beforeend', repeater.querySelector('template').innerHTML.replaceAll('__index__', index++));
-                    refresh();
-                    rows.lastElementChild.querySelector('input').focus();
-                });
-                rows.addEventListener('click', event => {
-                    const button = event.target.closest('[data-remove]');
-                    if (!button || rows.children.length <= minimum) return;
-                    button.closest('fieldset').remove();
-                    refresh();
-                    add.focus();
-                });
-            });
-        })();
-    </script>
+    @vite('resources/js/consultancy-registration.js')
 </x-researcher-auth>

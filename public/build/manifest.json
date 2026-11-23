@@ -100,7 +100,7 @@
     "src": "_plus-jakarta-sans-800-normal-CusIZhrK.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-Cd32NNYw.css",
+    "file": "assets/app-C_pmT49a.css",
     "name": "app",
     "names": [
       "app.css"
@@ -113,5 +113,14 @@
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
+  },
+  "resources/js/consultancy-registration.js": {
+    "file": "assets/consultancy-registration-BY8GW1Uv.js",
+    "name": "consultancy-registration",
+    "src": "resources/js/consultancy-registration.js",
+    "isEntry": true,
+    "css": [
+      "assets/consultancy-registration-BLCtooBO.css"
+    ]
   }
 }

@@ -7,12 +7,11 @@
 
     $partnerStat = $stats->first(fn ($s) => str_contains(strtolower($s->label), 'partner'));
 
-    // The home page shows the marks in greyscale until hovered; About keeps colour.
-    $subdued ??= false;
+    $homepage ??= false;
 @endphp
 
 @if ($partners->isNotEmpty())
-    <section @class(['relative overflow-hidden border-b hairline bg-ink-50', 'partners-subdued py-20 sm:py-24' => $subdued, 'py-16 sm:py-20' => ! $subdued])>
+    <section @if ($homepage) id="partnerships" @endif @class(['relative overflow-hidden border-b hairline bg-ink-50', 'py-20 sm:py-24' => $homepage, 'py-16 sm:py-20' => ! $homepage])>
         <div class="container-rich">
             <div class="grid items-center gap-10 lg:grid-cols-[0.38fr_0.62fr] lg:gap-14">
 
@@ -54,18 +53,22 @@
                                 {{-- Rendered twice so the loop is seamless. --}}
                                 @foreach (range(1, 2) as $pass)
                                     @foreach ($row as $partner)
-                                        <div class="partner-chip" @if ($pass === 2) aria-hidden="true" @endif>
-                                            <x-partner-mark :partner="$partner" size="lg" />
+                                        @if ($homepage)
+                                            @include('partials.home.partner-card', ['duplicate' => $pass === 2])
+                                        @else
+                                            <div class="partner-chip" @if ($pass === 2) aria-hidden="true" @endif>
+                                                <x-partner-mark :partner="$partner" size="lg" />
 
-                                            <span class="min-w-0">
-                                                <span class="block whitespace-nowrap text-[15px] font-semibold leading-tight text-ink-900">
-                                                    {{ $partner->name }}
+                                                <span class="min-w-0">
+                                                    <span class="block whitespace-nowrap text-[15px] font-semibold leading-tight text-ink-900">
+                                                        {{ $partner->name }}
+                                                    </span>
+                                                    @if ($partner->type)
+                                                        <span class="partner-chip-type">{{ $partner->type }}</span>
+                                                    @endif
                                                 </span>
-                                                @if ($partner->type)
-                                                    <span class="partner-chip-type">{{ $partner->type }}</span>
-                                                @endif
-                                            </span>
-                                        </div>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 @endforeach
                             </div>

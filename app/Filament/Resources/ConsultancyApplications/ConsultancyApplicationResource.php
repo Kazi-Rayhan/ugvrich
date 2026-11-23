@@ -40,6 +40,7 @@ class ConsultancyApplicationResource extends Resource
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('email')->searchable(),
                 TextColumn::make('category.name'),
+                TextColumn::make('expertiseServices.name')->label('Areas of expertise')->placeholder('—'),
                 TextColumn::make('status')->badge()->color(fn (string $state) => match ($state) {
                     Application::APPROVED => 'success',
                     Application::DECLINED => 'danger',

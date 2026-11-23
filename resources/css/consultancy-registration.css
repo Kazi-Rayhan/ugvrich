@@ -1,0 +1,54 @@
+@reference './app.css';
+
+#expertise-field > .select2-container {
+    @apply mt-2 block;
+}
+
+#expertise-field .select2-container .select2-selection--multiple {
+    @apply min-h-[calc(1.625_*_15px_+_1.75rem_+_2px)] rounded-2xl border border-ink-200 bg-white px-4 py-3.5 text-[15px] font-normal leading-relaxed text-ink-900 transition duration-200;
+}
+
+#expertise-field .select2-container .select2-selection--multiple:hover {
+    @apply border-ink-300;
+}
+
+#expertise-field .select2-container--focus .select2-selection--multiple,
+#expertise-field .select2-container--open .select2-selection--multiple {
+    @apply border-brand-500 outline-none ring-4 ring-brand-500/12;
+}
+
+#expertise-field .select2-container--disabled .select2-selection--multiple {
+    @apply cursor-not-allowed border-ink-100 bg-ink-50 text-ink-400;
+}
+
+#expertise-field .select2-selection__rendered {
+    display: contents;
+}
+
+#expertise-field .select2-selection__choice {
+    @apply my-0 me-1.5 ms-0 rounded-md border-brand-200 bg-brand-50 text-sm text-brand-800;
+}
+
+#expertise-field .select2-selection__choice__remove {
+    @apply border-brand-200 text-brand-700;
+}
+
+#expertise-field .select2-search__field {
+    @apply m-0 h-[1.625em] align-bottom font-sans leading-relaxed outline-none placeholder:text-ink-400;
+}
+
+.select2-dropdown.expertise-dropdown {
+    @apply overflow-hidden rounded-xl border border-ink-200 bg-white text-[15px] text-ink-900 shadow-lg;
+}
+
+.expertise-dropdown .select2-results__option {
+    @apply px-4 py-2;
+}
+
+.expertise-dropdown .select2-results__option--selected {
+    @apply bg-brand-50 text-brand-800;
+}
+
+.expertise-dropdown .select2-results__option--highlighted.select2-results__option--selectable {
+    @apply bg-brand-600 text-white;
+}

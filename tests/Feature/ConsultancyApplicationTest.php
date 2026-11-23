@@ -52,6 +52,11 @@ class ConsultancyApplicationTest extends TestCase
         $this->assertSame([Application::DIRECTOR], $director->consultancyReviewStages()->pluck('key')->all());
         $this->post(route('researcher.logout'));
         $category = ServiceCategory::create(['name' => 'Advisory', 'slug' => 'advisory', 'is_active' => true]);
+        $expertise = $category->services()->create(['name' => 'Energy planning', 'slug' => 'energy-planning', 'is_active' => true]);
+        $secondExpertise = $category->services()->create(['name' => 'Grid advisory', 'slug' => 'grid-advisory', 'is_active' => true]);
+        $otherCategory = ServiceCategory::create(['name' => 'Design', 'slug' => 'design', 'is_active' => true]);
+        $otherExpertise = $otherCategory->services()->create(['name' => 'Building design', 'slug' => 'building-design', 'is_active' => true]);
+        $category->services()->create(['name' => 'Retired advisory service', 'slug' => 'retired-advisory', 'is_active' => false]);
 
         $this->get('/login')->assertOk()->assertSee(route('consultancy.registration.register'))->assertSee(__('researcher.auth.option_innovation_title'));
         $this->assertSame(url('/consultancy-request'), route('consultancy.store'));
@@ -59,6 +64,9 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('lang="en"', false)
             ->assertSee('Consultancy Wing')
             ->assertSee('Advisory')
+            ->assertSee('Areas of expertise')
+            ->assertSee('Energy planning')
+            ->assertDontSee('Retired advisory service')
             ->assertSee('Occupation history')
             ->assertDontSee('name="current_job"', false)
             ->assertDontSee('name="current_designation"', false);
@@ -85,6 +93,11 @@ class ConsultancyApplicationTest extends TestCase
             'skills' => [['name' => 'Design'], ['name' => 'Planning']],
         ];
         $this->post(route('consultancy.registration.store'), $form)->assertSessionHasErrors('profile_photo');
+        $this->post(route('consultancy.registration.store'), $form)->assertSessionHasErrors('expertise_service_ids');
+        $this->post(route('consultancy.registration.store'), [
+            ...$form, 'expertise_service_ids' => [$expertise->id, $otherExpertise->id],
+        ])->assertSessionHasErrors('expertise_service_ids.1');
+        $form['expertise_service_ids'] = [$expertise->id, $secondExpertise->id];
         $invalid = $form;
         $invalid['occupations'][1]['end_date'] = '2019-12-31';
         $invalid['profile_photo'] = UploadedFile::fake()->create('resume.pdf', 20, 'application/pdf');
@@ -95,6 +108,7 @@ class ConsultancyApplicationTest extends TestCase
         $this->get(route('consultancy.registration.thanks'))->assertOk()->assertSee('Application reference')->assertSee('We will email you when there is an update on your application.');
 
         $application = Application::sole();
+        $this->assertSame([$expertise->id, $secondExpertise->id], $application->expertiseServices->modelKeys());
         Storage::disk('local')->assertExists($application->profile_photo_path);
         $this->assertSame([], Storage::disk('public')->allFiles());
         $this->assertSame('expert@example.org', $application->email);
@@ -112,7 +126,7 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee($wing->email)->assertSee($director->email)->assertSee('1 pending');
         Livewire::test(ViewConsultancyChain::class)->assertActionHidden('addWingUser')->assertActionHidden('addDirectorUser');
         $this->get('/admin/consultancy-applications/'.$application->id)->assertOk()
-            ->assertSee('Decision history')->assertSee('Research Assistant')->assertSee('Current stage');
+            ->assertSee('Decision history')->assertSee('Research Assistant')->assertSee('Current stage')->assertSee('Energy planning, Grid advisory');
         $this->get(route('expert.application-photo', $application))->assertOk();
         $this->assertFalse($application->canReview($director));
         Livewire::test(ViewConsultancyApplication::class, ['record' => $application->id])

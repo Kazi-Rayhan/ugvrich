@@ -7,6 +7,7 @@ use App\Models\ConsultancyApplication as Application;
 use App\Models\Expert;
 use App\Models\ExpertPortfolio;
 use App\Models\ExpertWalletEntry;
+use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Services\ConsultancyReview;
 use App\Services\ExpertWallet;
@@ -33,7 +34,9 @@ class ConsultancyExpertController extends Controller
     public function create()
     {
         return view('consultancy.register', [
-            'categories' => ServiceCategory::active()->orderBy('sort_order')->orderBy('name')->get(),
+            'categories' => ServiceCategory::active()
+                ->with(['services' => fn ($query) => $query->active()->orderBy('name')])
+                ->orderBy('sort_order')->orderBy('name')->get(),
             'groups' => self::GROUPS,
         ]);
     }
@@ -44,6 +47,8 @@ class ConsultancyExpertController extends Controller
             $request->merge(['email' => Str::lower(trim($request->input('email')))]);
         }
 
+        $categoryId = $request->integer('service_category_id');
+
         $rules = [
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email:rfc', 'max:180', 'unique:consultancy_applications,email'],
@@ -52,6 +57,18 @@ class ConsultancyExpertController extends Controller
             'affiliation_type' => ['required', Rule::in(Application::AFFILIATIONS)],
             'profile_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
             'service_category_id' => ['required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
+            'expertise_service_ids' => [
+                Rule::requiredIf(fn () => Service::active()->where('service_category_id', $categoryId)->exists()),
+                'array',
+                'min:1',
+            ],
+            'expertise_service_ids.*' => [
+                'bail',
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('services', 'id')->where('service_category_id', $categoryId)->where('is_active', true),
+            ],
             'bio' => ['nullable', 'string', 'max:3000'],
             'website' => ['nullable', 'size:0'],
         ];
@@ -69,9 +86,13 @@ class ConsultancyExpertController extends Controller
             }
         }
 
-        $data = $request->validate($rules);
+        $data = $request->validate($rules, [], [
+            'expertise_service_ids' => 'areas of expertise',
+            'expertise_service_ids.*' => 'area of expertise',
+        ]);
+        $expertiseIds = $data['expertise_service_ids'] ?? [];
         $photo = $data['profile_photo'];
-        unset($data['website'], $data['profile_photo']);
+        unset($data['website'], $data['profile_photo'], $data['expertise_service_ids']);
         $data['occupations'] = array_values($data['occupations']);
         $data['occupation'] = $data['occupations'][0]['title'];
 
@@ -81,13 +102,19 @@ class ConsultancyExpertController extends Controller
         }
 
         try {
-            $application = Application::firstOrCreate(['email' => $data['email']], [
-                ...$data,
-                'profile_photo_path' => $photoPath,
-            ]);
-            if (! $application->wasRecentlyCreated) {
-                throw ValidationException::withMessages(['email' => 'An application already exists for this email address.']);
-            }
+            $application = DB::transaction(function () use ($data, $photoPath, $expertiseIds): Application {
+                $application = Application::firstOrCreate(['email' => $data['email']], [
+                    ...$data,
+                    'profile_photo_path' => $photoPath,
+                ]);
+                if (! $application->wasRecentlyCreated) {
+                    throw ValidationException::withMessages(['email' => 'An application already exists for this email address.']);
+                }
+
+                $application->expertiseServices()->attach($expertiseIds);
+
+                return $application;
+            });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($photoPath);
 

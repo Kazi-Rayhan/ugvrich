@@ -1101,19 +1101,6 @@
     background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgb(143 191 139 / 0.16), transparent 62%);
 }
 
-/* Partner wall on the home page: greyscale marks that colour on hover. */
-.partners-subdued .partner-mark {
-    filter: grayscale(1);
-    opacity: 0.75;
-    transition: filter 0.4s ease, opacity 0.4s ease;
-}
-
-.partners-subdued .partner-chip:hover .partner-mark {
-    filter: none;
-    opacity: 1;
-}
-
-
 @media (prefers-reduced-motion: reduce) {
     .hero-cursor-glow { display: none; }
     .rotator-word,

@@ -79,7 +79,6 @@
                 </ul>
             </div>
 
-            @include('partials.innovation-pipeline', ['class' => 'mt-6'])
         </div>
     </section>
 @endif

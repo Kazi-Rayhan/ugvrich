@@ -103,6 +103,11 @@ class ConsultancyApplication extends Model
         return $this->belongsTo(Expert::class);
     }
 
+    public function expertiseServices()
+    {
+        return $this->belongsToMany(Service::class, 'consultancy_application_expertise')->orderBy('services.name');
+    }
+
     public function portfolios()
     {
         return $this->hasMany(ExpertPortfolio::class);
