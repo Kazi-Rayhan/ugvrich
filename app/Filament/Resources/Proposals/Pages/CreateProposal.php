@@ -3,13 +3,18 @@
 namespace App\Filament\Resources\Proposals\Pages;
 
 use App\Filament\Resources\Proposals\ProposalResource;
+use App\Filament\Resources\WorkOrders\WorkOrderForm;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Models\Client;
 use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
+use App\Models\WorkOrder;
 use App\Support\Sales\ClientResolver;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 
 /**
  * A new proposal, and, when the client is new, the client with it.
@@ -23,12 +28,18 @@ class CreateProposal extends CreateRecord
 
     protected static string $resource = ProposalResource::class;
 
-    protected static ?string $title = 'New proposal';
+    protected static ?string $title = 'New work order / proposal';
 
-    /** Client → proposal → services & pricing → scope & conditions → terms & review. */
+    protected ?array $workOrderData = null;
+
+    protected ?WorkOrder $workOrder = null;
+
+    #[Locked]
+    public bool $startsFromWorkOrders = false;
+
     public function getSteps(): array
     {
-        return ProposalResource::steps();
+        return ProposalResource::steps($this->startsFromWorkOrders);
     }
 
     protected ?bool $hasDatabaseTransactions = true;
@@ -36,6 +47,7 @@ class CreateProposal extends CreateRecord
     /** Opened from a consultancy request (?request=ID): start from what the requester sent. */
     public function mount(): void
     {
+        $this->startsFromWorkOrders = WorkOrderResource::canCreate() && request()->boolean('work_order');
         parent::mount();
 
         $request = ConsultancyRequest::find(request()->integer('request'));
@@ -47,7 +59,7 @@ class CreateProposal extends CreateRecord
         $existing = (filled($request->email) ? Client::where('email', mb_strtolower(trim($request->email)))->first() : null)
             ?? (filled($request->phone) ? Client::where('phone_normalized', Client::normalizePhone($request->phone))->first() : null);
 
-        $this->form->fill([
+        $client = [
             'client_mode' => $existing ? 'existing' : 'new',
             'client_id' => $existing?->id,
             'new_client' => $existing ? [] : [
@@ -57,6 +69,16 @@ class CreateProposal extends CreateRecord
                 'organization_type' => in_array($request->organization, ConsultancyRequest::ORGANIZATION_TYPES, true) ? $request->organization : null,
                 'organization' => in_array($request->organization, ConsultancyRequest::ORGANIZATION_TYPES, true) ? null : $request->organization,
             ],
+        ];
+        $workOrder = ['sector' => WorkOrder::sectorForCategory($request->category)];
+
+        if ($this->startsFromWorkOrders) {
+            $workOrder += $client;
+            $workOrder['details']['client'] = WorkOrderForm::clientDetails($existing);
+        }
+
+        $this->form->fill([
+            ...($this->startsFromWorkOrders ? [] : $client),
             'consultancy_request_id' => $request->id,
             'title' => 'Consultancy proposal for '.($request->name ?: 'client'),
             'issue_date' => now()->toDateString(),
@@ -66,18 +88,31 @@ class CreateProposal extends CreateRecord
             'extra_discount' => 0,
             'tax_rate' => 0,
             'notes' => $request->requirement ? 'Request: '.$request->requirement : null,
+            'create_work_order' => false,
+            'work_order' => $workOrder,
         ]);
     }
 
     protected function handleRecordCreation(array $data): Model
     {
-        $mode = $data['client_mode'] ?? 'existing';
-        $newClient = (array) ($data['new_client'] ?? []);
-        unset($data['client_mode'], $data['new_client']);
+        if ($this->startsFromWorkOrders || ($data['create_work_order'] ?? false)) {
+            abort_unless(WorkOrderResource::canCreate(), 403);
+            $sector = $data['work_order']['sector'] ?? null;
 
-        if ($mode === 'new') {
-            $data['client_id'] = ClientResolver::resolve($newClient, auth()->id())->id;
+            if (! is_string($sector) || ! array_key_exists($sector, WorkOrder::sectorOptions())) {
+                throw ValidationException::withMessages(['data.work_order.sector' => 'Choose a work order sector.']);
+            }
+
+            $this->workOrderData = $data['work_order'];
         }
+
+        $client = $this->startsFromWorkOrders ? $data['work_order'] : $data;
+        $mode = $client['client_mode'] ?? 'existing';
+        unset($data['client_mode'], $data['new_client'], $data['create_work_order'], $data['work_order']);
+
+        $data['client_id'] = $mode === 'new'
+            ? ClientResolver::resolve((array) ($client['new_client'] ?? []), auth()->id())->id
+            : $client['client_id'];
 
         return Proposal::create($data + ['status' => 'draft', 'created_by' => auth()->id()]);
     }
@@ -85,10 +120,20 @@ class CreateProposal extends CreateRecord
     protected function afterCreate(): void
     {
         $this->record->recalculate();
+
+        if ($this->workOrderData === null) {
+            return;
+        }
+
+        $this->workOrder = WorkOrder::create(WorkOrderForm::linkedDraftAttributes($this->record, $this->workOrderData));
     }
 
     protected function getRedirectUrl(): string
     {
+        if ($this->workOrder && WorkOrderResource::canEdit($this->workOrder)) {
+            return WorkOrderResource::editUrl($this->workOrder);
+        }
+
         return ProposalResource::getUrl('view', ['record' => $this->record]);
     }
 }

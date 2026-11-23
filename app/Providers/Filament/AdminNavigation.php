@@ -50,7 +50,6 @@ use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Models\ConsultancyRequest;
 use App\Models\ContactMessage;
 use App\Models\IdeaSubmission;
-use App\Models\Proposal;
 use App\Models\ResearchFunding;
 use App\Models\ResearchIdea;
 use App\Models\ResearchManuscript;
@@ -135,14 +134,11 @@ class AdminNavigation
                 ->icon(Heroicon::OutlinedBanknotes)
                 ->collapsible()
                 ->items([
-                    NavigationItem::make('Proposals & Work Orders')
-                        ->url(fn () => ProposalResource::canViewAny() ? ProposalResource::getUrl() : WorkOrderResource::getUrl())
-                        ->visible(fn () => ProposalResource::canViewAny() || WorkOrderResource::canViewAny())
+                    $this->resource('Work Orders', null, WorkOrderResource::class)
                         ->isActiveWhen(fn () => request()->routeIs(
                             ProposalResource::getRouteBaseName().'.*',
                             WorkOrderResource::getRouteBaseName().'.*',
-                        ))
-                        ->badge(fn () => ProposalResource::canViewAny() && ($n = Proposal::where('status', 'accepted')->count()) ? (string) $n : null, 'success'),
+                        )),
                     $this->resource('Orders', null, OrderResource::class),
                     $this->resource('Clients', null, ClientResource::class),
                 ]),

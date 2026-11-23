@@ -78,7 +78,9 @@ class WorkOrder extends Model
     public static function sectorOptions(): array
     {
         return collect(config('work_orders.sectors'))
-            ->mapWithKeys(fn (array $s, string $key) => [$key => $s['code'].' — '.$s['name'].' ('.$s['department'].')'])
+            ->mapWithKeys(fn (array $s, string $key) => [
+                $key => $s['code'].' — '.$s['name'].' ('.config("work_order_admin.sectors.{$key}.department", $s['department']).')',
+            ])
             ->all();
     }
 

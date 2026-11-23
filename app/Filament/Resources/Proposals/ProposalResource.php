@@ -7,20 +7,25 @@ use App\Filament\Resources\Proposals\Pages\CreateProposal;
 use App\Filament\Resources\Proposals\Pages\EditProposal;
 use App\Filament\Resources\Proposals\Pages\ListProposals;
 use App\Filament\Resources\Proposals\Pages\ViewProposal;
+use App\Filament\Resources\WorkOrders\WorkOrderForm;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Filament\Support\SalesConditions;
 use App\Filament\Support\SalesLineItems;
 use App\Models\Client;
 use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
 use App\Support\Money;
+use App\Support\Sales\ClientResolver;
 use App\Support\Sales\Totals;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -31,6 +36,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -39,6 +45,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Proposals: what RICH offers a client, priced service by service.
@@ -75,10 +82,103 @@ class ProposalResource extends Resource
             Tabs::make('proposal')
                 ->persistTabInQueryString()
                 ->columnSpanFull()
-                ->tabs(collect(self::parts())->map(fn (array $part) => Tab::make($part['title'])
-                    ->icon($part['icon'])
-                    ->schema($part['schema']))->all()),
+                ->tabs([
+                    Tab::make('Work order')
+                        ->icon('heroicon-o-clipboard-document-check')
+                        ->visible(fn ($livewire) => $livewire instanceof EditProposal)
+                        ->schema([
+                            TextEntry::make('work_order_number')
+                                ->label('Linked work order')
+                                ->state(fn (EditProposal $livewire) => $livewire->getLinkedWorkOrder()?->number)
+                                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() !== null),
+                            Callout::make('Choose a sector to create a linked work order when you save.')
+                                ->info()
+                                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() === null),
+                            self::documentDetails('Document details')
+                                ->icon('heroicon-o-document-text')
+                                ->description('Set the title, issue date, and validity used on the proposal.')
+                                ->collapsible(),
+                            Group::make(WorkOrderForm::linkedFields(
+                                requireSector: fn (EditProposal $livewire) => $livewire->workOrderId !== null,
+                                clientFields: [self::editClientField()],
+                                canEdit: fn (EditProposal $livewire) => $livewire->canManageWorkOrder(),
+                            ))
+                                ->statePath('work_order')
+                                ->columnSpanFull(),
+                        ]),
+                    ...collect(self::parts())->map(fn (array $part) => Tab::make($part['title'])
+                        ->icon($part['icon'])
+                        ->schema($part['schema']))->all(),
+                ]),
         ]);
+    }
+
+    protected static function documentDetails(?string $heading = null): Section
+    {
+        return Section::make($heading)
+            ->columns(3)
+            ->schema([
+                TextInput::make('title')
+                    ->label('Proposal title')
+                    ->placeholder('e.g. E-commerce website for ABC Traders')
+                    ->helperText('Printed at the top of the proposal.')
+                    ->required()
+                    ->maxLength(200)
+                    ->columnSpanFull(),
+
+                DatePicker::make('issue_date')
+                    ->label('Proposal date')
+                    ->default(now())
+                    ->required()
+                    ->native(false),
+
+                DatePicker::make('valid_until')
+                    ->label('Valid until')
+                    ->default(now()->addDays(30))
+                    ->afterOrEqual('issue_date')
+                    ->native(false)
+                    ->helperText('The offer stands until this date.'),
+
+                TextInput::make('delivery_timeline')
+                    ->label('Estimated delivery')
+                    ->placeholder('e.g. 6 weeks from start')
+                    ->maxLength(150),
+
+                Select::make('consultancy_request_id')
+                    ->label('Linked consultancy request')
+                    ->relationship('consultancyRequest', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (ConsultancyRequest $record) => "#{$record->id} · {$record->name} · ".$record->created_at?->format('j M Y'))
+                    ->searchable(['name', 'email', 'phone'])
+                    ->placeholder('None')
+                    ->helperText('Optional: the website request this proposal answers.')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    protected static function editClientField(): Select
+    {
+        return Select::make('client_id')
+            ->label('Client on file')
+            ->relationship('client', 'name')
+            ->saveRelationshipsUsing(null)
+            ->getOptionLabelFromRecordUsing(fn (Client $record) => $record->display_name)
+            ->searchable(['name', 'organization', 'email', 'phone'])
+            ->required()
+            ->live()
+            ->helperText('Select a saved client or use the plus button to add one.')
+            ->afterStateUpdated(function ($state, Set $set, EditProposal $livewire): void {
+                if ($livewire->canManageWorkOrder() && ($client = Client::find($state))) {
+                    $set('details.client', WorkOrderForm::clientDetails($client));
+                }
+            })
+            ->createOptionForm(fn () => ClientResource::canCreate() ? ClientResource::detailFields(checkUnique: false) : null)
+            ->createOptionModalHeading('Add client')
+            ->createOptionAction(fn (Action $action) => $action->label('Add client'))
+            ->createOptionUsing(function (array $data): int {
+                abort_unless(ClientResource::canCreate(), 403);
+
+                return DB::transaction(fn () => ClientResolver::resolve($data, auth()->id())->id);
+            });
     }
 
     /**
@@ -86,9 +186,21 @@ class ProposalResource extends Resource
      *
      * @return array<int, Step>
      */
-    public static function steps(): array
+    public static function steps(bool $workOrderFirst = false): array
     {
-        return collect(self::parts())
+        $parts = self::parts(creating: true, workOrderFirst: $workOrderFirst);
+
+        if ($workOrderFirst) {
+            $parts[0]['title'] = 'Work order';
+            $parts[0]['description'] = 'Client, document details, and sector';
+            $parts[0]['icon'] = 'heroicon-o-clipboard-document-check';
+            $parts[0]['schema'] = [
+                self::linkedWorkOrderSection(required: true),
+                self::documentDetails('Document details'),
+            ];
+        }
+
+        return collect($parts)
             ->map(fn (array $part) => Step::make($part['title'])
                 ->description($part['description'])
                 ->icon($part['icon'])
@@ -101,95 +213,23 @@ class ProposalResource extends Resource
      *
      * @return list<array{title: string, description: string, icon: string, schema: array}>
      */
-    protected static function parts(): array
+    protected static function parts(bool $creating = false, bool $workOrderFirst = false): array
     {
         return [
-            [
+            ...($creating ? [[
                 'title' => 'Client',
                 'description' => 'Who it is for',
                 'icon' => 'heroicon-o-user',
-                'schema' => [
-                    Callout::make('Choose the client this proposal is for')
-                        ->description('Search by name, organization, phone or email. For someone new, choose "New client". If their email or phone is already on file, that client is used rather than a duplicate being made.')
-                        ->info()
-                        ->visibleOn('create'),
-
-                    ToggleButtons::make('client_mode')
-                        ->hiddenLabel()
-                        ->options(['existing' => 'Existing client', 'new' => 'New client'])
-                        ->icons(['existing' => 'heroicon-o-magnifying-glass', 'new' => 'heroicon-o-user-plus'])
-                        ->default('existing')
-                        ->inline()
-                        ->live()
-                        ->hiddenOn('edit'),
-
-                    Select::make('client_id')
-                        ->label('Client')
-                        ->relationship('client', 'name')
-                        ->getOptionLabelFromRecordUsing(fn (Client $record) => $record->display_name
-                            .($record->phone ? ' · '.$record->phone : ''))
-                        ->searchable(['name', 'organization', 'email', 'phone'])
-                        ->preload()
-                        ->placeholder('Start typing a name, organization or phone…')
-                        ->required(fn (Get $get) => $get('client_mode') !== 'new')
-                        ->visible(fn (Get $get) => $get('client_mode') !== 'new'),
-
-                    Section::make('New client')
-                        ->icon('heroicon-o-user-plus')
-                        ->compact()
-                        ->schema([
-                            Group::make(ClientResource::detailFields(checkUnique: false))
-                                ->statePath('new_client')
-                                ->columns(2),
-                        ])
-                        ->visible(fn (Get $get) => $get('client_mode') === 'new'),
-                ],
-            ],
-            [
+                'schema' => self::newDocumentClientFields(),
+            ]] : []),
+            ...($creating && ! $workOrderFirst ? [[
                 'title' => 'Proposal',
                 'description' => 'Title, dates, timeline',
                 'icon' => 'heroicon-o-document-text',
                 'schema' => [
-                    Section::make()
-                        ->columns(3)
-                        ->schema([
-                            TextInput::make('title')
-                                ->label('Proposal title')
-                                ->placeholder('e.g. E-commerce website for ABC Traders')
-                                ->helperText('Printed at the top of the proposal.')
-                                ->required()
-                                ->maxLength(200)
-                                ->columnSpanFull(),
-
-                            DatePicker::make('issue_date')
-                                ->label('Proposal date')
-                                ->default(now())
-                                ->required()
-                                ->native(false),
-
-                            DatePicker::make('valid_until')
-                                ->label('Valid until')
-                                ->default(now()->addDays(30))
-                                ->afterOrEqual('issue_date')
-                                ->native(false)
-                                ->helperText('The offer stands until this date.'),
-
-                            TextInput::make('delivery_timeline')
-                                ->label('Estimated delivery')
-                                ->placeholder('e.g. 6 weeks from start')
-                                ->maxLength(150),
-
-                            Select::make('consultancy_request_id')
-                                ->label('Linked consultancy request')
-                                ->relationship('consultancyRequest', 'name')
-                                ->getOptionLabelFromRecordUsing(fn (ConsultancyRequest $record) => "#{$record->id} · {$record->name} · ".$record->created_at?->format('j M Y'))
-                                ->searchable(['name', 'email', 'phone'])
-                                ->placeholder('None')
-                                ->helperText('Optional: the website request this proposal answers.')
-                                ->columnSpanFull(),
-                        ]),
+                    self::documentDetails(),
                 ],
-            ],
+            ]] : []),
             [
                 'title' => 'Services & pricing',
                 'description' => 'What is offered, at what price',
@@ -246,17 +286,85 @@ class ProposalResource extends Resource
                                 ->html()
                                 ->state(fn (Get $get) => self::reviewSummary($get)),
                         ]),
+
+                    ...($creating && ! $workOrderFirst ? [self::linkedWorkOrderSection()] : []),
                 ],
             ],
         ];
     }
 
+    protected static function newDocumentClientFields(bool $autoFillWorkOrder = false): array
+    {
+        return [
+            Callout::make('Choose the client this proposal is for')
+                ->description('Search by name, organization, phone or email. For someone new, choose "New client". If their email or phone is already on file, that client is used rather than a duplicate being made.')
+                ->info()
+                ->visibleOn('create'),
+
+            ToggleButtons::make('client_mode')
+                ->hiddenLabel()
+                ->options(['existing' => 'Existing client', 'new' => 'New client'])
+                ->icons(['existing' => 'heroicon-o-magnifying-glass', 'new' => 'heroicon-o-user-plus'])
+                ->default('existing')
+                ->inline()
+                ->live()
+                ->when($autoFillWorkOrder, fn (ToggleButtons $field) => $field->afterStateUpdated(
+                    fn ($state, Get $get, Set $set) => $set('details.client', WorkOrderForm::clientDetails(
+                        $state === 'existing' ? Client::find($get('client_id')) : null,
+                    )),
+                )),
+
+            Select::make('client_id')
+                ->label('Client')
+                ->relationship('client', 'name')
+                ->getOptionLabelFromRecordUsing(fn (Client $record) => $record->display_name
+                    .($record->phone ? ' · '.$record->phone : ''))
+                ->searchable(['name', 'organization', 'email', 'phone'])
+                ->preload()
+                ->when($autoFillWorkOrder, fn (Select $field) => $field
+                    ->saveRelationshipsUsing(null)
+                    ->live()
+                    ->afterStateUpdated(fn ($state, Set $set) => $set('details.client', WorkOrderForm::clientDetails(Client::find($state)))))
+                ->placeholder('Start typing a name, organization or phone…')
+                ->required(fn (Get $get) => $get('client_mode') !== 'new')
+                ->visible(fn (Get $get) => $get('client_mode') !== 'new'),
+
+            Section::make('New client')
+                ->icon('heroicon-o-user-plus')
+                ->compact()
+                ->schema([
+                    Group::make(ClientResource::detailFields(checkUnique: false))
+                        ->statePath('new_client')
+                        ->columns(2),
+                ])
+                ->visible(fn (Get $get) => $get('client_mode') === 'new'),
+        ];
+    }
+
+    protected static function linkedWorkOrderSection(bool $required = false): Section
+    {
+        return Section::make('Linked work order')
+            ->description('The client, issue date, and proposal reference are shared.')
+            ->visible(fn () => WorkOrderResource::canCreate())
+            ->schema([
+                ...($required ? [] : [Toggle::make('create_work_order')->label('Also create a work order')->live()]),
+                Group::make(WorkOrderForm::linkedFields(
+                    clientFields: $required ? self::newDocumentClientFields(autoFillWorkOrder: true) : [],
+                ))
+                    ->statePath('work_order')
+                    ->visible(fn (Get $get) => $required || $get('create_work_order'))
+                    ->columnSpanFull(),
+            ]);
+    }
+
     /** The last step's check before saving: who, what, how much. */
     protected static function reviewSummary(Get $get): string
     {
-        $client = $get('client_mode') === 'new'
-            ? trim(($get('new_client.name') ?? '').($get('new_client.organization') ? ' ('.$get('new_client.organization').')' : '')).' (new client)'
-            : (Client::find($get('client_id'))?->display_name ?? 'Not chosen');
+        $mode = $get('work_order.client_mode') ?? $get('client_mode');
+        $newClient = $get('work_order.new_client') ?? $get('new_client') ?? [];
+        $client = $mode === 'new'
+            ? trim(($newClient['name'] ?? '').(filled($newClient['organization'] ?? null) ? ' ('.$newClient['organization'].')' : '')).' (new client)'
+            : (Client::find($get('work_order.client_id') ?? $get('client_id'))?->display_name ?? 'Not chosen');
 
         $items = collect((array) $get('items'))->filter(fn ($item) => filled($item['service_name'] ?? null));
 

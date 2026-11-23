@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WorkOrders\Pages;
 
+use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\WorkOrders\WorkOrderForm;
 use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use Filament\Resources\Pages\CreateRecord;
@@ -15,6 +16,17 @@ class CreateWorkOrder extends CreateRecord
 
     public function mount(): void
     {
+        $this->authorizeAccess();
+
+        if (! request()->integer('proposal') && ProposalResource::canCreate()) {
+            $this->redirect(ProposalResource::getUrl('create', array_filter([
+                'work_order' => 1,
+                'request' => request()->integer('request'),
+            ])));
+
+            return;
+        }
+
         parent::mount();
 
         $this->form->fill(WorkOrderForm::prefill(
@@ -30,6 +42,6 @@ class CreateWorkOrder extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return WorkOrderResource::getUrl('edit', ['record' => $this->record]);
+        return WorkOrderResource::editUrl($this->record);
     }
 }

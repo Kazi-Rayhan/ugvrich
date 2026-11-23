@@ -7,7 +7,7 @@ use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
 use App\Models\WorkOrder;
 use App\Support\Money;
-use App\Support\Numerals;
+use Closure;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -21,8 +21,6 @@ use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -37,60 +35,134 @@ class WorkOrderForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()
-                ->columns(4)
-                ->schema([
-                    Select::make('sector')
-                        ->label('সেবা খাত (Sector / form)')
-                        ->options(WorkOrder::sectorOptions())
-                        ->required()
-                        ->native(false)
-                        ->live()
-                        ->columnSpan(2)
-                        ->helperText('Chooses the form: WO-ICT-01, WO-EEE-01, …'),
-                    DatePicker::make('issue_date')->label('ইস্যুর তারিখ')->default(now())->native(false),
-                    Select::make('status')->options(WorkOrder::STATUSES)->default('draft')->required()->native(false),
-                ]),
-
-            Tabs::make('work_order')
-                ->persistTabInQueryString()
-                ->columnSpanFull()
-                ->tabs([
-                    Tab::make('০১–০২ পক্ষ ও সেবা')->icon('heroicon-o-users')->schema(self::partiesAndServices()),
-                    Tab::make('০৩–০৪ পরিধি ও তথ্য')->icon('heroicon-o-clipboard-document-list')->schema(self::scopeAndInfo()),
-                    Tab::make('০৫–০৬ হস্তান্তর ও সময়সূচি')->icon('heroicon-o-calendar-days')->schema(self::deliveryAndSchedule()),
-                    Tab::make('০৭–০৮ মূল্য ও পরিশোধ')->icon('heroicon-o-banknotes')->schema(self::priceAndPayment()),
-                    Tab::make('০৯–১১ শর্ত ও সংযুক্তি')->icon('heroicon-o-document-check')->schema(self::conditionsAndAttachments()),
-                    Tab::make('১২ অনুমোদন')->icon('heroicon-o-pencil-square')->schema(self::approval()),
-                ]),
+            self::contractingParties()
+                ->heading('Contracting parties')
+                ->icon('heroicon-o-users'),
+            ...self::organizedFields(),
         ]);
+    }
+
+    public static function linkedFields(
+        bool|Closure $requireSector = true,
+        array $clientFields = [],
+        bool|Closure $canEdit = true,
+    ): array {
+        return [
+            self::contractingParties(linked: true, clientFields: $clientFields, canEdit: $canEdit)
+                ->heading('Contracting parties')
+                ->icon('heroicon-o-users'),
+            Group::make(self::organizedFields(linked: true, requireSector: $requireSector))
+                ->visible($canEdit)
+                ->columnSpanFull(),
+        ];
+    }
+
+    protected static function organizedFields(bool $linked = false, bool|Closure $requireSector = true): array
+    {
+        [$scope, $requirements] = self::scopeAndInfo();
+        [$deliverables, $schedule] = self::deliveryAndSchedule();
+        [$conditions, $generalTerms, $attachments] = self::conditionsAndAttachments();
+        [$approval] = self::approval();
+
+        return [
+            Section::make('Work order template')
+                ->description('Choose the sector before entering the scope. It determines the available services and print template.')
+                ->icon('heroicon-o-document-check')
+                ->columns(2)
+                ->schema([
+                    self::sectorField($requireSector)->label('Sector'),
+                    self::revisionField(),
+                    ...($linked ? [] : [
+                        DatePicker::make('issue_date')->label('Issue date')->default(now())->native(false),
+                        Select::make('status')->options(WorkOrder::STATUSES)->default('draft')->required()->native(false),
+                        TextInput::make('details.quotation_number')->label('Proposal / quotation number')->maxLength(60),
+                        Select::make('proposal_id')->label('Linked proposal')->relationship('proposal', 'number')->searchable()->preload(),
+                    ]),
+                    self::revisionRoundsField(),
+                ]),
+            self::servicesSection()
+                ->description('Select the services covered by this work order.')
+                ->visible(fn (Get $get) => filled($get('sector'))),
+            $scope->heading('Scope of work')
+                ->icon('heroicon-o-clipboard-document-list')
+                ->collapsible(),
+            $requirements->heading('Sector requirements')
+                ->visible(fn (Get $get) => filled($get('sector')))
+                ->collapsible(),
+            $schedule->heading('Milestones and schedule')
+                ->icon('heroicon-o-calendar-days')
+                ->collapsible(),
+            ...($linked ? [] : [self::feesSection()->collapsible()]),
+            self::installmentsSection()
+                ->icon('heroicon-o-banknotes')
+                ->collapsible(),
+            $attachments->heading('Attachments')
+                ->collapsible(),
+            $approval->heading('Signatories and pre-issue checks')
+                ->icon('heroicon-o-pencil-square')
+                ->collapsible(),
+            Section::make('Bangla print previews')
+                ->description('Review the deliverables, sector conditions, and standard terms as they appear on the printed form.')
+                ->icon('heroicon-o-document-text')
+                ->schema([$deliverables->collapsed(false), $conditions, $generalTerms->collapsed(false)])
+                ->collapsible()
+                ->collapsed(),
+        ];
+    }
+
+    protected static function sectorField(bool|Closure $required = true): Select
+    {
+        return Select::make('sector')
+            ->label('Sector / form')
+            ->options(WorkOrder::sectorOptions())
+            ->required($required)
+            ->native(false)
+            ->live()
+            ->helperText('Chooses the form: WO-ICT-01, WO-EEE-01, …');
     }
 
     /* ------------------------------------------------------------ ০১–০২ */
 
-    protected static function partiesAndServices(): array
+    protected static function servicesSection(): Section
     {
-        return [
-            Section::make('কার্যাদেশের তথ্য')
-                ->columns(3)
-                ->compact()
-                ->schema([
-                    TextInput::make('details.quotation_number')->label('প্রস্তাব / মূল্যপ্রস্তাব নম্বর')->maxLength(60),
-                    TextInput::make('details.revision')->label('সংশোধন / সংস্করণ')->placeholder('e.g. ০১ / ২০২৬')->maxLength(30),
-                    Select::make('proposal_id')
-                        ->label('Linked proposal')
-                        ->relationship('proposal', 'number')
-                        ->searchable()
-                        ->preload()
-                        ->placeholder('None'),
-                ]),
+        return Section::make('Consultancy services')
+            ->schema([
+                CheckboxList::make('details.services')
+                    ->hiddenLabel()
+                    ->options(fn (Get $get) => self::sectorText($get('sector'), 'services', []))
+                    ->columns(fn (Get $get) => WorkOrder::sector($get('sector'))['service_columns'] ?? 2),
+            ]);
+    }
 
-            Section::make('০১  চুক্তিবদ্ধ পক্ষসমূহ')
-                ->columns(2)
-                ->schema([
-                    Fieldset::make('গ্রাহক / কার্যাদেশ প্রদানকারী')
-                        ->columns(1)
-                        ->schema([
+    protected static function revisionField(): TextInput
+    {
+        return TextInput::make('details.revision')->label('Revision / version')->placeholder('e.g. 01 / 2026')->maxLength(30);
+    }
+
+    protected static function revisionRoundsField(): TextInput
+    {
+        return TextInput::make('details.revisions')
+            ->label('Included revision rounds')
+            ->numeric()
+            ->minValue(0)
+            ->visible(fn (Get $get) => collect(WorkOrder::sector($get('sector'))['conditions'] ?? [])
+                ->contains(fn ($condition) => str_contains($condition[1], '{revisions}')));
+    }
+
+    /* ------------------------------------------------------------ ০৩–০৪ */
+
+    protected static function contractingParties(
+        bool $linked = false,
+        array $clientFields = [],
+        bool|Closure $canEdit = true,
+    ): Section {
+        return Section::make('01 Contracting parties')
+            ->columns(2)
+            ->schema([
+                Fieldset::make('First Party (Client)')
+                    ->columns(1)
+                    ->schema([
+                        ...($linked ? [] : [
                             Select::make('client_id')
                                 ->label('Client on file (optional)')
                                 ->relationship('client', 'name')
@@ -99,69 +171,69 @@ class WorkOrderForm
                                 ->live()
                                 ->afterStateUpdated(function ($state, Set $set) {
                                     if ($client = Client::find($state)) {
-                                        $set('details.client.name', $client->organization ?: $client->name);
-                                        $set('details.client.contact', $client->name);
-                                        $set('details.client.phone_email', collect([$client->phone, $client->email])->filter()->implode(' / '));
-                                        $set('details.client.address', $client->address);
+                                        $set('details.client', self::clientDetails($client));
                                     }
                                 })
                                 ->helperText('Picking one fills the fields below.'),
-                            TextInput::make('details.client.name')->label('নাম / প্রতিষ্ঠান')->required()->maxLength(200),
-                            TextInput::make('details.client.contact')->label('যোগাযোগের ব্যক্তি')->maxLength(150),
-                            TextInput::make('details.client.phone_email')->label('ফোন / ইমেইল')->maxLength(200),
-                            Textarea::make('details.client.address')->label('ঠিকানা')->rows(2)->maxLength(500),
                         ]),
+                        ...$clientFields,
+                        Group::make([
+                            TextInput::make('details.client.name')->label('Name / organization')->required(! $linked)->maxLength(200)
+                                ->helperText($linked ? 'Leave blank to use the client from the proposal.' : null),
+                            TextInput::make('details.client.contact')->label('Contact person')->maxLength(150),
+                            TextInput::make('details.client.phone_email')->label('Phone / email')->maxLength(200),
+                            Textarea::make('details.client.address')->label('Address')->rows(2)->maxLength(500),
+                        ])->visible($canEdit)
+                            ->hidden(fn (Get $get) => $get('client_mode') === 'new'),
+                    ]),
 
-                    Fieldset::make('সেবা প্রদানকারী / বাস্তবায়নকারী পক্ষ')
-                        ->columns(1)
-                        ->schema([
-                            TextEntry::make('provider_text')
-                                ->hiddenLabel()
-                                ->html()
-                                ->state(fn (Get $get) => e(config('work_orders.provider.name')).'<br>'
-                                    .e(config('work_orders.provider.university')).'<br>'
-                                    .'দায়িত্বপ্রাপ্ত বিভাগ: <b>'.e(WorkOrder::sector($get('sector'))['department'] ?? '—').'</b>'),
-                            TextInput::make('details.coordinator')->label('যোগাযোগ / সমন্বয়কারী')->maxLength(150),
-                        ]),
-                ]),
-
-            Section::make('০২  নির্বাচিত পরামর্শসেবা')
-                ->schema([
-                    CheckboxList::make('details.services')
-                        ->hiddenLabel()
-                        ->options(fn (Get $get) => WorkOrder::sector($get('sector'))['services'] ?? [])
-                        ->columns(fn (Get $get) => WorkOrder::sector($get('sector'))['service_columns'] ?? 2)
-                        ->visible(fn (Get $get) => filled($get('sector'))),
-                    self::chooseSectorFirst(),
-                ]),
-        ];
+                Fieldset::make('Second Party (Service Provider)')
+                    ->columns(1)
+                    ->schema([
+                        TextEntry::make('provider_text')
+                            ->hiddenLabel()
+                            ->html()
+                            ->state(fn (Get $get) => e(config('work_order_admin.provider.name')).'<br>'
+                                .e(config('work_order_admin.provider.university')).'<br>'
+                                .'Responsible department: <b>'.e(self::sectorText($get('sector'), 'department', '—')).'</b>'),
+                        TextInput::make('details.coordinator')->label('Contact / coordinator')->maxLength(150),
+                    ])->visible($canEdit),
+            ]);
     }
 
-    /* ------------------------------------------------------------ ০৩–০৪ */
+    public static function clientDetails(?Client $client): array
+    {
+        return [
+            'name' => $client?->organization ?: $client?->name,
+            'contact' => $client?->name,
+            'phone_email' => collect([$client?->phone, $client?->email])->filter()->implode(' / '),
+            'address' => $client?->address,
+        ];
+    }
 
     protected static function scopeAndInfo(): array
     {
         return [
-            Section::make('০৩  অর্পিত কাজের পরিধি')
+            Section::make('03 Scope of work')
                 ->schema([
                     Textarea::make('details.summary')
-                        ->label('কাজ / সমস্যার সারসংক্ষেপ')
-                        ->helperText(fn (Get $get) => WorkOrder::sector($get('sector'))['summary_hint'] ?? null)
+                        ->label('Project / problem summary')
+                        ->helperText(fn (Get $get) => self::sectorText($get('sector'), 'summary_hint'))
                         ->rows(3)
                         ->maxLength(1500),
                     Textarea::make('details.included')
-                        ->label('অন্তর্ভুক্ত কাজ ও সীমানা')
-                        ->helperText('সাইট, কাজ, যন্ত্রপাতি, ব্যক্তি এবং সম্মত কার্যক্রম উল্লেখ করুন।')
+                        ->label('Included work and scope boundaries')
+                        ->helperText('List the sites, tasks, equipment, people, and agreed activities.')
                         ->rows(3)
                         ->maxLength(1500),
                     Textarea::make('details.excluded')
-                        ->label('বহির্ভূত কাজ / নির্ভরশীলতা')
-                        ->helperText('অন্তর্ভুক্ত নয় এমন কাজ ও গ্রাহক-সরবরাহকৃত উপকরণ/অনুমোদন লিখুন।')
+                        ->label('Excluded work / dependencies')
+                        ->helperText('List excluded tasks and any materials or approvals the client must provide.')
                         ->rows(3)
                         ->maxLength(1500),
                 ]),
 
-            Section::make('০৪  সেবাভিত্তিক প্রয়োজনীয় তথ্য')
+            Section::make('04 Service-specific information')
                 ->schema([
                     Group::make(fn (Get $get) => self::infoFields($get('sector'))),
                 ]),
@@ -177,8 +249,12 @@ class WorkOrderForm
             return [self::chooseSectorFirst()];
         }
 
-        return collect($rows)->map(function (array $row) {
+        $groupLabels = config("work_order_admin.sectors.{$sector}.info_groups", []);
+        $fieldLabels = config("work_order_admin.sectors.{$sector}.info_labels", []);
+
+        return collect($rows)->map(function (array $row, int $index) use ($groupLabels, $fieldLabels) {
             [$label, $parts] = $row;
+            $label = $groupLabels[$index] ?? $label;
             $components = [];
             $caption = null;
 
@@ -186,10 +262,10 @@ class WorkOrderForm
                 match ($part[0]) {
                     'text' => $caption = rtrim($part[1], ':'),
                     'field' => $components[] = TextInput::make('details.info.'.$part[1])
-                        ->label($caption ?? $label)
+                        ->label($fieldLabels[$part[1]] ?? $caption ?? $label)
                         ->maxLength(300)
                         ->columnSpan(in_array($part[2] ?? 'md', ['lg', 'xl'], true) ? 2 : 1),
-                    'check' => $components[] = Checkbox::make('details.info.'.$part[1])->label($part[2])->inline(),
+                    'check' => $components[] = Checkbox::make('details.info.'.$part[1])->label($fieldLabels[$part[1]] ?? $part[2])->inline(),
                 };
 
                 if ($part[0] === 'field') {
@@ -206,32 +282,33 @@ class WorkOrderForm
     protected static function deliveryAndSchedule(): array
     {
         return [
-            Section::make('০৫  হস্তান্তরযোগ্য কাজ ও গ্রহণযোগ্যতার শর্ত')
-                ->description('Printed exactly as on the approved form for this sector.')
+            Section::make('05 Deliverables and acceptance criteria')
+                ->description('Preview of the approved Bangla print wording.')
                 ->collapsible()
+                ->collapsed()
                 ->schema([
                     TextEntry::make('deliverables_preview')
                         ->hiddenLabel()
                         ->html()
                         ->state(fn (Get $get) => self::table(
-                            ['হস্তান্তরযোগ্য কাজ', 'ন্যূনতম চুক্তিভুক্ত আউটপুট', 'গ্রাহকের গ্রহণের ভিত্তি'],
+                            ['Deliverable', 'Minimum contractual output', 'Client acceptance criteria'],
                             WorkOrder::sector($get('sector'))['deliverables'] ?? [],
                         )),
                 ]),
 
-            Section::make('০৬  কাজের ধাপ ও সময়সূচি')
+            Section::make('06 Milestones and schedule')
                 ->schema([
-                    Group::make(fn (Get $get) => collect(WorkOrder::sector($get('sector'))['stages'] ?? [])
+                    Group::make(fn (Get $get) => collect(self::sectorText($get('sector'), 'stages', []))
                         ->map(fn (array $stage, int $i) => DatePicker::make("details.stage_dates.{$i}")
                             ->label($stage[0])
-                            ->helperText('যাচাই: '.$stage[1])
+                            ->helperText('Verification: '.$stage[1])
                             ->native(false))
                         ->all())
                         ->columns(4),
                     Grid::make(3)->schema([
-                        DatePicker::make('details.start_date')->label('কাজ শুরুর তারিখ')->native(false),
-                        DatePicker::make('details.end_date')->label('সম্ভাব্য সমাপ্তি')->native(false)->afterOrEqual('details.start_date'),
-                        ToggleButtons::make('details.mode')->label('মাধ্যম')->options(config('work_orders.modes'))->inline(),
+                        DatePicker::make('details.start_date')->label('Start date')->native(false),
+                        DatePicker::make('details.end_date')->label('Estimated completion date')->native(false)->afterOrEqual('details.start_date'),
+                        ToggleButtons::make('details.mode')->label('Delivery mode')->options(config('work_order_admin.modes'))->inline(),
                     ]),
                 ]),
         ];
@@ -239,56 +316,83 @@ class WorkOrderForm
 
     /* ------------------------------------------------------------ ০৭–০৮ */
 
-    protected static function priceAndPayment(): array
+    protected static function feesSection(): Section
     {
         $fee = fn (int $i, string $label) => Fieldset::make($label)
             ->columns(3)
             ->schema([
-                TextInput::make("details.fees.{$i}.qty")->label('পরিমাণ')->numeric()->minValue(0)->placeholder('1')->live(onBlur: true),
-                TextInput::make("details.fees.{$i}.unit")->label('একক')->placeholder('e.g. প্যাকেজ / দিন / পৃষ্ঠা')->maxLength(40),
-                TextInput::make("details.fees.{$i}.rate")->label('হার (টাকা)')->numeric()->minValue(0)->prefix('৳')->live(onBlur: true),
+                TextInput::make("details.fees.{$i}.qty")->label('Quantity')->numeric()->minValue(0)->placeholder('1')->live(onBlur: true),
+                TextInput::make("details.fees.{$i}.unit")->label('Unit')->placeholder('e.g. package / day / page')->maxLength(40),
+                TextInput::make("details.fees.{$i}.rate")->label('Rate (BDT)')->numeric()->minValue(0)->prefix('BDT')->live(onBlur: true),
             ]);
 
-        return [
-            Section::make('০৭  কাজের মূল্য ও পরিশোধ অনুমোদন')
-                ->schema([
-                    ...collect(config('work_orders.fee_lines'))->map(fn ($label, $i) => $fee($i, $label))->all(),
-                    Grid::make(3)->schema([
-                        ToggleButtons::make('details.tax_mode')
-                            ->label('ভ্যাট / কর / উৎসে কর্তন')
-                            ->options(['add' => 'যোগ (VAT/কর)', 'deduct' => 'বিয়োগ (উৎসে কর্তন)'])
-                            ->default('add')
-                            ->inline()
-                            ->live(),
-                        TextInput::make('details.tax_amount')->label('পরিমাণ (টাকা)')->numeric()->minValue(0)->prefix('৳')->live(onBlur: true),
-                        TextEntry::make('totals_preview')
-                            ->label('সর্বমোট কার্যাদেশ মূল্য')
-                            ->state(fn (Get $get) => self::grandTotal($get))
-                            ->weight('bold')
-                            ->size('lg'),
-                    ]),
-                    TextInput::make('details.amount_words')
-                        ->label('টাকার পরিমাণ কথায় (BDT)')
-                        ->placeholder('Leave empty to write it automatically, e.g. পঁয়তাল্লিশ হাজার টাকা মাত্র')
-                        ->maxLength(300),
+        return Section::make('07 Fees and payment approval')
+            ->schema([
+                ...collect(config('work_order_admin.fee_lines'))->map(fn ($label, $i) => $fee($i, $label))->all(),
+                Grid::make(3)->schema([
+                    ToggleButtons::make('details.tax_mode')
+                        ->label('VAT / tax / withholding')
+                        ->options(['add' => 'Add VAT / tax', 'deduct' => 'Deduct withholding tax'])
+                        ->default('add')
+                        ->inline()
+                        ->live(),
+                    TextInput::make('details.tax_amount')->label('Amount (BDT)')->numeric()->minValue(0)->prefix('BDT')->live(onBlur: true),
+                    TextEntry::make('totals_preview')
+                        ->label('Work order total')
+                        ->state(fn (Get $get) => self::grandTotal($get))
+                        ->weight('bold')
+                        ->size('lg'),
                 ]),
+                TextInput::make('details.amount_words')
+                    ->label('Amount in words (BDT)')
+                    ->placeholder('Leave blank to generate the Bangla amount in words for printing.')
+                    ->maxLength(300),
+            ]);
+    }
 
-            Section::make('০৮  কিস্তিতে পরিশোধ ও বাণিজ্যিক শর্ত')
-                ->schema([
-                    Grid::make(3)->schema(collect(config('work_orders.payment_steps'))
-                        ->map(fn (array $step, int $i) => TextInput::make("details.installments.{$i}.percent")
-                            ->label($step['label'])
-                            ->helperText('প্রমাণ: '.$step['proof'])
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->suffix('%'))
-                        ->all()),
-                    TextInput::make('details.payment_due')
-                        ->label('মূল্যপ্রস্তাবের মেয়াদ / বিল পরিশোধের সময়')
-                        ->placeholder('e.g. চালান প্রাপ্তির ৭ দিনের মধ্যে')
-                        ->maxLength(200),
-                ]),
+    protected static function installmentsSection(): Section
+    {
+        return Section::make('Installments and payment terms')
+            ->schema([
+                Grid::make(3)->schema(collect(config('work_order_admin.payment_steps'))
+                    ->map(fn (array $step, int $i) => TextInput::make("details.installments.{$i}.percent")
+                        ->label($step['label'])
+                        ->helperText('Supporting document: '.$step['proof'])
+                        ->numeric()
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->suffix('%'))
+                    ->all()),
+                TextInput::make('details.payment_due')
+                    ->label('Quotation validity / payment deadline')
+                    ->placeholder('e.g. within 7 days of receiving the invoice')
+                    ->maxLength(200),
+            ]);
+    }
+
+    public static function linkedDraftAttributes(Proposal $proposal, array $input): array
+    {
+        $defaults = self::prefill(null, $proposal->getKey());
+        $details = $input['details'] ?? [];
+
+        foreach (['summary', 'included', 'payment_due'] as $field) {
+            if (blank($details[$field] ?? null)) {
+                unset($details[$field]);
+            }
+        }
+
+        $installments = array_filter($details['installments'] ?? [], fn (array $entry) => filled($entry['percent'] ?? null));
+        $client = array_filter($details['client'] ?? [], filled(...));
+
+        return [
+            ...$defaults,
+            'sector' => $input['sector'],
+            'details' => array_replace($defaults['details'], $details, [
+                'installments' => array_replace($defaults['details']['installments'], $installments),
+                'client' => array_replace($defaults['details']['client'], $client),
+            ]),
+            'issue_date' => $proposal->issue_date,
+            'created_by' => auth()->id(),
         ];
     }
 
@@ -297,26 +401,20 @@ class WorkOrderForm
     protected static function conditionsAndAttachments(): array
     {
         return [
-            Section::make('০৯  সেবাভিত্তিক বিশেষ শর্ত')
-                ->description('Printed exactly as on the approved form for this sector.')
+            Section::make('09 Service-specific conditions')
+                ->description('Preview of the approved Bangla print wording.')
                 ->collapsible()
                 ->schema([
                     TextEntry::make('conditions_preview')
                         ->hiddenLabel()
                         ->html()
                         ->state(fn (Get $get) => collect(WorkOrder::sector($get('sector'))['conditions'] ?? [])
-                            ->map(fn (array $c, int $i) => '<p style="margin:0 0 8px"><b>'.Numerals::localize(sprintf('%02d', $i + 1), 'bn').' '.e($c[0]).'</b> '.e(str_replace('{revisions}', '____', $c[1])).'</p>')
+                            ->map(fn (array $c, int $i) => '<p style="margin:0 0 8px"><b>'.sprintf('%02d', $i + 1).' '.e($c[0]).'</b> '.e(str_replace('{revisions}', '____', $c[1])).'</p>')
                             ->implode('') ?: 'Choose the sector first.'),
-                    TextInput::make('details.revisions')
-                        ->label('অন্তর্ভুক্ত সংশোধন পর্ব (টি)')
-                        ->numeric()
-                        ->minValue(0)
-                        ->visible(fn (Get $get) => collect(WorkOrder::sector($get('sector'))['conditions'] ?? [])
-                            ->contains(fn ($c) => str_contains($c[1], '{revisions}'))),
                 ]),
 
-            Section::make('১০  সাধারণ প্রশাসন ও বিরোধ নিষ্পত্তি')
-                ->description('The same on every form.')
+            Section::make('10 General administration and dispute resolution')
+                ->description('Preview of the Bangla terms used on every printed form.')
                 ->collapsible()
                 ->collapsed()
                 ->schema([
@@ -328,13 +426,13 @@ class WorkOrderForm
                             ->implode('')),
                 ]),
 
-            Section::make('১১  সংযুক্ত ও রেফারেন্স নথি')
+            Section::make('11 Attachments and reference documents')
                 ->schema([
                     CheckboxList::make('details.attachments')
                         ->hiddenLabel()
-                        ->options(fn (Get $get) => WorkOrder::sector($get('sector'))['attachments'] ?? [])
+                        ->options(fn (Get $get) => self::sectorText($get('sector'), 'attachments', []))
                         ->columns(2),
-                    TextInput::make('details.other_attachments')->label('অন্যান্য সংযুক্তি / পৃষ্ঠাসংখ্যা')->maxLength(300),
+                    TextInput::make('details.other_attachments')->label('Other attachments / page count')->maxLength(300),
                 ]),
         ];
     }
@@ -344,28 +442,28 @@ class WorkOrderForm
     protected static function approval(): array
     {
         return [
-            Section::make('১২  আনুষ্ঠানিক গ্রহণ ও অনুমোদন')
+            Section::make('12 Formal acceptance and approval')
                 ->columns(2)
                 ->schema([
-                    Fieldset::make('গ্রাহকের পক্ষে / অনুমোদিত স্বাক্ষরকারী')
+                    Fieldset::make('Authorized client signatory')
                         ->columns(1)
                         ->schema([
-                            TextInput::make('details.client_signatory')->label('নাম / পদবি')->maxLength(150),
-                            DatePicker::make('details.client_sign_date')->label('তারিখ')->native(false),
+                            TextInput::make('details.client_signatory')->label('Name / designation')->maxLength(150),
+                            DatePicker::make('details.client_sign_date')->label('Date')->native(false),
                         ]),
-                    Fieldset::make('UGV RICH-এর পক্ষে / অনুমোদিত স্বাক্ষরকারী')
+                    Fieldset::make('Authorized UGV RICH signatory')
                         ->columns(1)
                         ->schema([
-                            TextInput::make('details.rich_signatory')->label('নাম / পদবি')->maxLength(150),
-                            DatePicker::make('details.rich_sign_date')->label('তারিখ')->native(false),
+                            TextInput::make('details.rich_signatory')->label('Name / designation')->maxLength(150),
+                            DatePicker::make('details.rich_sign_date')->label('Date')->native(false),
                         ]),
                     TextInput::make('details.tech_approval')
-                        ->label('অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে)')
+                        ->label('Additional technical review / project manager approval (if applicable)')
                         ->maxLength(150),
-                    DatePicker::make('details.tech_approval_date')->label('তারিখ')->native(false),
+                    DatePicker::make('details.tech_approval_date')->label('Date')->native(false),
                     CheckboxList::make('details.checklist')
-                        ->label('ইস্যুর আগে যাচাই')
-                        ->options(config('work_orders.checklist'))
+                        ->label('Pre-issue checklist')
+                        ->options(config('work_order_admin.checklist'))
                         ->columns(4)
                         ->columnSpanFull(),
                     Callout::make('Signatures and seals are signed by hand on the printed copy.')
@@ -379,9 +477,19 @@ class WorkOrderForm
 
     protected static function chooseSectorFirst(): Callout
     {
-        return Callout::make('Choose the sector (সেবা খাত) at the top first.')
+        return Callout::make('Choose a sector at the top first.')
             ->warning()
             ->visible(fn (Get $get) => blank($get('sector')));
+    }
+
+    protected static function sectorText(?string $sector, string $key, mixed $default = null): mixed
+    {
+        $original = WorkOrder::sector($sector)[$key] ?? $default;
+        $english = config("work_order_admin.sectors.{$sector}.{$key}");
+
+        return is_array($original) && is_array($english)
+            ? array_replace($original, $english)
+            : ($english ?? $original);
     }
 
     protected static function grandTotal(Get $get): string
@@ -398,7 +506,7 @@ class WorkOrderForm
             $tax = Money::toMinor($get('details.tax_amount'));
             $grand = $get('details.tax_mode') === 'deduct' ? $subtotal - $tax : $subtotal + $tax;
 
-            return Money::format(max($grand, 0), true).'  (উপমোট '.Money::format($subtotal, true).')';
+            return Money::format(max($grand, 0), true).'  (Subtotal '.Money::format($subtotal, true).')';
         } catch (\InvalidArgumentException) {
             return '—';
         }
@@ -455,12 +563,7 @@ class WorkOrderForm
             $data['consultancy_request_id'] ??= $proposal->consultancy_request_id;
             $data['sector'] ??= WorkOrder::sectorForCategory($proposal->categories->first());
             data_set($data, 'details.quotation_number', $proposal->number);
-            data_set($data, 'details.client', [
-                'name' => $client?->organization ?: $client?->name,
-                'contact' => $client?->name,
-                'phone_email' => collect([$client?->phone, $client?->email])->filter()->implode(' / '),
-                'address' => $client?->address,
-            ]);
+            data_set($data, 'details.client', self::clientDetails($client));
             data_set($data, 'details.summary', $proposal->title);
             data_set($data, 'details.included', $proposal->items->map(fn ($item) => '• '.$item->service_name)->implode("\n")
                 .collect($proposal->conditions ?? [])->map(fn ($c) => "\n• {$c['label']}: {$c['details']}")->implode(''));

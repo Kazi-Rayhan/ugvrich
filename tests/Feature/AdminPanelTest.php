@@ -51,7 +51,15 @@ class AdminPanelTest extends TestCase
         $this->assertGreaterThan(10, $urls->count(), 'Expected the admin panel to expose many pages.');
 
         foreach ($urls as $url) {
-            $this->actingAs($user)->get($url)->assertOk("Admin page {$url} did not render.");
+            $response = $this->actingAs($user)->get($url);
+
+            if ($url === '/admin/work-orders/create') {
+                $response->assertRedirect('/admin/proposals/create?work_order=1');
+
+                continue;
+            }
+
+            $response->assertOk("Admin page {$url} did not render.");
         }
     }
 

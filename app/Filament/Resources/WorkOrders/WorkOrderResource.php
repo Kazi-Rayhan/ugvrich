@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WorkOrders;
 
+use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\WorkOrders\Pages\CreateWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
@@ -47,13 +48,25 @@ class WorkOrderResource extends Resource
             ->openUrlInNewTab();
     }
 
+    public static function editUrl(WorkOrder $workOrder): string
+    {
+        if ($workOrder->proposal && static::canEdit($workOrder) && ProposalResource::canEdit($workOrder->proposal)) {
+            return ProposalResource::getUrl('edit', [
+                'record' => $workOrder->proposal,
+                'work_order' => $workOrder->getKey(),
+            ]);
+        }
+
+        return static::getUrl('edit', ['record' => $workOrder]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->columns([
-                TextColumn::make('number')->label('কার্যাদেশ নম্বর')->searchable()->weight('semibold')->copyable(),
+                TextColumn::make('number')->label('Work order number')->searchable()->weight('semibold')->copyable(),
                 TextColumn::make('client_name')
                     ->label('Client')
                     ->searchable()
@@ -63,7 +76,7 @@ class WorkOrderResource extends Resource
                     ->badge()
                     ->color('gray')
                     ->formatStateUsing(fn (?string $state) => WorkOrder::sector($state)['code'] ?? $state)
-                    ->tooltip(fn (?string $state) => WorkOrder::sector($state)['department'] ?? null),
+                    ->tooltip(fn (?string $state) => config("work_order_admin.sectors.{$state}.department")),
                 TextColumn::make('total')
                     ->label('Total')
                     ->formatStateUsing(fn ($state) => Money::format($state))
@@ -75,14 +88,21 @@ class WorkOrderResource extends Resource
                     ->color(fn (string $state) => WorkOrder::STATUS_COLORS[$state] ?? 'gray')
                     ->sortable(),
                 TextColumn::make('issue_date')->label('Issued')->date('j M Y')->sortable(),
-                TextColumn::make('proposal.number')->label('Proposal')->placeholder('—')->toggleable(),
+                TextColumn::make('proposal.number')->label('Proposal')->placeholder('—')->toggleable()
+                    ->url(fn (WorkOrder $record) => $record->proposal && ProposalResource::canView($record->proposal)
+                        ? ProposalResource::getUrl('view', ['record' => $record->proposal])
+                        : null),
             ])
             ->filters([
                 SelectFilter::make('sector')->options(collect(config('work_orders.sectors'))->map(fn ($s) => $s['code'].' — '.$s['name'])->all()),
                 SelectFilter::make('status')->options(WorkOrder::STATUSES),
             ])
-            ->recordUrl(fn (WorkOrder $record) => static::getUrl('edit', ['record' => $record]))
-            ->recordActions([self::printAction(), EditAction::make(), DeleteAction::make()])
+            ->recordUrl(fn (WorkOrder $record) => static::canEdit($record) ? static::editUrl($record) : null)
+            ->recordActions([
+                self::printAction(),
+                EditAction::make()->url(fn (WorkOrder $record) => static::editUrl($record)),
+                DeleteAction::make(),
+            ])
             ->emptyStateHeading('No work orders yet')
             ->emptyStateDescription('Create one here, or from a consultancy request or a proposal.');
     }
