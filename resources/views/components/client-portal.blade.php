@@ -17,7 +17,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $title }} | UGV RICH Client Portal</title>
     <link rel="icon" href="{{ asset('favicon.png') }}">
