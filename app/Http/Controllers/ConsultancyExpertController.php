@@ -144,26 +144,47 @@ class ConsultancyExpertController extends Controller
 
         return view('consultancy.order-assignments', [
             'application' => $application,
-            'assignments' => $application->orderAssignments()->with('order.proposal')->latest('id')->paginate(8),
+            'assignments' => $application->orderAssignments()->with('order.proposal', 'order.workOrder')->latest('id')->paginate(12),
         ]);
+    }
+
+    public function showAssignment(Request $request, Order $order)
+    {
+        $application = $this->assignedExpert($request, $order);
+
+        return view('consultancy.order-assignment', [
+            'application' => $application,
+            'order' => $order->load('workOrder', 'proposal', 'items'),
+        ]);
+    }
+
+    public function assignmentTasks(Request $request, Order $order)
+    {
+        return view('consultancy.order-tasks', [
+            'application' => $this->assignedExpert($request, $order),
+            'order' => $order->load('proposal'),
+        ]);
+    }
+
+    private function assignedExpert(Request $request, Order $order): Application
+    {
+        $application = $this->application($request, signed: true);
+        abort_unless($application->orderAssignments()->where('order_id', $order->id)->exists(), 404);
+
+        return $application;
     }
 
     public function moveOrderTask(Request $request, Order $order, string $milestone, string $task, OrderDelivery $delivery)
     {
         $expert = $this->application($request, signed: true);
-        $data = $request->validate([
-            'status' => ['required', Rule::in(array_keys(OrderDelivery::TASK_STATUSES))],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
+        $data = $request->validate(['status' => ['required', Rule::in(array_keys(OrderDelivery::TASK_STATUSES))]]);
         $delivery->moveTask($order, $expert, $milestone, $task, $data['status']);
 
         if ($request->expectsJson()) {
             return response()->noContent();
         }
 
-        $query = isset($data['page']) ? ['page' => $data['page']] : [];
-
-        return redirect()->to(route('expert.orders.index', $query).'#milestone-'.$milestone)->with('status', 'Task updated.');
+        return redirect()->to(route('expert.orders.tasks', $order).'#milestone-'.$milestone)->with('status', 'Task updated.');
     }
 
     public function onboarding(Request $request)

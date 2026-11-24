@@ -50,7 +50,7 @@
                     <h2 class="px-3 text-[12px] font-semibold text-ink-600">{{ __('consultancy_engagement.nav_workspace') }}</h2>
                     <div class="flex flex-wrap gap-1 lg:flex-col">
                         @foreach ($links as $routeName => [$icon, $label])
-                            <a href="{{ route($routeName) }}" @if (request()->routeIs($routeName, 'en.'.$routeName)) aria-current="page" @endif class="{{ $linkClasses }}">
+                            <a href="{{ route($routeName) }}" @if (request()->routeIs($routeName, 'en.'.$routeName) || ($routeName === 'expert.orders.index' && request()->routeIs('expert.orders.*', 'en.expert.orders.*'))) aria-current="page" @endif class="{{ $linkClasses }}">
                                 <x-ui-icon :name="$icon" class="size-[18px] shrink-0 text-ink-500 group-aria-[current=page]:text-teal-700" />
                                 {{ __('consultancy_engagement.'.$label) }}
                             </a>

@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\ServiceCategory;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Services\ExpertWallet;
 use App\Services\OrderDelivery;
 use App\Support\Sales\PaymentRecorder;
@@ -36,6 +37,15 @@ class OrderDeliveryTest extends TestCase
             'order_date' => now()->toDateString(),
             'status' => 'confirmed',
         ]);
+        $workOrder = WorkOrder::create([
+            'sector' => 'ict',
+            'details' => [
+                'summary' => 'Expert-visible scope',
+                'fees' => [['rate' => '98765.43']],
+                'payment_due' => 'Private payment instructions',
+            ],
+        ]);
+        $order->update(['work_order_id' => $workOrder->id]);
         $order->items()->create(['service_name' => 'Advisory', 'unit_price' => 3000]);
         $order->recalculate();
 
@@ -58,8 +68,21 @@ class OrderDeliveryTest extends TestCase
         $this->actingAs(User::findOrFail($first->user_id))
             ->get('/en/expert/dashboard/assignments')
             ->assertOk()
+            ->assertSeeInOrder(['Work order', 'Milestones', 'Actions', $workOrder->number, 'Show', 'Tasks'])
+            ->assertDontSee('Review intake');
+        $this->get(route('expert.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Expert-visible scope')
+            ->assertDontSee('98765')
+            ->assertDontSee('Private payment instructions')
+            ->assertDontSee('Unit price');
+        $this->get(route('expert.orders.tasks', $order))
+            ->assertOk()
             ->assertSeeInOrder(['Discovery', 'To do', 'Review intake', 'In progress', 'Done'])
             ->assertSee('draggable="true"', escape: false);
+        $this->actingAs(User::findOrFail($other->user_id))->get(route('expert.orders.show', $order))->assertNotFound();
+        $this->get(route('expert.orders.tasks', $order))->assertNotFound();
+        $this->actingAs(User::findOrFail($first->user_id));
         $this->patchJson($move, ['status' => 'doing'])->assertNoContent();
         $this->assertSame('doing', $order->fresh()->delivery_milestones[0]['tasks'][0]['status']);
 
