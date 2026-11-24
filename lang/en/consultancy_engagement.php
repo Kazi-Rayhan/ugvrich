@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'task_board' => [
+        'title' => 'Task board',
+        'columns' => 'Task columns',
+        'progress' => 'Delivery progress: :percent%',
+        'instructions' => 'Swipe between columns. Drag by the grip, or tap it and choose a column.',
+        'keyboard' => 'With a keyboard, use the left and right arrow keys on the grip.',
+        'grip' => 'Pick up :task',
+        'picked' => 'Task selected. Choose a destination column.',
+        'updated' => 'Task updated.',
+        'failed' => 'Could not move this task. Refresh the board and try again.',
+    ],
     'assignment_list' => [
         'total' => 'Assigned orders',
         'work_order' => 'Work order',

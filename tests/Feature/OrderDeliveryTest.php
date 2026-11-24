@@ -81,7 +81,11 @@ class OrderDeliveryTest extends TestCase
         $this->get(route('expert.orders.tasks', $order))
             ->assertOk()
             ->assertSeeInOrder(['Discovery', 'To do', 'Review intake', 'In progress', 'Done'])
-            ->assertSee('draggable="true"', escape: false);
+            ->assertSee('draggable="true"', escape: false)
+            ->assertSee('data-update-url="'.$move.'"', escape: false)
+            ->assertSee('data-lane-tab="doing"', escape: false)
+            ->assertSee('data-delivery-arc', escape: false)
+            ->assertDontSee('<select', escape: false);
         $this->actingAs(User::findOrFail($other->user_id))->get(route('expert.orders.show', $order))->assertNotFound();
         $this->get(route('expert.orders.tasks', $order))->assertNotFound();
         $this->actingAs(User::findOrFail($first->user_id));

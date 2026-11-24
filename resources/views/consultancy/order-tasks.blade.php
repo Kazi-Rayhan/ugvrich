@@ -1,237 +1,182 @@
 @php
     use App\Services\OrderDelivery;
+
+    $progress = OrderDelivery::progress($order);
+    $title = $order->proposal?->title ?: $order->number;
 @endphp
 
 <x-consultancy-dashboard :application="$application" page="assignments">
     <style>
-        .assignment { --rule:#d7e1e3; --ink:#102d34; --quiet:#425b62; --accent:#086a63; color:var(--ink); }
-        .assignment summary { list-style:none; cursor:pointer; }
-        .assignment summary::-webkit-details-marker { display:none; }
-        .assignment summary:focus-visible, .assignment button:focus-visible, .assignment select:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-        .assignment .milestone[open] .disclosure { transform:rotate(90deg); }
-        .assignment .disclosure { transition:transform .16s ease; }
-        .assignment progress { display:block; width:100%; height:.55rem; accent-color:var(--accent); }
-        .assignment .board { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9rem; }
-        .assignment .lane { min-width:0; border:1px solid var(--rule); border-radius:.9rem; background:#f3f6f7; padding:.7rem; transition:background .15s,border-color .15s; }
-        .assignment .lane[data-lane="doing"] { background:#f0f7fb; }
-        .assignment .lane[data-lane="done"] { background:#eef8f2; }
-        .assignment .lane.is-over { border-color:var(--accent); background:#d7f2e9; }
-        .assignment .lane-content { display:grid; gap:.6rem; min-height:4.5rem; align-content:start; }
-        .assignment .lane-content:has([data-task]) .empty-lane { display:none; }
-        .assignment .task { background:#fff; border:1px solid var(--rule); border-radius:.7rem; padding:.75rem; box-shadow:0 2px 3px #102d3409; overflow-wrap:anywhere; }
-        .assignment .task[draggable="true"] { cursor:grab; }
-        .assignment .task[aria-busy="true"], .assignment .task.is-dragging { opacity:.5; }
-        .assignment .move-task { margin-top:.6rem; display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
-        .assignment .move-task select { min-width:0; max-width:100%; background:#fff; border:1px solid var(--rule); border-radius:.4rem; padding:.3rem; }
-        .assignment .move-task button { border-radius:.4rem; background:#e7f4ef; color:#07524b; font-weight:700; padding:.35rem .55rem; cursor:pointer; }
-        @media (max-width:850px) { .assignment .board { grid-template-columns:minmax(0,1fr); } }
+        .task-workspace { --line:#dce6ec; --ink:#132a3e; --muted:#526579; --accent:#13786b; display:grid; gap:14px; color:var(--ink); }
+        .task-workspace :focus-visible { outline:2px solid #13786b; outline-offset:3px; }
+        .task-links { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+        .task-links a { display:inline-flex; align-items:center; gap:6px; min-height:38px; color:#12685e; font-size:.82rem; font-weight:750; }
+        .task-links a:hover { text-decoration:underline; }
+        .task-links svg { width:16px; height:16px; }
+        .task-overview { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:18px 22px; background:#12283d; color:#fff; border-radius:16px; }
+        .task-overview h2 { color:#fff; font-family:var(--font-display); font-weight:800; font-size:clamp(1.15rem,3vw,1.8rem); line-height:1.25; overflow-wrap:anywhere; }
+        .task-overview p { color:#bad3de; font-size:.78rem; margin-top:5px; }
+        .task-overview .task-order-number { margin:0 0 4px; color:#a7e4d2; font-weight:750; overflow-wrap:anywhere; }
+        .task-dial { display:grid; place-items:center; width:94px; }
+        .task-dial > * { grid-area:1/1; }
+        .task-dial svg { width:100%; height:auto; }
+        .task-dial-value { color:#fff; font-size:1.16rem; font-weight:800; font-variant-numeric:tabular-nums; }
+        .task-dial-fill { transition:stroke-dasharray .4s ease; }
+        .task-instructions { color:var(--muted); font-size:.8rem; }
+        .task-notice { color:#105c53; font-size:.83rem; padding:8px 12px; border:1px solid var(--line); border-radius:9px; background:#fff; }
+        .milestone { min-width:0; background:#fff; border:1px solid var(--line); border-radius:14px; }
+        .milestone summary { display:flex; align-items:center; gap:10px; padding:13px; cursor:pointer; list-style:none; border-radius:14px; }
+        .milestone summary::-webkit-details-marker { display:none; }
+        .milestone-chevron { display:grid; place-items:center; width:27px; height:27px; flex:none; color:#12685e; background:#e8f4f1; border-radius:7px; }
+        .milestone-chevron svg { width:15px; height:15px; }
+        .milestone[open] .milestone-chevron svg { transform:rotate(90deg); }
+        .milestone-name { flex:1; min-width:0; }
+        .milestone-name strong { display:block; font-size:.95rem; overflow-wrap:anywhere; }
+        .milestone-name small { color:var(--muted); font-size:.75rem; }
+        .milestone-count { padding:4px 8px; color:#12685e; background:#e8f4f1; border-radius:7px; font-size:.71rem; font-weight:750; white-space:nowrap; }
+        .board-shell { min-width:0; padding:0 12px 12px; }
+        .lane-tabs { display:none; }
+        .board { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .lane { --tone:#4b6584; min-width:0; min-height:118px; padding:9px; background:#eef3f7; border:1px solid #e0e8ee; border-radius:11px; }
+        .lane[data-lane="doing"] { --tone:#8c601f; background:#f8f3e9; border-color:#eee5d2; }
+        .lane[data-lane="done"] { --tone:#166f61; background:#ecf6f1; border-color:#dcece3; }
+        .lane.is-over, .lane-tab.is-over { outline:2px solid var(--accent); outline-offset:-2px; }
+        .lane-heading { display:flex; align-items:center; gap:6px; margin-bottom:8px; color:var(--tone); font-size:.79rem; font-weight:800; }
+        .lane-heading::before { content:''; background:currentColor; width:7px; height:7px; border-radius:50%; }
+        .lane-heading span { margin-left:auto; padding:0 6px; background:#fff; border-radius:6px; font-variant-numeric:tabular-nums; }
+        .lane-content { display:grid; gap:7px; min-height:54px; align-content:start; }
+        .lane-content:has([data-task]) .empty-lane { display:none; }
+        .empty-lane { padding:12px 5px; border:1px dashed #bdcdd6; border-radius:8px; text-align:center; color:var(--muted); font-size:.74rem; }
+        .task-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px; align-items:start; background:#fff; border:1px solid #dce6ec; border-radius:9px; padding:9px 7px 9px 10px; overflow-wrap:anywhere; }
+        .task-card h5 { font-size:.84rem; font-weight:800; line-height:1.35; }
+        .task-card p { color:var(--muted); font-size:.76rem; line-height:1.45; margin-top:4px; white-space:pre-line; }
+        .task-card[draggable="true"], .task-grip { cursor:grab; }
+        .task-grip { display:grid; place-items:center; width:36px; min-height:44px; color:#4d6b7d; border-radius:7px; touch-action:none; }
+        .task-grip:hover { background:#edf4f4; }
+        .task-grip svg { width:18px; height:18px; }
+        .task-card[aria-busy="true"], .task-card.is-dragging { opacity:.55; }
+        .task-card.is-picked { outline:2px solid var(--accent); }
+        .task-ghost { position:fixed; z-index:100; width:min(232px,70vw); padding:10px; pointer-events:none; border:1px solid #70b9ac; border-radius:9px; color:var(--ink); background:#fff; font-size:.81rem; font-weight:750; box-shadow:0 6px 18px #132a3e35; }
+        @media (max-width:57rem) {
+            .board-shell { padding-inline:8px; }
+            .board { grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:88%; overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-inline:contain; padding:2px 2px 8px; scrollbar-width:thin; }
+            .board.is-touch-drag { scroll-snap-type:none; }
+            .lane { scroll-snap-align:start; }
+            .lane-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:0 2px 7px; }
+            .lane-tab { min-height:40px; padding:4px 2px; border:1px solid #dce6ec; border-radius:7px; color:#42596d; font-size:.73rem; font-weight:750; cursor:pointer; overflow-wrap:anywhere; }
+            .lane-tab[aria-current="true"] { color:#12685e; border-color:#a5ccc5; background:#e8f4f1; }
+            .task-grip { width:44px; }
+        }
+        @media (max-width:34rem) {
+            .task-overview { padding:12px 13px; }
+            .task-dial { width:76px; }
+            .task-dial-value { font-size:1rem; }
+            .milestone summary { padding:10px 8px; gap:6px; }
+        }
+        @media (prefers-reduced-motion:reduce) { .task-dial-fill { transition:none; } }
     </style>
 
-    @if (session('status'))
-        <p role="status" class="mb-3 rounded-lg bg-teal-50 p-3 text-sm text-teal-900">{{ session('status') }}</p>
-    @endif
-    @error('status')
-        <p role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{ $message }}</p>
-    @enderror
-    <p data-board-notice role="status" aria-live="polite" hidden class="mb-3 rounded-lg bg-white p-3 text-sm text-ink-900"></p>
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <a href="{{ route('expert.orders.index') }}" class="text-sm font-semibold text-teal-800">{{ __('Back to assignments') }}</a>
-        <a href="{{ route('expert.orders.show', $order) }}" class="text-sm font-semibold text-teal-800">{{ __('Show work order') }}</a>
-    </div>
-    <p class="mb-4 text-sm text-ink-600">{{ __('Drag tasks between columns or choose a status and select Move.') }}</p>
-
-    <div class="space-y-5" data-order-boards>
-        @php
-            $progress = OrderDelivery::progress($order);
-            $title = $order->proposal?->title ?: $order->number;
-        @endphp
-        <article class="assignment overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm" aria-label="{{ $title }}">
-            <header class="border-b border-ink-200 px-5 py-5 sm:px-7">
-                <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        @if ($title !== $order->number)
-                            <p class="mb-1 text-xs font-bold tracking-wide text-teal-800">{{ $order->number }}</p>
-                        @endif
-                        <h2 class="font-display text-xl font-bold tracking-tight sm:text-2xl">{{ $title }}</h2>
-                        @if ($order->status === 'cancelled')
-                            <p class="mt-1 text-sm font-semibold text-red-800">{{ __('Cancelled') }}</p>
-                        @endif
-                    </div>
-
-                </div>
-                <div class="mt-4 flex justify-between gap-3 text-sm font-semibold">
-                    <span>{{ __(':done of :total milestones complete', ['done' => $progress['completed'], 'total' => $progress['total']]) }}</span>
-                    <span data-delivery-percent>{{ $progress['percent'] }}%</span>
-                </div>
-                <progress class="mt-2" data-delivery-progress max="100" value="{{ $progress['percent'] }}" aria-label="{{ __('Delivery progress') }}"></progress>
-            </header>
-            <div class="space-y-3 px-4 py-4 sm:px-6">
-                @forelse ($order->delivery_milestones ?? [] as $milestone)
-                    @php
-                        $editable = $order->status !== 'cancelled' && ! $milestone['completed_at'];
-                        $groups = collect($milestone['tasks'])->groupBy('status');
-                    @endphp
-                    <details class="milestone rounded-xl border border-ink-200" id="milestone-{{ $milestone['id'] }}" @if ($editable) open @endif>
-                        <summary class="flex flex-wrap items-center gap-3 px-3 py-3 sm:px-4">
-                            <span class="disclosure text-teal-800" aria-hidden="true">▸</span>
-                            <div class="min-w-0 flex-1">
-                                <h3 class="font-bold">{{ $milestone['title'] }}</h3>
-                                @if ($milestone['due'])
-                                    <span class="text-xs text-ink-600">{{ __('Due :date', ['date' => \Illuminate\Support\Carbon::parse($milestone['due'])->translatedFormat('j M Y')]) }}</span>
-                                @endif
-                            @if ($milestone['tasks'] !== [])
-                                <progress class="mt-2" data-milestone-progress aria-label="{{ __('Task progress') }}" max="{{ count($milestone['tasks']) }}" value="{{ $groups->get('done', collect())->count() }}"></progress>
-                            @endif
-                            </div>
-                            <span class="rounded-full bg-ink-50 px-3 py-1 text-xs font-semibold" data-task-progress>
-                                @if ($milestone['completed_at'])
-                                    {{ __('Complete') }}
-                                @else
-                                    <span data-done-count>{{ $groups->get('done', collect())->count() }}</span> / {{ count($milestone['tasks']) }} {{ __('tasks done') }}
-                                @endif
-                            </span>
-                        </summary>
-                        <div class="board px-3 pb-3 sm:px-4 sm:pb-4" data-milestone-board>
-                            @foreach (OrderDelivery::TASK_STATUSES as $status => $label)
-                                @php($tasks = $groups->get($status, collect()))
-                                <div class="lane" data-lane="{{ $status }}" aria-label="{{ __($label) }}">
-                                    <h4 class="mb-2 flex items-center justify-between gap-2 px-1 text-sm font-bold">
-                                        {{ __($label) }}
-                                        <span data-lane-count class="rounded-full border border-ink-200 bg-white px-2 text-xs">{{ $tasks->count() }}</span>
-                                    </h4>
-                                    <div class="lane-content">
-                                        <span class="empty-lane rounded-lg border border-dashed border-ink-200 px-2 py-3 text-center text-xs text-ink-600">
-                                            {{ $editable ? __('Drop a task here') : __('No tasks') }}
-                                        </span>
-                                        @foreach ($tasks as $task)
-                                            <article class="task" data-task draggable="{{ $editable ? 'true' : 'false' }}">
-                                                <h5 class="text-sm font-bold">{{ $task['title'] }}</h5>
-                                                @if ($task['description'])
-                                                    <p class="mt-1 whitespace-pre-line text-xs leading-relaxed text-ink-600">{{ $task['description'] }}</p>
-                                                @endif
-                                                @if ($editable)
-                                                    <form class="move-task" method="post" action="{{ route('expert.orders.tasks.update', [$order, $milestone['id'], $task['id']]) }}">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <select class="text-xs" name="status" aria-label="{{ __('Status for :task', ['task' => $task['title']]) }}">
-                                                            @foreach (OrderDelivery::TASK_STATUSES as $choice => $choiceLabel)
-                                                                <option value="{{ $choice }}" @selected($choice === $status)>{{ __($choiceLabel) }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        <button class="text-xs" type="submit">{{ __('Move') }}</button>
-                                                    </form>
-                                                @endif
-                                            </article>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </details>
-                @empty
-                    <p class="px-2 py-3 text-sm text-ink-600">{{ __('The delivery team has not added any milestones yet.') }}</p>
-                @endforelse
+    <section class="task-workspace" data-order-boards aria-label="{{ __('consultancy_engagement.task_board.title') }}">
+        <nav class="task-links" aria-label="{{ __('consultancy_engagement.task_board.title') }}">
+            <a href="{{ route('expert.orders.index') }}"><x-ui-icon name="arrow-left" />{{ __('Back to assignments') }}</a>
+            <a href="{{ route('expert.orders.show', $order) }}">{{ __('Show work order') }}<x-ui-icon name="arrow-up-right" /></a>
+        </nav>
+        <header class="task-overview">
+            <div>
+                @if ($title !== $order->number)
+                    <p class="task-order-number">{{ $order->number }}</p>
+                @endif
+                <h2>{{ $title }}</h2>
+                <p>{{ __('consultancy_engagement.dashboard_ui.milestone_fraction', ['done' => $progress['completed'], 'total' => $progress['total']]) }}</p>
+                @if ($order->status === 'cancelled')
+                    <p>{{ __('Cancelled') }}</p>
+                @endif
             </div>
-        </article>
-    </div>
+            <div class="task-dial" role="img" aria-label="{{ __('consultancy_engagement.task_board.progress', ['percent' => $progress['percent']]) }}" data-delivery-dial>
+                <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+                    <circle cx="50" cy="50" r="38" stroke="#3d596c" stroke-width="8"/>
+                    <circle class="task-dial-fill" data-delivery-arc cx="50" cy="50" r="38" pathLength="100" transform="rotate(-90 50 50)" stroke="#8de2cb" stroke-width="8" stroke-dasharray="{{ $progress['percent'] }} 100"/>
+                </svg>
+                <strong class="task-dial-value" data-delivery-percent>{{ $progress['percent'] }}%</strong>
+            </div>
+        </header>
 
-    <script>
-        (() => {
-            const root = document.querySelector('[data-order-boards]');
-            const notice = document.querySelector('[data-board-notice]');
-            let dragged = null;
-            let highlighted = null;
-            let moves = Promise.resolve();
+        @if ($order->status !== 'cancelled' && collect($order->delivery_milestones)->contains(fn (array $milestone) => ! $milestone['completed_at'] && $milestone['tasks'] !== []))
+            <p class="task-instructions" id="task-instructions">
+                {{ __('consultancy_engagement.task_board.instructions') }}
+                <span class="sr-only">{{ __('consultancy_engagement.task_board.keyboard') }}</span>
+            </p>
+        @endif
+        <div role="status" aria-live="polite"><p data-board-notice class="task-notice" hidden></p></div>
 
-            function highlight(lane) {
-                highlighted?.classList.remove('is-over');
-                highlighted = lane;
-                highlighted?.classList.add('is-over');
-            }
+        @forelse ($order->delivery_milestones ?? [] as $milestone)
+            @php
+                $editable = $order->status !== 'cancelled' && ! $milestone['completed_at'];
+                $groups = collect($milestone['tasks'])->groupBy('status');
+            @endphp
+            <details class="milestone" id="milestone-{{ $milestone['id'] }}" @if ($editable) open @endif>
+                <summary>
+                    <span class="milestone-chevron" aria-hidden="true"><x-ui-icon name="chevron-right" /></span>
+                    <span class="milestone-name">
+                        <strong>{{ $milestone['title'] }}</strong>
+                        @if ($milestone['due'])
+                            <small>{{ __('Due :date', ['date' => \Illuminate\Support\Carbon::parse($milestone['due'])->translatedFormat('j M Y')]) }}</small>
+                        @endif
+                    </span>
+                    <span class="milestone-count">
+                        @if ($milestone['completed_at'])
+                            {{ __('Complete') }}
+                        @else
+                            <span data-done-count>{{ $groups->get('done', collect())->count() }}</span> / {{ count($milestone['tasks']) }} {{ __('tasks done') }}
+                        @endif
+                    </span>
+                </summary>
+                <div class="board-shell">
+                    <div class="lane-tabs" aria-label="{{ __('consultancy_engagement.task_board.columns') }}">
+                        @foreach (OrderDelivery::TASK_STATUSES as $status => $label)
+                            <button type="button" class="lane-tab" data-lane-tab="{{ $status }}" aria-controls="lane-{{ $milestone['id'] }}-{{ $status }}" @if ($loop->first) aria-current="true" @endif>{{ __('consultancy_engagement.dashboard_ui.'.$status) }}</button>
+                        @endforeach
+                    </div>
+                    <div class="board" data-milestone-board>
+                        @foreach (OrderDelivery::TASK_STATUSES as $status => $label)
+                            @php($tasks = $groups->get($status, collect()))
+                            <div class="lane" id="lane-{{ $milestone['id'] }}-{{ $status }}" data-lane="{{ $status }}" aria-label="{{ __('consultancy_engagement.dashboard_ui.'.$status) }}">
+                                <h4 class="lane-heading">
+                                    {{ __('consultancy_engagement.dashboard_ui.'.$status) }}
+                                    <span data-lane-count>{{ $tasks->count() }}</span>
+                                </h4>
+                                <div class="lane-content">
+                                    <span class="empty-lane">{{ $editable ? __('Drop a task here') : __('No tasks') }}</span>
+                                    @foreach ($tasks as $task)
+                                        <article class="task-card" data-task draggable="{{ $editable ? 'true' : 'false' }}"
+                                            @if ($editable) data-update-url="{{ route('expert.orders.tasks.update', [$order, $milestone['id'], $task['id']]) }}" @endif>
+                                            <div>
+                                                <h5>{{ $task['title'] }}</h5>
+                                                @if ($task['description'])
+                                                    <p>{{ $task['description'] }}</p>
+                                                @endif
+                                            </div>
+                                            @if ($editable)
+                                                <button type="button" class="task-grip" data-task-grip aria-pressed="false" aria-describedby="task-instructions" aria-label="{{ __('consultancy_engagement.task_board.grip', ['task' => $task['title']]) }}">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <circle cx="7.5" cy="5" r="1.4"/><circle cx="12.5" cy="5" r="1.4"/>
+                                                        <circle cx="7.5" cy="10" r="1.4"/><circle cx="12.5" cy="10" r="1.4"/>
+                                                        <circle cx="7.5" cy="15" r="1.4"/><circle cx="12.5" cy="15" r="1.4"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </article>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </details>
+        @empty
+            <p class="task-notice">{{ __('The delivery team has not added any milestones yet.') }}</p>
+        @endforelse
+    </section>
 
-            async function move(card, lane) {
-                const form = card.querySelector('form');
-                if (!form || card.hasAttribute('aria-busy')) return;
-
-                const from = card.closest('[data-lane]');
-                const status = form.elements.status;
-                if (from === lane) return;
-                card.setAttribute('aria-busy', 'true');
-                form.querySelector('button').disabled = true;
-                status.value = lane.dataset.lane;
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: { Accept: 'application/json' },
-                    });
-                    if (!response.ok) throw new Error();
-                    const progress = await response.json();
-
-                    lane.querySelector('.lane-content').append(card);
-                    const board = lane.closest('[data-milestone-board]');
-                    for (const column of [from, lane]) {
-                        column.querySelector('[data-lane-count]').textContent = column.querySelectorAll('[data-task]').length;
-                    }
-                    const milestone = board.closest('.milestone');
-                    const done = board.querySelectorAll('[data-lane="done"] [data-task]').length;
-                    milestone.querySelector('[data-done-count]').textContent = done;
-                    milestone.querySelector('[data-milestone-progress]').value = done;
-                    root.querySelector('[data-delivery-progress]').value = progress.percent;
-                    root.querySelector('[data-delivery-percent]').textContent = progress.percent + '%';
-                    notice.textContent = @js(__('Task updated.'));
-                } catch {
-                    status.value = from.dataset.lane;
-                    notice.textContent = @js(__('Could not move this task. Refresh the board and try again.'));
-                } finally {
-                    notice.hidden = false;
-                    card.removeAttribute('aria-busy');
-                    form.querySelector('button').disabled = false;
-                }
-            }
-
-            root.addEventListener('submit', (event) => {
-                if (!event.target.matches('.move-task')) return;
-                event.preventDefault();
-                const card = event.target.closest('[data-task]');
-                const lane = card.closest('[data-milestone-board]').querySelector(
-                    `[data-lane="${CSS.escape(event.target.elements.status.value)}"]`
-                );
-                if (lane) moves = moves.then(() => move(card, lane));
-            });
-
-            root.addEventListener('dragstart', (event) => {
-                const card = event.target.closest('[data-task][draggable="true"]');
-                if (!card || card.hasAttribute('aria-busy') || event.target.closest('form')) return;
-                dragged = card;
-                card.classList.add('is-dragging');
-                event.dataTransfer.setData('text/plain', card.querySelector('h5').textContent);
-                event.dataTransfer.effectAllowed = 'move';
-            });
-
-            root.addEventListener('dragover', (event) => {
-                const lane = event.target.closest('[data-lane]');
-                const isTarget = dragged && lane && lane.closest('[data-milestone-board]') === dragged.closest('[data-milestone-board]');
-                highlight(isTarget ? lane : null);
-                if (!isTarget) return;
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'move';
-            });
-
-            root.addEventListener('drop', (event) => {
-                const lane = event.target.closest('[data-lane]');
-                if (!dragged || !lane || lane.closest('[data-milestone-board]') !== dragged.closest('[data-milestone-board]')) return;
-                event.preventDefault();
-                const card = dragged;
-                moves = moves.then(() => move(card, lane));
-                highlight(null);
-            });
-
-            root.addEventListener('dragend', () => {
-                dragged?.classList.remove('is-dragging');
-                dragged = null;
-                highlight(null);
-            });
-        })();
-    </script>
+    @include('consultancy.partials.task-board-script')
 </x-consultancy-dashboard>
