@@ -57,6 +57,7 @@ class ViewOrder extends ViewRecord
                 ->icon('heroicon-o-document-text')
                 ->url(fn (Order $record) => route('sales.orders.invoice', $record))
                 ->openUrlInNewTab(),
+            OrderDeliveryActions::assignExperts(),
             OrderDeliveryActions::group(),
             ActionGroup::make([
                 EditAction::make(),

@@ -17,13 +17,12 @@ class OrderDelivery
 
     public function __construct(private ExpertWallet $wallet) {}
 
-    public function assign(Order $order, User $staff, array $ids, ?string $teamRate): void
+    public function assign(Order $order, User $staff, array $ids): void
     {
         abort_unless($staff->can('update', $order) && ConsultancyEngagement::canAssign($staff), 403);
-        $data = validator(['experts' => $ids, 'team_rate' => $teamRate], [
+        $data = validator(['experts' => $ids], [
             'experts' => ['present', 'array', 'max:30'],
             'experts.*' => ['required', 'integer', 'distinct'],
-            'team_rate' => ['nullable', 'numeric', 'between:0,100', 'decimal:0,2'],
         ])->validate();
 
         DB::transaction(function () use ($order, $data): void {
@@ -42,8 +41,7 @@ class OrderDelivery
             foreach ($experts as $expert) {
                 $assignment = $existing->get($expert->id)
                     ?? $locked->expertAssignments()->make(['consultancy_application_id' => $expert->id]);
-                $assignment->engagement_percentage = $data['team_rate'] ?? $assignment->engagement_percentage
-                    ?? $expert->engagement_percentage ?? '0.00';
+                $assignment->engagement_percentage = $expert->engagement_percentage ?? '0.00';
                 $assignment->save();
             }
         });

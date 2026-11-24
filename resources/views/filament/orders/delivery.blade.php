@@ -42,6 +42,9 @@
                 <div class="delivery-row">
                     <div>
                         <strong>{{ $assignment->application->name }}</strong>
+                        @if ($assignment->application->contract_type)
+                            <div class="delivery-muted">{{ \App\Models\ConsultancyApplication::contractLabel($assignment->application->contract_type) }}</div>
+                        @endif
                         <div class="delivery-muted">{{ rtrim(rtrim($assignment->engagement_percentage, '0'), '.') }}% ÷ {{ $assignments->count() }} experts</div>
                     </div>
                     <div class="delivery-amount">
@@ -53,7 +56,7 @@
                     </div>
                 </div>
             @empty
-                <p class="delivery-muted">No experts assigned. Choose your team from the Delivery menu.</p>
+                <p class="delivery-muted">No experts assigned.</p>
             @endforelse
         </section>
     </div>

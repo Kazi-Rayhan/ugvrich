@@ -20,28 +20,35 @@ use Filament\Notifications\Notification;
 
 class OrderDeliveryActions
 {
+    public static function assignExperts(): Action
+    {
+        return Action::make('assignExperts')
+            ->label('Assign experts')
+            ->icon('heroicon-o-user-group')
+            ->authorize(fn (Order $record) => auth()->user()->can('update', $record) && ConsultancyEngagement::canAssign(auth()->user()))
+            ->visible(fn (Order $record) => self::canPlan($record))
+            ->fillForm(fn (Order $record) => ['experts' => $record->expertAssignments->pluck('consultancy_application_id')->all()])
+            ->schema([
+                Select::make('experts')->multiple()->searchable()->maxItems(30)
+                    ->options(fn () => Application::where('status', Application::APPROVED)->whereNotNull('signed_at')
+                        ->orderBy('name')->get(['id', 'name', 'contract_type', 'engagement_percentage'])
+                        ->mapWithKeys(fn (Application $expert) => [$expert->id => collect([
+                            $expert->name,
+                            $expert->contract_type ? Application::contractLabel($expert->contract_type) : null,
+                            $expert->engagement_percentage !== null ? $expert->engagement_percentage.'%' : 'No rate set',
+                        ])->filter()->implode(' · ')])->all())
+                    ->helperText('Each expert’s signed rate is divided by the number of assigned experts. An expert without a rate earns 0% on this order.'),
+            ])
+            ->action(function (Order $record, array $data, OrderDelivery $delivery): void {
+                $delivery->assign($record, auth()->user(), $data['experts'] ?? []);
+                $record->refresh();
+                Notification::make()->title('Expert team saved')->success()->send();
+            });
+    }
+
     public static function group(): ActionGroup
     {
         return ActionGroup::make([
-            Action::make('assignExperts')
-                ->label('Assign experts')
-                ->icon('heroicon-o-user-group')
-                ->authorize(fn (Order $record) => auth()->user()->can('update', $record) && ConsultancyEngagement::canAssign(auth()->user()))
-                ->visible(fn (Order $record) => self::canPlan($record))
-                ->fillForm(fn (Order $record) => ['experts' => $record->expertAssignments->pluck('consultancy_application_id')->all()])
-                ->schema([
-                    Select::make('experts')->multiple()->searchable()->maxItems(30)
-                        ->options(fn () => Application::where('status', Application::APPROVED)->whereNotNull('signed_at')
-                            ->orderBy('name')->pluck('name', 'id'))
-                        ->helperText('Only experts who have signed their engagement can be assigned.'),
-                    TextInput::make('team_rate')->label('Team engagement rate')->numeric()->minValue(0)->maxValue(100)->step(0.01)->suffix('%')
-                        ->helperText('Optional. A 50% team rate with two experts gives each 25%. Leave blank to use the saved or signed rates.'),
-                ])
-                ->action(function (Order $record, array $data, OrderDelivery $delivery): void {
-                    $delivery->assign($record, auth()->user(), $data['experts'] ?? [], isset($data['team_rate']) ? (string) $data['team_rate'] : null);
-                    $record->refresh();
-                    Notification::make()->title('Expert team saved')->success()->send();
-                }),
             Action::make('planMilestones')
                 ->label('Plan milestones and tasks')
                 ->icon('heroicon-o-rectangle-stack')

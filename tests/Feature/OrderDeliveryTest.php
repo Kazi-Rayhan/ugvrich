@@ -41,6 +41,7 @@ class OrderDeliveryTest extends TestCase
 
         $this->actingAs($admin);
         Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->assertActionVisible('assignExperts')
             ->callAction('assignExperts', data: ['experts' => [$first->id, $second->id]])
             ->assertHasNoActionErrors()
             ->callAction('planMilestones', data: ['milestones' => [
