@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'assignment_list' => [
+        'total' => 'Assigned orders',
+        'work_order' => 'Work order',
+        'delivery_progress' => 'Delivery progress',
+        'details' => 'Details',
+        'details_for' => 'View details for :order',
+    ],
     'mobile_nav' => [
         'overview' => 'Overview',
         'assignments' => 'Assignments',

@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'assignment_list' => [
+        'total' => 'বরাদ্দ করা কার্যাদেশ',
+        'work_order' => 'কার্যাদেশ',
+        'delivery_progress' => 'কাজের অগ্রগতি',
+        'details' => 'বিস্তারিত',
+        'details_for' => ':order-এর বিস্তারিত দেখুন',
+    ],
     'mobile_nav' => [
         'overview' => 'ওভারভিউ',
         'assignments' => 'অ্যাসাইনমেন্ট',

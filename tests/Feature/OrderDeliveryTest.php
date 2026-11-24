@@ -68,7 +68,9 @@ class OrderDeliveryTest extends TestCase
         $this->actingAs(User::findOrFail($first->user_id))
             ->get('/en/expert/dashboard/assignments')
             ->assertOk()
-            ->assertSeeInOrder(['Work order', 'Milestones', 'Actions', $workOrder->number, 'Show', 'Tasks'])
+            ->assertSeeInOrder(['Assigned orders', $order->number, 'Confirmed', 'Work order', $workOrder->number, '0 of 2 milestones completed', 'Details', 'Task board'])
+            ->assertSee(route('expert.orders.show', $order))
+            ->assertSee(route('expert.orders.tasks', $order))
             ->assertDontSee('Review intake');
         $this->get(route('expert.orders.show', $order))
             ->assertOk()
