@@ -18,6 +18,7 @@ use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Support\Money;
+use App\Support\Sales\PaymentRecorder;
 use App\Support\Sales\WorkOrderConfirmation;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,7 +89,10 @@ class SalesDocumentCreationTest extends TestCase
             ])->assertHasNoActionErrors();
 
         $order->refresh();
-        $this->assertEquals($account->id, $order->payments()->where('status', Payment::CONFIRMED)->sole()->finance_account_id);
+        $confirmed = $order->payments()->where('status', Payment::CONFIRMED)->sole();
+        $this->assertEquals($account->id, $confirmed->finance_account_id);
+        $this->assertSame(2500, $account->refresh()->balance_minor);
+        $this->assertSame(2500, $confirmed->financeTransaction->amount_minor);
         $this->assertSame(7500, $order->outstandingMinor());
         $orderUrl = OrderResource::getUrl('view', ['record' => $order]);
         $this->get($orderUrl)
@@ -109,6 +113,21 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee(Money::format($order->amount_outstanding))
             ->assertSee('Balance due')
             ->assertSee('<svg', escape: false);
+
+        $pending = $order->payments()->where('status', Payment::PENDING)->sole();
+        PaymentRecorder::confirm($pending, $user);
+        $this->assertSame(3500, $account->refresh()->balance_minor);
+        PaymentRecorder::reverse($confirmed, 'Payment refunded', $user);
+        $this->assertSame(1000, $account->refresh()->balance_minor);
+        $this->assertNotNull($confirmed->financeTransaction->reversal()->first());
+
+        $historical = $order->payments()->create([
+            'status' => Payment::CONFIRMED, 'method' => 'account', 'amount' => 5,
+            'paid_on' => now()->toDateString(), 'finance_account_id' => $account->id,
+        ]);
+        PaymentRecorder::postExisting($historical, $user);
+        PaymentRecorder::postExisting($historical, $user);
+        $this->assertSame(1500, $account->fresh()->balance_minor);
     }
 
     public function test_first_party_can_add_a_new_client_when_creating_a_work_order(): void

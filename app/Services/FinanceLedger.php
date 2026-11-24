@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
+use App\Models\Payment;
 use App\Models\User;
 use App\Support\Money;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -63,6 +64,44 @@ class FinanceLedger
     {
         Gate::forUser($user)->authorize('reverse', $transaction);
 
+        if ($transaction->payment_id !== null) {
+            throw ValidationException::withMessages(['reason' => 'Reverse this entry from the order’s payment history.']);
+        }
+
+        return $this->reverseEntry($user, $transaction, $reason);
+    }
+
+    /** Called while the payment is locked by PaymentRecorder. */
+    public function postOrderPayment(Payment $payment, User $user): void
+    {
+        if ($payment->status !== Payment::CONFIRMED || $payment->finance_account_id === null
+            || $payment->financeTransaction()->exists()) {
+            return;
+        }
+
+        $this->record($user, [
+            'kind' => FinanceTransaction::INCOME,
+            'from_account_id' => null,
+            'to_account_id' => (int) $payment->finance_account_id,
+            'payment_id' => $payment->id,
+            'amount_minor' => Money::toMinor($payment->amount),
+            'transaction_date' => $payment->paid_on->toDateString(),
+            'category' => 'Order payment',
+            'reference' => $payment->reference,
+            'notes' => null,
+            'request_key' => (string) Str::uuid(),
+        ]);
+    }
+
+    public function reverseOrderPayment(Payment $payment, User $user, string $reason): void
+    {
+        if ($entry = $payment->financeTransaction()->first()) {
+            $this->reverseEntry($user, $entry, $reason);
+        }
+    }
+
+    private function reverseEntry(User $user, FinanceTransaction $transaction, string $reason): FinanceTransaction
+    {
         $reason = Validator::make(['reason' => trim($reason)], [
             'reason' => ['required', 'string', 'max:2000'],
         ])->validate()['reason'];

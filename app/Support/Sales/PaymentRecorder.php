@@ -3,9 +3,11 @@
 namespace App\Support\Sales;
 
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\FinanceLedger;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -79,7 +81,7 @@ class PaymentRecorder
                 self::fail('amount', 'An identical payment was recorded a moment ago. Check the history before recording it again.');
             }
 
-            return $locked->payments()->create([
+            $payment = $locked->payments()->create([
                 'amount' => Money::fromMinor($amount),
                 'paid_on' => $data['paid_on'],
                 'method' => $method,
@@ -92,6 +94,10 @@ class PaymentRecorder
                 'confirmed_at' => $status === Payment::CONFIRMED ? now() : null,
                 'confirmed_by' => $status === Payment::CONFIRMED ? $user->id : null,
             ]);
+
+            app(FinanceLedger::class)->postOrderPayment($payment, $user);
+
+            return $payment;
         });
     }
 
@@ -111,6 +117,7 @@ class PaymentRecorder
             }
 
             $locked->update(['status' => Payment::CONFIRMED, 'confirmed_at' => now(), 'confirmed_by' => $user->id]);
+            app(FinanceLedger::class)->postOrderPayment($locked, $user);
         });
     }
 
@@ -141,12 +148,28 @@ class PaymentRecorder
                 self::fail('payment', 'Only a confirmed payment can be reversed.');
             }
 
+            app(FinanceLedger::class)->reverseOrderPayment($locked, $user, $reason);
             $locked->update([
                 'status' => Payment::REVERSED,
                 'reversed_at' => now(),
                 'reversed_by' => $user->id,
                 'reversal_reason' => $reason,
             ]);
+        });
+    }
+
+    public static function postExisting(Payment $payment, User $user): void
+    {
+        abort_unless($user->can('create', FinanceTransaction::class) && $user->can('confirm', $payment), 403);
+
+        DB::transaction(function () use ($payment, $user): void {
+            Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
+            $locked = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== Payment::CONFIRMED || $locked->finance_account_id === null) {
+                self::fail('payment', 'Only a confirmed payment with a receiving account can be posted.');
+            }
+
+            app(FinanceLedger::class)->postOrderPayment($locked, $user);
         });
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
 /**
@@ -55,6 +56,11 @@ class Payment extends Model
     public function financeAccount(): BelongsTo
     {
         return $this->belongsTo(FinanceAccount::class);
+    }
+
+    public function financeTransaction(): HasOne
+    {
+        return $this->hasOne(FinanceTransaction::class);
     }
 
     public function getReceivingAccountLabelAttribute(): string

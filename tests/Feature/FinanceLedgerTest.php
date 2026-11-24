@@ -21,6 +21,32 @@ class FinanceLedgerTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_finance_account_details_follow_the_selected_type(): void
+    {
+        $this->actingAs(User::factory()->create());
+        Livewire::test(ListFinanceAccounts::class)
+            ->callAction('create', [
+                'name' => 'Operating account', 'type' => 'bank',
+                'details' => ['bank' => [
+                    'bank_name' => 'Example Bank', 'branch_name' => 'Main Branch',
+                    'account_number' => '00123-4567', 'routing_number' => '123 456 789',
+                ]],
+            ])->assertHasNoActionErrors();
+
+        $account = FinanceAccount::sole();
+        $this->assertSame('001234567', $account->details['bank']['account_number']);
+        $this->assertSame('123456789', $account->details['bank']['routing_number']);
+        $this->assertStringNotContainsString('001234567', $account->getRawOriginal('details'));
+
+        Livewire::test(ListFinanceAccounts::class)
+            ->callTableAction('edit', $account, [
+                'type' => 'mobile',
+                'details' => ['mobile' => ['provider' => 'bKash', 'mobile_number' => '+880 1712-345678']],
+            ])->assertHasNoActionErrors();
+
+        $this->assertSame(['mobile' => ['provider' => 'bKash', 'mobile_number' => '+8801712345678']], $account->fresh()->details);
+    }
+
     public function test_staff_need_finance_permissions_to_open_the_ledger(): void
     {
         $role = Role::create(['name' => 'finance_reader', 'display_name' => 'Finance reader', 'group' => Role::DASHBOARD]);

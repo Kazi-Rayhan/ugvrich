@@ -37,7 +37,7 @@ class PaymentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('reference')
             ->defaultSort('paid_on')
-            ->modifyQueryUsing(fn ($query) => $query->with(['recorder', 'confirmer', 'reverser', 'financeAccount']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['recorder', 'confirmer', 'reverser', 'financeAccount', 'financeTransaction']))
             ->columns([
                 TextColumn::make('reference')->weight('semibold')->copyable()->searchable(),
                 TextColumn::make('paid_on')->label('Date')->date('j M Y')->sortable(),
@@ -64,6 +64,7 @@ class PaymentsRelationManager extends RelationManager
             // reloads that page, so its money section matches the history.
             ->recordActions([
                 PaymentActions::confirm()->after($this->reloadOrder(...)),
+                PaymentActions::postToLedger()->after($this->reloadOrder(...)),
                 PaymentActions::markFailed()->after($this->reloadOrder(...)),
                 PaymentActions::reverse()->after($this->reloadOrder(...)),
                 PaymentActions::receipt(),

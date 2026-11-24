@@ -65,7 +65,7 @@ class FinanceTransactionResource extends Resource
             ->recordActions([
                 Action::make('reverse')->color('danger')
                     ->authorize('reverse')
-                    ->visible(fn (FinanceTransaction $record) => $record->reversal_of_id === null && ! $record->reversal_exists)
+                    ->visible(fn (FinanceTransaction $record) => $record->payment_id === null && $record->reversal_of_id === null && ! $record->reversal_exists)
                     ->modalDescription('Post an offsetting entry dated today and keep the original in the ledger.')
                     ->schema([Textarea::make('reason')->required()->maxLength(2000)])
                     ->action(function (Action $action, FinanceTransaction $record, array $data): void {

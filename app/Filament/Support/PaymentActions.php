@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Support\Money;
@@ -95,9 +96,23 @@ class PaymentActions
             ->icon('heroicon-o-check')
             ->color('success')
             ->requiresConfirmation()
-            ->modalDescription('The money has been received. It will count towards the order from now on.')
+            ->modalDescription('The money has been received. It will count towards the order and update the receiving account balance.')
             ->visible(fn (Payment $record) => $record->status === Payment::PENDING)
             ->action(fn (Payment $record) => self::attempt(fn () => PaymentRecorder::confirm($record, auth()->user()), 'Payment confirmed'));
+    }
+
+    public static function postToLedger(): Action
+    {
+        return Action::make('postToLedger')
+            ->label('Post to ledger')
+            ->icon('heroicon-o-book-open')
+            ->authorize(fn (Payment $record) => auth()->user()->can('create', FinanceTransaction::class)
+                && auth()->user()->can('confirm', $record))
+            ->visible(fn (Payment $record) => $record->status === Payment::CONFIRMED
+                && $record->finance_account_id !== null && $record->financeTransaction === null)
+            ->requiresConfirmation()
+            ->modalDescription('Check the receiving account statement first. Post this payment only if it was never entered as income or included in the opening balance.')
+            ->action(fn (Payment $record) => self::attempt(fn () => PaymentRecorder::postExisting($record, auth()->user()), 'Payment posted to the ledger'));
     }
 
     public static function markFailed(): Action
