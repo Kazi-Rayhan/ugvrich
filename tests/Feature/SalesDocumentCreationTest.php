@@ -245,7 +245,8 @@ class SalesDocumentCreationTest extends TestCase
     public function test_shared_form_saves_linked_drafts_from_one_set_of_details(): void
     {
         $this->actingAs(User::factory()->create());
-        $this->get('/admin/work-orders')->assertOk()->assertSee('/admin/proposals/create?work_order=1')->assertDontSee('Proposals & Work Orders');
+        $this->get('/admin/work-orders')->assertOk()->assertSee('/admin/proposals/create?work_order=1')
+            ->assertDontSee('Proposals & Work Orders')->assertDontSee('New blank draft');
         $this->get('/admin/work-orders/create')->assertRedirect('/admin/proposals/create?work_order=1');
         $this->get('/admin/proposals/create?work_order=1')
             ->assertOk()
