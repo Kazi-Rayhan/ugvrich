@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Support\Bilingual;
-use App\Filament\Support\SalesConditions;
 use App\Models\Service;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -94,13 +93,6 @@ class ServiceForm
 
                             Toggle::make('is_active')->label('Visible on the site')->default(true),
                         ]),
-
-                    // Not on the website: what a proposal for this service says it includes.
-                    Section::make('Proposal template')
-                        ->description('Scope and conditions loaded into a proposal when this service is chosen, then adjusted for each client.')
-                        ->icon('heroicon-o-clipboard-document-list')
-                        ->collapsible()
-                        ->schema([SalesConditions::templateEditor()->hiddenLabel()]),
                 ]),
             ]);
     }

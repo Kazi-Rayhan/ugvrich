@@ -1,6 +1,25 @@
 <?php
 
 return [
+    'dashboard_ui' => [
+        'tasks' => 'নির্ধারিত কাজ',
+        'completed_milestones' => 'সম্পন্ন মাইলফলক',
+        'task_chart' => 'অবস্থা অনুযায়ী কাজ',
+        'task_chart_scope' => 'আপনার সব অ্যাসাইনমেন্টে',
+        'todo' => 'করণীয়',
+        'doing' => 'চলমান',
+        'done' => 'সম্পন্ন',
+        'no_tasks' => 'এখনো কোনো কাজ নির্ধারিত হয়নি।',
+        'milestone_chart' => 'মাইলফলক সম্পন্নের হার',
+        'milestone_fraction' => ':totalটির মধ্যে :doneটি মাইলফলক সম্পন্ন',
+        'no_milestones' => 'এখনো কোনো মাইলফলক নির্ধারিত হয়নি।',
+        'recent_assignments' => 'সাম্প্রতিক অ্যাসাইনমেন্ট',
+        'all_assignments' => 'সব অ্যাসাইনমেন্ট',
+        'no_assignments' => 'এখনো কোনো কার্যাদেশ বরাদ্দ হয়নি।',
+        'unplanned' => 'পরিকল্পনা করা হয়নি',
+        'task_board' => 'টাস্ক বোর্ড',
+        'tasks_for' => ':order-এর টাস্ক বোর্ড খুলুন',
+    ],
     'assignments' => 'আমার অর্পিত কাজ',
     'contracts' => [
         'long_term' => 'দীর্ঘমেয়াদি চুক্তি',

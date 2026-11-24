@@ -165,7 +165,11 @@ class SalesDocumentCreationTest extends TestCase
     {
         Notification::fake();
         $this->actingAs(User::factory()->create());
-        $category = ServiceCategory::create(['name' => 'Consultancy', 'slug' => 'smart-ict-services']);
+        $category = ServiceCategory::create([
+            'name' => 'Consultancy',
+            'slug' => 'smart-ict-services',
+            'proposal_conditions' => [['label' => 'Preset clause', 'details' => 'Default terms from the category.']],
+        ]);
 
         $form = Livewire::withQueryParams(['work_order' => 1])->test(CreateProposal::class)
             ->set('data.work_order.client_mode', 'new')
@@ -274,10 +278,20 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee('Project coordinator')
             ->assertSee($template['services']['website'])
             ->assertSee($template['stages'][1][0])
+            ->assertDontSee('সেবাভিত্তিক বিশেষ শর্ত')
+            ->assertDontSee('সাধারণ প্রশাসন ও বিরোধ নিষ্পত্তি')
             ->assertDontSee($template['services']['portal'])
             ->assertDontSee($template['info'][0][0])
             ->assertDontSee($template['stages'][0][0])
             ->assertDontSee($template['attachments'][array_key_first($template['attachments'])]);
+
+        $electricalWorkOrder = WorkOrder::create([
+            'sector' => 'eee',
+            'details' => ['info' => ['standards_apply' => true]],
+        ]);
+        $this->get(route('sales.work-orders.print', $electricalWorkOrder))
+            ->assertOk()
+            ->assertSee('বিদ্যমান SLD, পরিচালন তথ্য, BNBC ও প্রযোজ্য মান');
     }
 
     public function test_shared_form_saves_linked_drafts_from_one_set_of_details(): void
@@ -312,7 +326,7 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertDatabaseCount('proposals', 0);
         $this->assertDatabaseCount('work_orders', 0);
         $this->assertSame(
-            ['Work order', 'Scope & schedule', 'Payments', 'Work order review', 'Pricing', 'Scope & conditions', 'Terms & review'],
+            ['Work order', 'Scope & schedule', 'Payments', 'Work order review', 'Pricing', 'Terms & review'],
             array_map(fn ($step) => $step->getLabel(), $form->instance()->getSteps()),
         );
 
@@ -320,6 +334,8 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee('Subcategories')
             ->set('data.work_order.details.services', ['website'])
             ->set('data.work_order.sector', 'eee')
+            ->assertSee('Existing single-line diagrams, operating data, BNBC, and applicable standards')
+            ->assertDontSee('Technical basis notes')
             ->assertSet('data.work_order.details.services', [])
             ->assertSet('data.items', []);
 
@@ -328,19 +344,46 @@ class SalesDocumentCreationTest extends TestCase
                 'sector' => $sector,
                 'details' => [
                     'coordinator' => 'Project coordinator',
-                    'stage_dates' => ['2026-12-01'],
                     'mode' => 'online',
                     'rich_signatory' => 'Office lead',
+                    'tech_approval_status' => 'no',
                     'installments' => [['percent' => 65]],
                 ],
             ],
         ]);
 
         $form->set('data.work_order.sector', $sector)
-            ->set('data.work_order.details.services', ['website'])
-            ->set('data.work_order.details.info.languages', ['Bangla', 'English', 'Japanese'])
-            ->set('data.work_order.details.interim_milestone', '0');
+            ->set('data.work_order.details.services', ['website']);
+        $milestoneAction = TestAction::make('add')->schemaComponent('work_order.details.milestones', 'form');
+        $form->callAction($milestoneAction)->callAction($milestoneAction);
+        $milestones = $form->get('data.work_order.details.milestones');
+        [$pilotKey, $handoverKey] = array_keys($milestones);
+        $milestoneId = $milestones[$pilotKey]['id'];
+        $form->set("data.work_order.details.milestones.{$pilotKey}.title", 'Pilot review')
+            ->set("data.work_order.details.milestones.{$pilotKey}.date", '2026-12-08')
+            ->set("data.work_order.details.milestones.{$handoverKey}.title", 'Client handover')
+            ->set("data.work_order.details.milestones.{$handoverKey}.date", '2026-12-15');
+        $form->set('data.work_order.details.info.languages', ['Bangla', 'English', 'Japanese'])
+            ->set('data.work_order.details.info.platform_web', true)
+            ->set('data.work_order.details.info.platform_mobile', true)
+            ->set('data.work_order.details.interim_milestone', $milestoneId);
 
+        $addPricingLine = TestAction::make('add')->schemaComponent('items', 'form');
+        $form->assertSee('Add more')
+            ->callAction($addPricingLine)
+            ->assertSet('data.work_order.details.services', ['website'])
+            ->callAction($addPricingLine);
+        [, $customKey, $secondCustomKey] = array_keys($form->get('data.items'));
+        $form->assertSet("data.items.{$customKey}.service_name", null)
+            ->set("data.items.{$customKey}.service_name", 'External battery')
+            ->set("data.items.{$secondCustomKey}.service_name", 'Installation kit')
+            ->set("data.items.{$customKey}.unit_price", 0)
+            ->set("data.items.{$customKey}.description", 'Custom site assessment')
+            ->set('data.work_order.details.services', [])
+            ->assertSet("data.items.{$customKey}.description", 'Custom site assessment')
+            ->assertSet("data.items.{$secondCustomKey}.service_name", 'Installation kit')
+            ->callAction(TestAction::make('delete')->schemaComponent('items', 'form'), arguments: ['item' => $secondCustomKey])
+            ->set('data.work_order.details.services', ['website']);
         $itemKey = array_key_first($form->get('data.items'));
         $form->assertSet("data.items.{$itemKey}.service_name", 'Institutional website development')
             ->set("data.items.{$itemKey}.quantity", 2)
@@ -349,9 +392,17 @@ class SalesDocumentCreationTest extends TestCase
             ->set('data.work_order.details.services', ['website', 'portal'])
             ->assertSet("data.items.{$itemKey}.unit_price", 100)
             ->set('data.work_order.details.services', ['website']);
-        $form->call('create')->assertHasNoErrors();
+        $form->assertDontSee('Reload templates')
+            ->assertSet('data.conditions', [])
+            ->assertDontSee('Terms and conditions')
+            ->call('create')->assertHasNoErrors();
         $proposal = Proposal::sole();
+        $this->assertEmpty($proposal->conditions);
         $workOrder = WorkOrder::sole();
+        $customItem = $proposal->items()->where('is_custom', true)->sole();
+        $this->assertSame('External battery', $customItem->service_name);
+        $this->assertSame('Custom site assessment', $customItem->description);
+        $this->assertEquals($category->id, $customItem->service_category_id);
 
         $this->assertEquals([$category->id], $proposal->categories()->pluck('service_categories.id')->all());
         $this->assertSame($proposal->id, $workOrder->proposal_id);
@@ -367,20 +418,33 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertSame('Project coordinator', $workOrder->detail('coordinator'));
         $this->assertSame('2026-11-20', $workOrder->detail('start_date'));
         $this->assertSame('2026-12-20', $workOrder->detail('end_date'));
-        $this->assertSame('2026-12-01', $workOrder->detail('stage_dates.0'));
+        $this->assertSame([
+            ['title' => 'Pilot review', 'date' => '2026-12-08'],
+            ['title' => 'Client handover', 'date' => '2026-12-15'],
+        ], array_map(fn (array $milestone) => array_diff_key($milestone, ['id' => true]), $workOrder->detail('milestones')));
         $this->assertSame('online', $workOrder->detail('mode'));
         $this->assertSame('Bangla, English, Japanese', $workOrder->detail('info.languages'));
+        $this->assertTrue($workOrder->detail('info.platform_web'));
+        $this->assertTrue($workOrder->detail('info.platform_mobile'));
         $this->assertSame('Office lead', $workOrder->detail('rich_signatory'));
+        $this->assertSame('no', $workOrder->detail('tech_approval_status'));
         $this->assertEquals(65, $workOrder->detail('installments.0.percent'));
         $this->assertEquals(30, $workOrder->detail('installments.1.percent'));
-        $this->assertSame('0', (string) $workOrder->detail('interim_milestone'));
+        $this->assertSame($milestoneId, $workOrder->detail('interim_milestone'));
         $editUrl = '/admin/proposals/'.$proposal->id.'/edit?work_order='.$workOrder->id;
         $form->assertRedirect($editUrl);
         $this->get(route('sales.work-orders.print', $workOrder))
             ->assertOk()
+            ->assertSee('External battery')
+            ->assertDontSee('কাস্টম সেবা')
+            ->assertSee('<i class="box on"></i>ওয়েব', escape: false)
+            ->assertSee('<i class="box on"></i>মোবাইল', escape: false)
+            ->assertDontSee('<i class="box on"></i>ERP', escape: false)
+            ->assertSeeInOrder(['অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন', '>না</span>'], escape: false)
+            ->assertSeeInOrder(['Pilot review', '০৮ / ১২ / ২০২৬', 'Client handover', '১৫ / ১২ / ২০২৬'])
             ->assertSeeInOrder([
                 config('work_orders.payment_steps.1.label'),
-                WorkOrder::sector($sector)['stages'][0][0],
+                'Pilot review',
             ]);
         $this->get('/admin/work-orders')->assertOk()->assertSee($editUrl);
         $this->get($editUrl)->assertOk()->assertSee('Work order PDF')->assertDontSee('07 Fees and payment approval');
@@ -390,7 +454,18 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSeeInOrder(['Contracting parties', 'Work order template', 'Installments'])
             ->assertDontSee('01-02 Parties and services');
 
+        $proposal->update(['terms' => 'Delivery dates are agreed in writing.', 'conditions' => [
+            ['source' => 'category:'.$category->id, 'label' => 'Imported preset clause', 'details' => 'Template text'],
+            ['source' => null, 'label' => 'Agreed delivery condition', 'details' => 'Handover on site'],
+        ]]);
+        $this->get(route('sales.proposals.print', $proposal))->assertOk()
+            ->assertDontSee('Terms and conditions')
+            ->assertDontSee('Delivery dates are agreed in writing.')
+            ->assertSee('Agreed delivery condition')
+            ->assertDontSee('Imported preset clause');
         $editPage = $this->get('/admin/proposals/'.$proposal->id.'/edit')->assertOk();
+        $editPage->assertDontSee('Scope & conditions')->assertDontSee('Terms and conditions')->assertSee('Add a condition');
+        $editPage->assertDontSeeText('Imported preset clause')->assertSeeText('Agreed delivery condition');
         $this->assertSame(1, substr_count($editPage->getContent(), 'role="tablist"'));
         $editPage->assertSeeInOrder(['Work order', 'Services &amp; pricing'], escape: false)
             ->assertSee('Document details')
@@ -400,6 +475,8 @@ class SalesDocumentCreationTest extends TestCase
             ->assertDontSee('Payment terms');
         $this->assertDoesNotMatchRegularExpression('/class="fi-tabs-item-label">\s*(Client|Proposal)\s*<\/span>/', $editPage->getContent());
         $editPage->assertSee('Work order template')
+            ->assertSee('Add milestone')
+            ->assertSee('Pilot review')
             ->assertSee('First Party (Client)')
             ->assertSee('Second Party (Service Provider)')
             ->assertSee('Consultancy services')
@@ -408,8 +485,7 @@ class SalesDocumentCreationTest extends TestCase
             ->assertDontSee('Integrations and data')
             ->assertDontSee('Domain, hosting, licensing, and equipment ownership')
             ->assertDontSee('Security baseline')
-            ->assertSee('Requirements assessment')
-            ->assertSee('Approved requirements / statement of work')
+            ->assertDontSee('Requirements assessment')
             ->assertDontSee('Pre-issue checklist')
             ->assertSee('Bangla print previews');
 

@@ -188,10 +188,6 @@
         <div class="section"><div class="label">Payment terms</div><p>{{ $document->payment_terms }}</p></div>
     @endif
 
-    @if ($document->terms)
-        <div class="section"><div class="label">Terms and conditions</div><p>{{ $document->terms }}</p></div>
-    @endif
-
     <footer>{{ $site->name() }} · All amounts in Bangladeshi Taka ({{ Money::CURRENCY }}) · Printed {{ now()->format('j F Y') }}</footer>
 </div>
 </body>

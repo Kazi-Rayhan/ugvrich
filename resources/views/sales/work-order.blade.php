@@ -41,6 +41,10 @@
     $interimMilestone = $get('interim_milestone');
     $stages = collect($sector['stages'])->filter(fn ($stage, $i) => filled($get("stage_dates.{$i}"))
         || (filled($interimMilestone) && (string) $interimMilestone === (string) $i));
+    $milestones = collect($get('milestones'));
+    $interimTitle = is_numeric($interimMilestone)
+        ? ($sector['stages'][$interimMilestone][0] ?? null)
+        : (filled($interimMilestone) ? ($milestones->firstWhere('id', $interimMilestone)['title'] ?? null) : null);
     $fees = collect(config('work_orders.fee_lines'))->filter(fn ($label, $i) => collect(
         $get("fees.{$i}"),
     )->contains(fn ($value) => filled($value)));
@@ -50,12 +54,6 @@
     $hasTax = filled($get('tax_amount')) && Money::toMinor($get('tax_amount')) !== 0;
     $grand = $get('grand_total');
     $words = $get('amount_words') ?: $get('amount_words_auto');
-
-    $conditions = collect($sector['conditions'])->map(fn ($c) => [$c[0], str_replace(
-        '{revisions}',
-        filled($get('revisions')) ? $bn($get('revisions')) : '____',
-        $c[1],
-    )]);
 
     $pages = 4;
 @endphp
@@ -333,14 +331,17 @@
             @endforeach
         </table>
 
-        @if ($stages->isNotEmpty() || filled($get('start_date')) || filled($get('end_date')) || filled($get('mode')))
+        @if ($stages->isNotEmpty() || $milestones->isNotEmpty() || filled($get('start_date')) || filled($get('end_date')) || filled($get('mode')))
             <div class="sec"><span class="n">{{ $num(6) }}</span> কাজের ধাপ ও সময়সূচি</div>
         @endif
-        @if ($stages->isNotEmpty())
+        @if ($stages->isNotEmpty() || $milestones->isNotEmpty())
             <table class="grid">
                 <tr class="head-row"><td style="width:28%">কাজের ধাপ</td><td>যাচাই / সিদ্ধান্তের বিষয়</td><td style="width:24%">লক্ষ্য তারিখ</td></tr>
                 @foreach ($stages as $i => [$stage, $check])
                     <tr><td>{{ $stage }}</td><td>{{ $check }}</td><td class="r">@if (filled($get("stage_dates.{$i}"))){!! $date($get("stage_dates.{$i}")) !!}@endif</td></tr>
+                @endforeach
+                @foreach ($milestones as $milestone)
+                    <tr><td colspan="2">{{ $milestone['title'] }}</td><td class="r">{!! $date($milestone['date']) !!}</td></tr>
                 @endforeach
             </table>
         @endif
@@ -403,8 +404,8 @@
                     <tr>
                         <td>
                             {{ $step['label'] }}
-                            @if ($i === 1 && filled($interimMilestone) && isset($sector['stages'][$interimMilestone]))
-                                <br><strong>{{ $sector['stages'][$interimMilestone][0] }}</strong>
+                            @if ($i === 1 && filled($interimTitle))
+                                <br><strong>{{ $interimTitle }}</strong>
                             @endif
                         </td>
                         <td><span style="white-space:nowrap">{!! $fill($get("installments.{$i}.percent"), 'xs', true) !!} % / টাকা {!! $money($get("installments.{$i}.amount")) !!}</span></td>
@@ -414,14 +415,6 @@
             </table>
         @endif
 
-        <div class="kicker">প্রশাসন ও অনুমোদন</div>
-        <div class="lead">বাস্তবায়নের শর্ত ও গ্রহণ</div>
-        <div class="note">নিচের প্রস্তাবিত শর্তগুলো চূড়ান্ত স্বাক্ষরিত মূল্যপ্রস্তাব বা মূল চুক্তির সঙ্গে সামঞ্জস্য রেখে অনুমোদন করতে হবে।</div>
-
-        <div class="sec"><span class="n">{{ $num(9) }}</span> সেবাভিত্তিক বিশেষ শর্ত</div>
-        @foreach ($conditions->take(4) as $i => [$title, $body])
-            <div class="clause">{{ $num($i + 1) }} <b>{{ $title }}</b> &nbsp;{{ $body }}</div>
-        @endforeach
     </div>
     {!! $footer(3) !!}
 </section>
@@ -431,17 +424,8 @@
     <div class="content">
         {!! $header() !!}
 
-        @foreach ($conditions->slice(4) as $i => [$title, $body])
-            <div class="clause" style="margin-top:4px">{{ $num($i + 1) }} <b>{{ $title }}</b> &nbsp;{{ $body }}</div>
-        @endforeach
-
-        <div class="sec"><span class="n">{{ $bn(10) }}</span> সাধারণ প্রশাসন ও বিরোধ নিষ্পত্তি</div>
-        @foreach (config('work_orders.general_terms') as [$title, $body])
-            <div class="bullet">• <b>{{ $title }}</b> {{ $body }}</div>
-        @endforeach
-
         @if ($attachments->isNotEmpty() || filled($get('other_attachments')))
-            <div class="sec"><span class="n">{{ $bn(11) }}</span> সংযুক্ত ও রেফারেন্স নথি</div>
+            <div class="sec"><span class="n">{{ $num(9) }}</span> সংযুক্ত ও রেফারেন্স নথি</div>
         @endif
         @if ($attachments->isNotEmpty())
             <table class="grid">
@@ -458,7 +442,7 @@
             <div style="margin-top:6px">অন্যান্য সংযুক্তি / পৃষ্ঠাসংখ্যা: {!! $fill($get('other_attachments'), 'xxl') !!}</div>
         @endif
 
-        <div class="sec"><span class="n">{{ $bn(12) }}</span> আনুষ্ঠানিক গ্রহণ ও অনুমোদন</div>
+        <div class="sec"><span class="n">{{ $num(10) }}</span> আনুষ্ঠানিক গ্রহণ ও অনুমোদন</div>
         <div style="margin-bottom:6px">স্বাক্ষরের মাধ্যমে উভয় পক্ষ এই কার্যাদেশে উল্লিখিত কাজ, হস্তান্তর, সময়সীমা, গ্রহণযোগ্যতার শর্ত ও মূল্য অনুমোদন করছেন; স্বাক্ষরিত চুক্তি ও সংযুক্তি প্রযোজ্য।</div>
         <table class="signs">
             <tr class="head-row"><td>গ্রাহকের পক্ষে / অনুমোদিত স্বাক্ষরকারী</td><td><b style="font-family:'Noto Serif',serif">UGV RICH</b>-এর পক্ষে / অনুমোদিত স্বাক্ষরকারী</td></tr>
@@ -471,9 +455,16 @@
                 <td>তারিখ: {!! filled($get('rich_sign_date')) ? $date($get('rich_sign_date')) : '<span class="blank w-md"></span>' !!} &nbsp; সিল: <span class="blank w-md"></span></td>
             </tr>
         </table>
-        @if (filled($get('tech_approval')) || filled($get('tech_approval_date')))
+        @php
+            $technicalApproval = match ($get('tech_approval_status')) {
+                'yes' => 'হ্যাঁ',
+                'no' => 'না',
+                default => $get('tech_approval'),
+            };
+        @endphp
+        @if (filled($technicalApproval) || filled($get('tech_approval_date')))
             <div class="note" style="margin-top:6px">
-                অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে): {!! $fill($get('tech_approval'), 'xl') !!}
+                অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে): {!! $fill($technicalApproval, 'xl') !!}
                 &nbsp; তারিখ: {!! filled($get('tech_approval_date')) ? $date($get('tech_approval_date')) : '<span class="blank w-md"></span>' !!}
             </div>
         @endif

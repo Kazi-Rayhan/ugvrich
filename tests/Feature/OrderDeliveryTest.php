@@ -100,6 +100,18 @@ class OrderDeliveryTest extends TestCase
             ->assertSee('1 of 2 complete')
             ->callAction('releaseExpertEarnings')->assertHasNoActionErrors();
 
+        $this->actingAs(User::findOrFail($first->user_id))->get('/en/expert/dashboard')
+            ->assertOk()
+            ->assertSee('Tasks by status')
+            ->assertSee('1 of 2 milestones completed')
+            ->assertSee('value="100"', escape: false)
+            ->assertSee($order->number);
+        $this->actingAs(User::findOrFail($other->user_id))->get('/en/expert/dashboard')
+            ->assertOk()
+            ->assertSee('No tasks have been scheduled yet.')
+            ->assertDontSee($order->number);
+        $this->actingAs($admin);
+
         $wallet = app(ExpertWallet::class);
         $this->assertSame(25000, $wallet->balances($first)['available']);
         $this->assertSame(25000, $wallet->balances($second)['available']);

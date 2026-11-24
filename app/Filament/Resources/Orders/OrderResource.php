@@ -119,7 +119,6 @@ class OrderResource extends Resource
                 ->collapsible()
                 ->schema([
                     Textarea::make('payment_terms')->rows(3),
-                    Textarea::make('terms')->label('Terms and conditions')->rows(3),
                     Textarea::make('notes')->label('Internal notes')->rows(2)->columnSpanFull(),
                 ]),
         ]);
@@ -241,10 +240,9 @@ class OrderResource extends Resource
                 ->icon('heroicon-o-document-text')
                 ->collapsible()
                 ->collapsed()
-                ->visible(fn (Order $record) => filled($record->payment_terms) || filled($record->terms) || filled($record->notes))
+                ->visible(fn (Order $record) => filled($record->payment_terms) || filled($record->notes))
                 ->schema([
                     TextEntry::make('payment_terms')->visible(fn (Order $record) => filled($record->payment_terms)),
-                    TextEntry::make('terms')->label('Terms and conditions')->visible(fn (Order $record) => filled($record->terms)),
                     TextEntry::make('notes')->label('Internal notes')->visible(fn (Order $record) => filled($record->notes)),
                 ]),
         ]);

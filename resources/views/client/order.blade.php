@@ -94,12 +94,11 @@
             </table>
         @endif
     </section>
-    @if (filled($order->payment_terms) || filled($order->terms))
+    @if (filled($order->payment_terms))
         <section class="panel order-section" aria-labelledby="terms-heading">
             <div class="panel-heading"><h2 id="terms-heading">Order terms</h2></div>
             <dl class="facts">
-                @if (filled($order->payment_terms))<div><dt>Payment terms</dt><dd class="preserve-lines">{{ $order->payment_terms }}</dd></div>@endif
-                @if (filled($order->terms))<div><dt>Terms and conditions</dt><dd class="preserve-lines">{{ $order->terms }}</dd></div>@endif
+                <div><dt>Payment terms</dt><dd class="preserve-lines">{{ $order->payment_terms }}</dd></div>
             </dl>
         </section>
     @endif

@@ -47,7 +47,11 @@
             'Client signature date' => $date($detail('client_sign_date')),
             'UGV RICH signatory' => $detail('rich_signatory'),
             'UGV RICH signature date' => $date($detail('rich_sign_date')),
-            'Technical approval' => $detail('tech_approval'),
+            'Technical approval' => match ($detail('tech_approval_status')) {
+                'yes' => __('Yes'),
+                'no' => __('No'),
+                default => $detail('tech_approval'),
+            },
             'Technical approval date' => $date($detail('tech_approval_date')),
         ],
     ];

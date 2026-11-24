@@ -244,17 +244,6 @@ class ProposalResource extends Resource
                 ],
             ],
             [
-                'title' => 'Scope & conditions',
-                'description' => 'Exactly what is delivered',
-                'icon' => 'heroicon-o-clipboard-document-list',
-                'schema' => [
-                    Callout::make('The specifics the client is agreeing to')
-                        ->description('Each area and service you chose has its own section below, with a field for every condition in its template, pre-filled with the usual wording. Change each field to what was agreed with this client, remove what does not apply (×), or add your own.')
-                        ->info(),
-                    SalesConditions::editor(),
-                ],
-            ],
-            [
                 'title' => 'Terms & review',
                 'description' => 'Terms and final review',
                 'icon' => 'heroicon-o-check-badge',
@@ -267,16 +256,14 @@ class ProposalResource extends Resource
                                     && (! ($livewire instanceof EditProposal) || $livewire->workOrderId === null))
                                 ->rows(4)
                                 ->placeholder("e.g. 50% advance on signing\n50% on delivery"),
-                            Textarea::make('terms')
-                                ->label('Terms and conditions')
-                                ->rows(4)
-                                ->placeholder('e.g. Prices are in BDT and exclude third-party fees.'),
                             Textarea::make('notes')
                                 ->label('Internal notes')
                                 ->helperText('For RICH staff only. Not printed.')
                                 ->rows(2)
                                 ->columnSpanFull(),
                         ]),
+
+                    SalesConditions::editor(),
 
                     Section::make('Summary')
                         ->icon('heroicon-o-eye')
@@ -479,12 +466,11 @@ class ProposalResource extends Resource
             self::figures(),
 
             Section::make('Terms')
-                ->columns(3)
+                ->columns(2)
                 ->collapsible()
                 ->schema([
                     TextEntry::make('delivery_timeline')->label('Estimated delivery')->placeholder('—'),
                     TextEntry::make('payment_terms')->placeholder('—'),
-                    TextEntry::make('terms')->label('Terms and conditions')->placeholder('—'),
                     TextEntry::make('notes')->label('Internal notes')->placeholder('—')->columnSpanFull(),
                 ]),
         ]);

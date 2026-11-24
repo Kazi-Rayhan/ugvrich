@@ -85,7 +85,6 @@ class CreateProposal extends CreateRecord
             'issue_date' => now()->toDateString(),
             'valid_until' => now()->addDays(30)->toDateString(),
             'categories' => array_filter([$request->service_category_id]),
-            'conditions' => \App\Filament\Support\SalesConditions::sync([], array_filter([$request->service_category_id]), []),
             'extra_discount' => 0,
             'tax_rate' => 0,
             'notes' => $request->requirement ? 'Request: '.$request->requirement : null,

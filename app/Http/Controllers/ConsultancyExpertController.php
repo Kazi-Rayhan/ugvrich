@@ -131,11 +131,38 @@ class ConsultancyExpertController extends Controller
     public function dashboard(Request $request)
     {
         $application = $this->application($request)->load('category', 'expert');
+        $assignments = collect();
+        $assignmentCount = 0;
+        $taskCounts = array_fill_keys(array_keys(OrderDelivery::TASK_STATUSES), 0);
+        $milestones = ['completed' => 0, 'total' => 0];
+
         if ($application->signed_at) {
-            $application->loadCount('orderAssignments');
+            $orders = Order::query()
+                ->whereHas('expertAssignments', fn ($query) => $query->where('consultancy_application_id', $application->id))
+                ->where('status', '!=', 'cancelled');
+
+            foreach ((clone $orders)->select('id', 'delivery_milestones')->lazyById() as $order) {
+                foreach ($order->delivery_milestones ?? [] as $milestone) {
+                    $milestones['total']++;
+                    $milestones['completed'] += (int) filled($milestone['completed_at'] ?? null);
+
+                    foreach ($milestone['tasks'] ?? [] as $task) {
+                        $status = $task['status'] ?? 'todo';
+                        if (isset($taskCounts[$status])) {
+                            $taskCounts[$status]++;
+                        }
+                    }
+                }
+            }
+
+            $assignmentCount = $application->orderAssignments()->count();
+            $assignments = $application->orderAssignments()
+                ->with(['order:id,number,proposal_id,status,delivery_milestones', 'order.proposal:id,title'])
+                ->latest('id')->limit(4)->get()
+                ->map(fn ($assignment) => $assignment->order);
         }
 
-        return view('consultancy.dashboard', ['application' => $application]);
+        return view('consultancy.dashboard', compact('application', 'assignments', 'assignmentCount', 'taskCounts', 'milestones'));
     }
 
     public function assignments(Request $request)

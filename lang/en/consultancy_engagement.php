@@ -1,6 +1,25 @@
 <?php
 
 return [
+    'dashboard_ui' => [
+        'tasks' => 'Scheduled tasks',
+        'completed_milestones' => 'Milestones completed',
+        'task_chart' => 'Tasks by status',
+        'task_chart_scope' => 'Across your assignments',
+        'todo' => 'To do',
+        'doing' => 'In progress',
+        'done' => 'Done',
+        'no_tasks' => 'No tasks have been scheduled yet.',
+        'milestone_chart' => 'Milestone completion',
+        'milestone_fraction' => ':done of :total milestones completed',
+        'no_milestones' => 'No milestones planned yet.',
+        'recent_assignments' => 'Recent assignments',
+        'all_assignments' => 'All assignments',
+        'no_assignments' => 'No assigned orders yet.',
+        'unplanned' => 'Unplanned',
+        'task_board' => 'Task board',
+        'tasks_for' => 'Open task board for :order',
+    ],
     'assignments' => 'My assignments',
     'contracts' => [
         'long_term' => 'Long-term contract',

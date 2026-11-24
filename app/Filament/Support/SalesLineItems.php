@@ -6,6 +6,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Support\Money;
 use App\Support\Sales\Totals;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -37,13 +38,7 @@ class SalesLineItems
             ->searchable()
             ->live()
             ->required()
-            // Each chosen category brings its template conditions into the proposal.
-            ->afterStateUpdated(fn ($state, Get $get, Set $set) => $set('conditions', SalesConditions::sync(
-                (array) $get('conditions'),
-                (array) $state,
-                SalesConditions::serviceIds((array) $get('items')),
-            )))
-            ->helperText('Pick every area this proposal covers. The service list and the conditions follow from it.')
+            ->helperText('Pick every area this proposal covers to narrow the service list.')
             ->columnSpanFull();
     }
 
@@ -53,10 +48,10 @@ class SalesLineItems
             ->relationship()
             ->orderColumn('sort')
             ->label($pricingOnly ? 'Pricing per subcategory' : 'Services')
-            ->addable(! $pricingOnly)
-            ->deletable(! $pricingOnly)
             ->defaultItems($pricingOnly ? 0 : 1)
-            ->addActionLabel('Add a service')
+            ->addActionLabel($pricingOnly ? 'Add more' : 'Add a service')
+            ->deleteAction($pricingOnly ? fn (Action $action) => $action
+                ->visible(fn (array $arguments, Repeater $component): bool => self::isCustom($component->getRawState()[$arguments['item']] ?? [])) : null)
             ->minItems(1)
             ->required()
             ->live()
@@ -78,13 +73,6 @@ class SalesLineItems
                                 return;
                             }
 
-                            // This line isn't in the items state yet with its new service, so add it by hand.
-                            $set('../../conditions', SalesConditions::sync(
-                                (array) $get('../../conditions'),
-                                (array) $get('../../categories'),
-                                [...SalesConditions::serviceIds((array) $get('../../items')), (int) $service->id],
-                            ));
-
                             $set('service_name', $service->name);
                             $set('service_category_id', $service->service_category_id);
                             $set('description', $service->description);
@@ -95,12 +83,16 @@ class SalesLineItems
 
                     TextInput::make('service_name')
                         ->label($pricingOnly ? 'Subcategory' : 'Name on the proposal')
-                        ->readOnly($pricingOnly)
+                        ->readOnly(fn (Get $get) => $pricingOnly && ! $get('is_custom'))
+                        ->live(onBlur: true)
                         ->required()
                         ->maxLength(200)
                         ->columnSpan(6),
 
-                    Hidden::make('service_category_id'),
+                    Hidden::make('service_category_id')
+                        ->default($pricingOnly ? fn (Get $get) => $get('../../categories.0') : null),
+
+                    ...($pricingOnly ? [Hidden::make('is_custom')->default(true)] : []),
 
                     Textarea::make('description')
                         ->rows(2)
@@ -146,6 +138,11 @@ class SalesLineItems
                         ->columnSpan(3),
                 ]),
             ]);
+    }
+
+    public static function isCustom(array $item): bool
+    {
+        return (bool) ($item['is_custom'] ?? false);
     }
 
     /** Extra discount, tax and the running figures. */
