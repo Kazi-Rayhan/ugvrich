@@ -17,11 +17,14 @@ use App\Models\Proposal;
 use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Notifications\ClientPortalWelcome;
 use App\Support\Money;
 use App\Support\Sales\PaymentRecorder;
 use App\Support\Sales\WorkOrderConfirmation;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -132,6 +135,7 @@ class SalesDocumentCreationTest extends TestCase
 
     public function test_first_party_can_add_a_new_client_when_creating_a_work_order(): void
     {
+        Notification::fake();
         $this->actingAs(User::factory()->create());
         $category = ServiceCategory::create(['name' => 'Consultancy', 'slug' => 'smart-ict-services']);
 
@@ -171,6 +175,46 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertEquals($client->id, $workOrder->client_id);
         $this->assertSame('New organization', $workOrder->client_name);
         $this->assertSame('Barishal', $workOrder->detail('client.address'));
+
+        $user = User::findOrFail($client->user_id);
+        $this->assertSame(User::CLIENT, $user->role);
+        $this->assertSame($client->email, $user->email);
+        Notification::assertSentTo($user, ClientPortalWelcome::class);
+        $url = Notification::sent($user, ClientPortalWelcome::class)->sole()->toMail($user)->actionUrl;
+
+        auth()->logout();
+        $this->post(route('en.password.store'), [
+            'token' => basename(parse_url($url, PHP_URL_PATH)),
+            'email' => $user->email,
+            'password' => 'initial-client-pass',
+            'password_confirmation' => 'initial-client-pass',
+        ])->assertRedirect('/en/client/dashboard');
+        $this->assertAuthenticatedAs($user);
+
+        $order = $client->orders()->create(['status' => 'confirmed', 'order_date' => now(), 'notes' => 'Private staff note']);
+        $order->items()->create(['service_name' => 'Site assessment', 'unit_price' => 100]);
+        $order->recalculate();
+        $otherOrder = Client::create(['name' => 'Another client'])->orders()->create(['status' => 'confirmed', 'order_date' => now()]);
+
+        $this->get(route('client.dashboard'))->assertOk()->assertSee($order->number)->assertDontSee($otherOrder->number);
+        $this->get(route('client.orders.show', $order))->assertOk()->assertSee('Site assessment')->assertDontSee('Private staff note');
+        $this->get(route('client.orders.invoice', $order))->assertOk()->assertSee('Site assessment');
+        $this->get(route('client.orders.show', $otherOrder))->assertNotFound();
+        $this->get(route('client.orders.invoice', $otherOrder))->assertNotFound();
+        $this->get('/admin')->assertForbidden();
+
+        $this->get(route('client.profile'))->assertOk()->assertSee('Billing address');
+        $this->put(route('client.profile.update'), ['name' => 'Updated client', 'address' => 'Dhaka'])->assertSessionHasNoErrors();
+        $this->assertSame('Dhaka', $client->fresh()->address);
+        $this->get(route('client.security'))->assertOk()->assertSee('Change password');
+        $this->put(route('client.security.update'), [
+            'current_password' => 'initial-client-pass',
+            'password' => 'changed-client-pass',
+            'password_confirmation' => 'changed-client-pass',
+        ])->assertSessionHasNoErrors();
+        $this->assertTrue(Hash::check('changed-client-pass', $user->fresh()->password));
+        $this->post(route('client.logout'))->assertRedirect(route('login'));
+        $this->assertGuest();
     }
 
     public function test_work_order_print_omits_empty_rows_and_unselected_options(): void

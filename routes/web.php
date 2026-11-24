@@ -27,6 +27,9 @@ Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path(
 Route::middleware(SetLocale::class)->group(base_path('routes/consultancy.php'));
 Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path('routes/consultancy.php'));
 
+Route::middleware(SetLocale::class)->group(base_path('routes/client.php'));
+Route::prefix('en')->name('en.')->middleware(SetLocale::class)->group(base_path('routes/client.php'));
+
 /* Signing in as another account.
    Outside the admin panel on purpose: while signed in as a researcher the panel
    is closed, and the way back has to stay open. */

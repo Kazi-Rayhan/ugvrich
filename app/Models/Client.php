@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Someone RICH sends proposals to and takes orders from. */
 class Client extends Model
 {
-    protected $guarded = ['id', 'phone_normalized'];
+    protected $guarded = ['id', 'phone_normalized', 'user_id'];
 
     protected static function booted(): void
     {

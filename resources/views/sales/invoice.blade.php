@@ -65,7 +65,7 @@
 </head>
 <body>
 <nav class="toolbar" aria-label="Invoice actions">
-    <a href="{{ \App\Filament\Resources\Orders\OrderResource::getUrl('view', ['record' => $order]) }}">Back to order</a>
+    <a href="{{ $backUrl ?? \App\Filament\Resources\Orders\OrderResource::getUrl('view', ['record' => $order]) }}">Back to order</a>
     <button type="button" onclick="window.print()">Print / Save as PDF</button>
 </nav>
 <main>

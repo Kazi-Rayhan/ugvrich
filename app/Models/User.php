@@ -59,6 +59,13 @@ class User extends Authenticatable implements FilamentUser
 
     public const EXPERT = 'expert';
 
+    public const CLIENT = 'client';
+
+    public function client(): HasOne
+    {
+        return $this->hasOne(Client::class);
+    }
+
     public function consultancyApplication(): HasOne
     {
         return $this->hasOne(ConsultancyApplication::class);

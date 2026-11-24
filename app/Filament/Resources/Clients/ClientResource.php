@@ -55,7 +55,7 @@ class ClientResource extends Resource
      *
      * @return array<int, \Filament\Forms\Components\Field>
      */
-    public static function detailFields(bool $checkUnique = true): array
+    public static function detailFields(bool $checkUnique = true, bool $portalInvite = false): array
     {
         return [
             TextInput::make('name')
@@ -74,6 +74,8 @@ class ClientResource extends Resource
             TextInput::make('email')
                 ->email()
                 ->maxLength(180)
+                ->required($portalInvite)
+                ->helperText($portalInvite ? 'A new client receives a link to set up their portal password at this address.' : null)
                 ->when($checkUnique, fn (TextInput $field) => $field->unique(Client::class, 'email', ignoreRecord: true)),
 
             TextInput::make('phone')

@@ -10,6 +10,7 @@ use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
 use App\Models\WorkOrder;
 use App\Support\Sales\ClientResolver;
+use App\Support\Sales\ClientPortalAccess;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
 use Illuminate\Database\Eloquent\Model;
@@ -112,9 +113,16 @@ class CreateProposal extends CreateRecord
         $mode = $client['client_mode'] ?? 'existing';
         unset($data['client_mode'], $data['new_client'], $data['create_work_order'], $data['work_order']);
 
-        $data['client_id'] = $mode === 'new'
-            ? ClientResolver::resolve((array) ($client['new_client'] ?? []), auth()->id())->id
-            : $client['client_id'];
+        if ($mode === 'new') {
+            $resolved = ClientResolver::resolve((array) ($client['new_client'] ?? []), auth()->id());
+            if ($this->startsFromWorkOrders) {
+                ClientPortalAccess::inviteNewClient($resolved);
+            }
+
+            $data['client_id'] = $resolved->id;
+        } else {
+            $data['client_id'] = $client['client_id'];
+        }
 
         return Proposal::create($data + ['status' => 'draft', 'created_by' => auth()->id()]);
     }

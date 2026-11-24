@@ -317,7 +317,7 @@ class ProposalResource extends Resource
                 ->icon('heroicon-o-user-plus')
                 ->compact()
                 ->schema([
-                    Group::make(ClientResource::detailFields(checkUnique: false))
+                    Group::make(ClientResource::detailFields(checkUnique: false, portalInvite: $autoFillWorkOrder))
                         ->statePath('new_client')
                         ->columns(2),
                 ])
