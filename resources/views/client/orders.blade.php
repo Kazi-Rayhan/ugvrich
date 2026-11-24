@@ -10,21 +10,21 @@
             <header class="dashboard-hero">
                 <div class="hero-copy">
                     <p class="hero-caption">Client overview</p>
-                    <h1>Welcome, {{ str($client->name)->before(' ') }}</h1>
+                    <h1>Welcome, {{ $client->name }}</h1>
                     @if (filled($client->organization))
                         <p class="hero-organization">{{ $client->organization }}</p>
                     @endif
                     @if ($orderCount)
-                        <a class="button hero-button" href="{{ route('client.orders') }}">Browse orders <x-ui-icon name="arrow-right" /></a>
+                        <a class="button hero-button" href="{{ route('client.orders') }}">Browse orders <x-ui-icon name="arrow-right" width="17" height="17" /></a>
                     @endif
                 </div>
                 <img class="hero-art" src="{{ asset('media/client-portal-overview.svg') }}" width="420" height="230" alt="">
             </header>
         </x-slot:heading>
         <dl class="overview-metrics dashboard-metrics">
-            <div><dt><x-ui-icon name="briefcase" /> Total orders</dt><dd>{{ $orderCount }}</dd></div>
-            <div><dt><x-ui-icon name="clock" /> Active orders</dt><dd>{{ $activeCount }}</dd></div>
-            <div><dt><x-ui-icon name="check" /> Completed orders</dt><dd>{{ $completedCount }}</dd></div>
+            <div><dt><x-ui-icon name="briefcase" width="17" height="17" /> Total orders</dt><dd>{{ $orderCount }}</dd></div>
+            <div><dt><x-ui-icon name="clock" width="17" height="17" /> Active orders</dt><dd>{{ $activeCount }}</dd></div>
+            <div><dt><x-ui-icon name="check" width="17" height="17" /> Completed orders</dt><dd>{{ $completedCount }}</dd></div>
         </dl>
 
         @if ($featuredOrder)
@@ -49,7 +49,7 @@
                         <small>{{ Order::PAYMENT_STATUSES[$featuredOrder->payment_status] }}</small>
                     @endif
                 </div>
-                <a class="button secondary featured-order-action" href="{{ route('client.orders.show', $featuredOrder) }}">View order <x-ui-icon name="arrow-right" /></a>
+                <a class="button secondary featured-order-action" href="{{ route('client.orders.show', $featuredOrder) }}">View order <x-ui-icon name="arrow-right" width="17" height="17" /></a>
             </section>
         @endif
     @endif
@@ -62,7 +62,7 @@
         </div>
         @if ($orders->isEmpty())
             <div class="empty-state order-empty">
-                <span class="empty-icon"><x-ui-icon name="briefcase" /></span>
+                <span class="empty-icon"><x-ui-icon name="briefcase" width="22" height="22" /></span>
                 <h3>No orders yet</h3>
                 <p>Your orders will appear here once RICH creates them.</p>
             </div>

@@ -108,6 +108,15 @@
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/css/client-portal.css": {
+    "file": "assets/client-portal-BZWigleV.css",
+    "name": "client-portal",
+    "names": [
+      "client-portal.css"
+    ],
+    "src": "resources/css/client-portal.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
     "file": "assets/app-C_m-aU-4.js",
     "name": "app",

@@ -224,7 +224,11 @@ class SalesDocumentCreationTest extends TestCase
         $order->recalculate();
         $otherOrder = Client::create(['name' => 'Another client'])->orders()->create(['status' => 'confirmed', 'order_date' => now()]);
 
-        $this->get(route('client.dashboard'))->assertOk()->assertSee($order->number)->assertDontSee($otherOrder->number);
+        $this->get(route('client.dashboard'))->assertOk()
+            ->assertSee('assets/client-portal-', escape: false)
+            ->assertSee('width="17" height="17"', escape: false)
+            ->assertSee('Welcome, New contact')
+            ->assertSee($order->number)->assertDontSee($otherOrder->number);
         $this->get(route('client.orders.show', $order))->assertOk()->assertSee('Site assessment')->assertDontSee('Private staff note');
         $this->get(route('client.orders.invoice', $order))->assertOk()->assertSee('Site assessment');
         $this->get(route('client.orders.show', $otherOrder))->assertNotFound();
