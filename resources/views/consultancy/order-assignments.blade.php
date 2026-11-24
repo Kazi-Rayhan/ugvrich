@@ -28,8 +28,8 @@
                             <td class="px-5 py-4">{{ __(\App\Models\Order::STATUSES[$order->status] ?? $order->status) }}</td>
                             <td class="px-5 py-4">
                                 @if ($progress['total'])
-                                    <span>{{ $progress['completed'] }} / {{ $progress['total'] }}</span>
-                                    <progress class="mt-1 block h-2 w-20 accent-teal-700" aria-label="{{ __('Milestones complete') }}" value="{{ $progress['completed'] }}" max="{{ $progress['total'] }}"></progress>
+                                    <span>{{ $progress['percent'] }}% <span class="text-ink-600">· {{ $progress['completed'] }} / {{ $progress['total'] }}</span></span>
+                                    <progress class="mt-1 block h-2 w-20 accent-teal-700" aria-label="{{ __('Delivery progress') }}" value="{{ $progress['percent'] }}" max="100"></progress>
                                 @else
                                     <span class="text-ink-600">{{ __('Unplanned') }}</span>
                                 @endif

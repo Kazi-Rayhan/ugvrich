@@ -43,7 +43,6 @@
     <div class="space-y-5" data-order-boards>
         @php
             $progress = OrderDelivery::progress($order);
-            $percent = $progress['total'] ? (int) round(100 * $progress['completed'] / $progress['total']) : 0;
             $title = $order->proposal?->title ?: $order->number;
         @endphp
         <article class="assignment overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm" aria-label="{{ $title }}">
@@ -62,9 +61,9 @@
                 </div>
                 <div class="mt-4 flex justify-between gap-3 text-sm font-semibold">
                     <span>{{ __(':done of :total milestones complete', ['done' => $progress['completed'], 'total' => $progress['total']]) }}</span>
-                    <span>{{ $percent }}%</span>
+                    <span data-delivery-percent>{{ $progress['percent'] }}%</span>
                 </div>
-                <progress class="mt-2" max="100" value="{{ $percent }}" aria-label="{{ __('Milestones complete') }}">{{ $percent }}%</progress>
+                <progress class="mt-2" data-delivery-progress max="100" value="{{ $progress['percent'] }}" aria-label="{{ __('Delivery progress') }}"></progress>
             </header>
             <div class="space-y-3 px-4 py-4 sm:px-6">
                 @forelse ($order->delivery_milestones ?? [] as $milestone)
@@ -80,6 +79,9 @@
                                 @if ($milestone['due'])
                                     <span class="text-xs text-ink-600">{{ __('Due :date', ['date' => \Illuminate\Support\Carbon::parse($milestone['due'])->translatedFormat('j M Y')]) }}</span>
                                 @endif
+                            @if ($milestone['tasks'] !== [])
+                                <progress class="mt-2" data-milestone-progress aria-label="{{ __('Task progress') }}" max="{{ count($milestone['tasks']) }}" value="{{ $groups->get('done', collect())->count() }}"></progress>
+                            @endif
                             </div>
                             <span class="rounded-full bg-ink-50 px-3 py-1 text-xs font-semibold" data-task-progress>
                                 @if ($milestone['completed_at'])
@@ -139,6 +141,7 @@
             const notice = document.querySelector('[data-board-notice]');
             let dragged = null;
             let highlighted = null;
+            let moves = Promise.resolve();
 
             function highlight(lane) {
                 highlighted?.classList.remove('is-over');
@@ -163,14 +166,19 @@
                         headers: { Accept: 'application/json' },
                     });
                     if (!response.ok) throw new Error();
+                    const progress = await response.json();
 
                     lane.querySelector('.lane-content').append(card);
                     const board = lane.closest('[data-milestone-board]');
                     for (const column of [from, lane]) {
                         column.querySelector('[data-lane-count]').textContent = column.querySelectorAll('[data-task]').length;
                     }
-                    board.closest('.milestone').querySelector('[data-done-count]').textContent =
-                        board.querySelectorAll('[data-lane="done"] [data-task]').length;
+                    const milestone = board.closest('.milestone');
+                    const done = board.querySelectorAll('[data-lane="done"] [data-task]').length;
+                    milestone.querySelector('[data-done-count]').textContent = done;
+                    milestone.querySelector('[data-milestone-progress]').value = done;
+                    root.querySelector('[data-delivery-progress]').value = progress.percent;
+                    root.querySelector('[data-delivery-percent]').textContent = progress.percent + '%';
                     notice.textContent = @js(__('Task updated.'));
                 } catch {
                     status.value = from.dataset.lane;
@@ -189,7 +197,7 @@
                 const lane = card.closest('[data-milestone-board]').querySelector(
                     `[data-lane="${CSS.escape(event.target.elements.status.value)}"]`
                 );
-                if (lane) move(card, lane);
+                if (lane) moves = moves.then(() => move(card, lane));
             });
 
             root.addEventListener('dragstart', (event) => {
@@ -214,7 +222,8 @@
                 const lane = event.target.closest('[data-lane]');
                 if (!dragged || !lane || lane.closest('[data-milestone-board]') !== dragged.closest('[data-milestone-board]')) return;
                 event.preventDefault();
-                move(dragged, lane);
+                const card = dragged;
+                moves = moves.then(() => move(card, lane));
                 highlight(null);
             });
 

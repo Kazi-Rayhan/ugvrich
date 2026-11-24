@@ -112,11 +112,11 @@ class OrderDelivery
         });
     }
 
-    public function moveTask(Order $order, Application $expert, string $milestoneId, string $taskId, string $status): void
+    public function moveTask(Order $order, Application $expert, string $milestoneId, string $taskId, string $status): array
     {
         abort_unless(isset(self::TASK_STATUSES[$status]), 422);
 
-        DB::transaction(function () use ($order, $expert, $milestoneId, $taskId, $status): void {
+        return DB::transaction(function () use ($order, $expert, $milestoneId, $taskId, $status): array {
             $locked = Order::whereKey($order->id)
                 ->whereHas('expertAssignments', fn ($query) => $query->where('consultancy_application_id', $expert->id))
                 ->lockForUpdate()->firstOrFail();
@@ -133,16 +133,28 @@ class OrderDelivery
             $taskIndex = $this->findIndex($milestones[$index]['tasks'], $taskId);
             $milestones[$index]['tasks'][$taskIndex]['status'] = $status;
             $locked->update(['delivery_milestones' => $milestones]);
+
+            return self::progress($locked);
         });
     }
 
     public static function progress(Order $order): array
     {
         $milestones = collect($order->delivery_milestones);
+        $fractions = $milestones->sum(function (array $milestone): float {
+            if (filled($milestone['completed_at'])) {
+                return 1;
+            }
+
+            $tasks = collect($milestone['tasks']);
+
+            return $tasks->isEmpty() ? 0 : $tasks->where('status', 'done')->count() / $tasks->count();
+        });
 
         return [
             'completed' => $milestones->whereNotNull('completed_at')->count(),
             'total' => $milestones->count(),
+            'percent' => $milestones->isEmpty() ? 0 : (int) round(100 * $fractions / $milestones->count()),
         ];
     }
 

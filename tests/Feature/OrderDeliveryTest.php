@@ -83,8 +83,11 @@ class OrderDeliveryTest extends TestCase
         $this->actingAs(User::findOrFail($other->user_id))->get(route('expert.orders.show', $order))->assertNotFound();
         $this->get(route('expert.orders.tasks', $order))->assertNotFound();
         $this->actingAs(User::findOrFail($first->user_id));
-        $this->patchJson($move, ['status' => 'doing'])->assertNoContent();
+        $this->patchJson($move, ['status' => 'doing'])->assertOk()->assertJsonPath('percent', 0);
         $this->assertSame('doing', $order->fresh()->delivery_milestones[0]['tasks'][0]['status']);
+        $this->patchJson($move, ['status' => 'done'])->assertOk()->assertJsonPath('percent', 50)->assertJsonPath('completed', 0);
+        $this->get(route('expert.orders.index'))->assertOk()->assertSee('value="50"', escape: false);
+        $this->get(route('expert.orders.show', $order))->assertOk()->assertSee('value="50"', escape: false);
 
         $this->actingAs($admin);
         $paymentData = ['paid_on' => now()->toDateString(), 'method' => array_key_first(Payment::METHODS)];

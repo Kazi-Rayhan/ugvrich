@@ -6,7 +6,6 @@
     $progress = OrderDelivery::progress($order);
     $assignments = $order->expertAssignments->loadMissing('application');
     $earned = app(OrderDelivery::class)->earnings($order);
-    $percent = $progress['total'] ? (int) round(100 * $progress['completed'] / $progress['total']) : 0;
 @endphp
 
 <div class="order-delivery">
@@ -21,7 +20,8 @@
     <div class="delivery-grid">
         <section aria-label="Milestone progress">
             <h3>Milestones <span class="delivery-muted">· {{ $progress['completed'] }} of {{ $progress['total'] }} complete</span></h3>
-            <progress value="{{ $percent }}" max="100" aria-label="Milestones completed">{{ $percent }}%</progress>
+            <progress value="{{ $progress['percent'] }}" max="100" aria-label="Delivery progress">{{ $progress['percent'] }}%</progress>
+            <div class="delivery-muted">{{ $progress['percent'] }}% delivery progress</div>
             @forelse ($order->delivery_milestones ?? [] as $milestone)
                 @php($taskCount = collect($milestone['tasks'])->where('status', 'done')->count())
                 <div class="delivery-row">

@@ -3,6 +3,7 @@
     use Illuminate\Support\Carbon;
 
     $workOrder = $order->workOrder;
+    $progress = \App\Services\OrderDelivery::progress($order);
     $detail = fn (string $key) => $workOrder?->detail($key);
     $date = fn ($value) => filled($value) ? Carbon::parse($value)->translatedFormat('j M Y') : null;
     $sector = WorkOrder::sector($workOrder?->sector);
@@ -80,6 +81,13 @@
     <header class="mb-4 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-semibold text-teal-800">{{ $workOrder?->number ?? $order->number }}</p>
         <h2 class="mt-1 font-display text-xl font-bold">{{ $order->proposal?->title ?? __('Work order details') }}</h2>
+        @if ($progress['total'])
+            <div class="mt-4 flex justify-between gap-3 text-sm text-ink-700">
+                <span>{{ __(':done of :total milestones complete', ['done' => $progress['completed'], 'total' => $progress['total']]) }}</span>
+                <strong>{{ $progress['percent'] }}%</strong>
+            </div>
+            <progress class="mt-2 block h-2 w-full accent-teal-700" aria-label="{{ __('Delivery progress') }}" value="{{ $progress['percent'] }}" max="100"></progress>
+        @endif
     </header>
     <div class="grid gap-4 lg:grid-cols-2">
         @foreach ($fields as $group => $rows)

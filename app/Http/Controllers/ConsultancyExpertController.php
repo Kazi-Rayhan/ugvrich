@@ -178,10 +178,10 @@ class ConsultancyExpertController extends Controller
     {
         $expert = $this->application($request, signed: true);
         $data = $request->validate(['status' => ['required', Rule::in(array_keys(OrderDelivery::TASK_STATUSES))]]);
-        $delivery->moveTask($order, $expert, $milestone, $task, $data['status']);
+        $progress = $delivery->moveTask($order, $expert, $milestone, $task, $data['status']);
 
         if ($request->expectsJson()) {
-            return response()->noContent();
+            return response()->json($progress);
         }
 
         return redirect()->to(route('expert.orders.tasks', $order).'#milestone-'.$milestone)->with('status', 'Task updated.');
