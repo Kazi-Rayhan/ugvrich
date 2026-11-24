@@ -30,7 +30,6 @@
 
     $services = collect($sector['services'])->only((array) $get('services'));
     $attachments = collect($sector['attachments'])->only((array) $get('attachments'));
-    $checklist = collect(config('work_orders.checklist'))->only((array) $get('checklist'));
     $info = (array) $get('info');
     $infoRows = collect($sector['info'])->filter(fn ($row) => collect($row[1])->contains(
         fn ($part) => match ($part[0]) {
@@ -39,7 +38,9 @@
             default => false,
         },
     ));
-    $stages = collect($sector['stages'])->filter(fn ($stage, $i) => filled($get("stage_dates.{$i}")));
+    $interimMilestone = $get('interim_milestone');
+    $stages = collect($sector['stages'])->filter(fn ($stage, $i) => filled($get("stage_dates.{$i}"))
+        || (filled($interimMilestone) && (string) $interimMilestone === (string) $i));
     $fees = collect(config('work_orders.fee_lines'))->filter(fn ($label, $i) => collect(
         $get("fees.{$i}"),
     )->contains(fn ($value) => filled($value)));
@@ -163,10 +164,6 @@
 
         .signs td { width: 50%; background: var(--tint-2); padding: 5px 10px; }
         .signs .head-row td { padding: 7px 10px; }
-        .pre-check { color: var(--c); margin-top: 8px; font-family: "Noto Sans Bengali", sans-serif; }
-        .pre-check { font-size: 12.5px; white-space: nowrap; }
-        .pre-check .opt { margin-right: 8px; gap: 4px; }
-        .pre-check .box { border-color: var(--c); }
 
         .foot { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; text-align: center; color: var(--muted); font-size: 12px; font-family: "Noto Serif", "Noto Sans Bengali", serif; }
         .foot b { color: var(--ink); }
@@ -343,7 +340,7 @@
             <table class="grid">
                 <tr class="head-row"><td style="width:28%">কাজের ধাপ</td><td>যাচাই / সিদ্ধান্তের বিষয়</td><td style="width:24%">লক্ষ্য তারিখ</td></tr>
                 @foreach ($stages as $i => [$stage, $check])
-                    <tr><td>{{ $stage }}</td><td>{{ $check }}</td><td class="r">{!! $date($get("stage_dates.{$i}")) !!}</td></tr>
+                    <tr><td>{{ $stage }}</td><td>{{ $check }}</td><td class="r">@if (filled($get("stage_dates.{$i}"))){!! $date($get("stage_dates.{$i}")) !!}@endif</td></tr>
                 @endforeach
             </table>
         @endif
@@ -396,23 +393,25 @@
             <div style="margin-top:6px">টাকার পরিমাণ কথায় (BDT): {!! $fill($words, 'xxl') !!}</div>
         @endif
 
-        @if ($installments->isNotEmpty() || filled($get('payment_due')))
-            <div class="sec"><span class="n">{{ $num(8) }}</span> কিস্তিতে পরিশোধ ও বাণিজ্যিক শর্ত</div>
+        @if ($installments->isNotEmpty())
+            <div class="sec"><span class="n">{{ $num(8) }}</span> কিস্তিতে পরিশোধ</div>
         @endif
         @if ($installments->isNotEmpty())
             <table class="grid">
                 <tr class="head-row"><td style="width:34%">অর্থপ্রদানের ধাপ</td><td style="width:33%">প্রাপ্য / শতাংশ</td><td>প্রমাণ / অনুমোদন</td></tr>
                 @foreach ($installments as $i => $step)
                     <tr>
-                        <td>{{ $step['label'] }}</td>
+                        <td>
+                            {{ $step['label'] }}
+                            @if ($i === 1 && filled($interimMilestone) && isset($sector['stages'][$interimMilestone]))
+                                <br><strong>{{ $sector['stages'][$interimMilestone][0] }}</strong>
+                            @endif
+                        </td>
                         <td><span style="white-space:nowrap">{!! $fill($get("installments.{$i}.percent"), 'xs', true) !!} % / টাকা {!! $money($get("installments.{$i}.amount")) !!}</span></td>
                         <td>{{ $step['proof'] }}</td>
                     </tr>
                 @endforeach
             </table>
-        @endif
-        @if (filled($get('payment_due')))
-            <div class="note">মূল্যপ্রস্তাবের মেয়াদ / বিল পরিশোধের সময়: {!! $fill($get('payment_due'), 'lg') !!} &nbsp;•&nbsp; পরিশোধের মাধ্যম ও প্রাপক অনুমোদিত চালান অনুযায়ী।</div>
         @endif
 
         <div class="kicker">প্রশাসন ও অনুমোদন</div>
@@ -476,14 +475,6 @@
             <div class="note" style="margin-top:6px">
                 অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে): {!! $fill($get('tech_approval'), 'xl') !!}
                 &nbsp; তারিখ: {!! filled($get('tech_approval_date')) ? $date($get('tech_approval_date')) : '<span class="blank w-md"></span>' !!}
-            </div>
-        @endif
-        @if ($checklist->isNotEmpty())
-            <div class="pre-check">
-                ইস্যুর আগে যাচাই &nbsp;
-                @foreach ($checklist as $label)
-                    {!! $box(true, $label) !!}
-                @endforeach
             </div>
         @endif
     </div>

@@ -109,6 +109,12 @@ class CreateProposal extends CreateRecord
             $this->workOrderData = $data['work_order'];
         }
 
+        if ($this->startsFromWorkOrders) {
+            $data['delivery_timeline'] = Proposal::deliveryTimelineForDates($data['issue_date'], $data['valid_until'] ?? null);
+            $this->workOrderData['details']['start_date'] = $data['issue_date'];
+            $this->workOrderData['details']['end_date'] = $data['valid_until'] ?? null;
+        }
+
         $client = $this->startsFromWorkOrders ? $data['work_order'] : $data;
         $mode = $client['client_mode'] ?? 'existing';
         unset($data['client_mode'], $data['new_client'], $data['create_work_order'], $data['work_order']);

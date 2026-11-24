@@ -23,12 +23,14 @@ use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\StateCasts\OptionsArrayStateCast;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
+use Locale;
 
 /**
  * The work order form, in the order and wording of the printed form
@@ -56,9 +58,10 @@ class WorkOrderForm
         array $clientFields = [],
         bool|Closure $canEdit = true,
         bool $useCategoryLabels = false,
+        bool $includeSchedule = true,
     ): array {
         [$scope, $requirements] = self::scopeAndInfo();
-        [$deliverables, $schedule] = self::deliveryAndSchedule();
+        $deliverables = self::deliverables();
         [$conditions, $generalTerms, $attachments] = self::conditionsAndAttachments();
         [$approval] = self::approval();
 
@@ -105,7 +108,7 @@ class WorkOrderForm
                     $requirements->heading($useCategoryLabels ? 'Category requirements' : 'Sector requirements')
                         ->visible(fn (Get $get) => filled($get('sector')))
                         ->collapsible(),
-                    $schedule->heading('Milestones and schedule')->collapsible(),
+                    ...($includeSchedule ? [self::schedule()] : []),
                 ],
             ],
             [
@@ -123,7 +126,7 @@ class WorkOrderForm
                 'icon' => 'heroicon-o-clipboard-document-check',
                 'schema' => [
                     $attachments->heading('Attachments')->collapsible(),
-                    $approval->heading('Signatories and pre-issue checks')->collapsible(),
+                    $approval->heading('Signatories and approvals')->collapsible(),
                     Section::make('Bangla print previews')
                         ->description('Review the deliverables, service conditions, and standard terms as they appear on the printed form.')
                         ->schema([$deliverables->collapsed(false), $conditions, $generalTerms->collapsed(false)])
@@ -142,10 +145,13 @@ class WorkOrderForm
             ->required($required)
             ->native(false)
             ->live()
-            ->afterStateUpdated($useCategoryLabels ? function ($state, Get $get, Set $set): void {
-                $set('details.services', []);
-                self::syncProposalPricing($state, [], $get, $set);
-            } : null)
+            ->afterStateUpdated(function ($state, Get $get, Set $set) use ($useCategoryLabels): void {
+                $set('details.interim_milestone', null);
+                if ($useCategoryLabels) {
+                    $set('details.services', []);
+                    self::syncProposalPricing($state, [], $get, $set);
+                }
+            })
             ->helperText($useCategoryLabels ? null : 'Chooses the form: WO-ICT-01, WO-EEE-01, …');
     }
 
@@ -326,9 +332,10 @@ class WorkOrderForm
             foreach ($parts as $part) {
                 match ($part[0]) {
                     'text' => $caption = rtrim($part[1], ':'),
-                    'field' => $components[] = TextInput::make('details.info.'.$part[1])
+                    'field' => $components[] = ($part[1] === 'languages'
+                        ? self::languageField()
+                        : TextInput::make('details.info.'.$part[1])->maxLength(300))
                         ->label($fieldLabels[$part[1]] ?? $caption ?? $label)
-                        ->maxLength(300)
                         ->columnSpan(in_array($part[2] ?? 'md', ['lg', 'xl'], true) ? 2 : 1),
                     'check' => $components[] = Checkbox::make('details.info.'.$part[1])->label($fieldLabels[$part[1]] ?? $part[2])->inline(),
                 };
@@ -342,41 +349,94 @@ class WorkOrderForm
         })->all();
     }
 
+    protected static function languageField(): Select
+    {
+        return Select::make('details.info.languages')
+            ->multiple()
+            ->searchable()
+            ->preload()
+            ->options(fn ($state) => self::languageOptions() + collect((array) $state)
+                ->filter(fn ($value) => is_string($value) && filled($value))
+                ->mapWithKeys(fn (string $value) => [$value => $value])->all())
+            ->stateCast(new class extends OptionsArrayStateCast
+            {
+                public function set(mixed $state): array
+                {
+                    return parent::set(is_string($state)
+                        ? preg_split('/\s*[,;]\s*/u', trim($state), flags: PREG_SPLIT_NO_EMPTY)
+                        : $state);
+                }
+            })
+            ->dehydrateStateUsing(fn ($state) => filled($state) ? implode(', ', (array) $state) : null)
+            ->createOptionForm([
+                TextInput::make('name')->label('Language name')->required()->maxLength(100)->rules(['not_regex:/[,;]/']),
+            ])
+            ->createOptionUsing(fn (array $data): string => trim($data['name']))
+            ->createOptionModalHeading('Add a language');
+    }
+
+    protected static function languageOptions(): array
+    {
+        // ISO 639-1 language codes. More specific regional or sign languages can be added in the picker.
+        static $options;
+
+        if ($options === null) {
+            $codes = 'aa ab ae af ak am an ar as av ay az ba be bg bh bi bm bn bo br bs ca ce ch co cr cs cu cv cy da de dv dz ee el en eo es et eu fa ff fi fj fo fr fy ga gd gl gn gu gv ha he hi ho hr ht hu hy hz ia id ie ig ii ik io is it iu ja jv ka kg ki kj kk kl km kn ko kr ks ku kv kw ky la lb lg li ln lo lt lu lv mg mh mi mk ml mn mr ms mt my na nb nd ne ng nl nn no nr nv ny oc oj om or os pa pi pl ps pt qu rm rn ro ru rw sa sc sd se sg si sk sl sm sn so sq sr ss st su sv sw ta te tg th ti tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa wo xh yi yo za zh zu';
+            $names = collect(explode(' ', $codes))
+                ->map(fn (string $code) => Locale::getDisplayLanguage($code, 'en'))
+                ->filter()->sort(SORT_NATURAL | SORT_FLAG_CASE);
+            $options = ['Bangla' => 'Bangla (Bengali)', 'English' => 'English']
+                + $names->reject(fn (string $name) => in_array($name, ['Bangla', 'Bengali', 'English'], true))
+                    ->mapWithKeys(fn (string $name) => [$name => $name])->all();
+        }
+
+        return $options;
+    }
+
     /* ------------------------------------------------------------ ০৫–০৬ */
 
-    protected static function deliveryAndSchedule(): array
+    protected static function deliverables(): Section
     {
-        return [
-            Section::make('05 Deliverables and acceptance criteria')
-                ->description('Preview of the approved Bangla print wording.')
-                ->collapsible()
-                ->collapsed()
-                ->schema([
-                    TextEntry::make('deliverables_preview')
-                        ->hiddenLabel()
-                        ->html()
-                        ->state(fn (Get $get) => self::table(
-                            ['Deliverable', 'Minimum contractual output', 'Client acceptance criteria'],
-                            WorkOrder::sector($get('sector'))['deliverables'] ?? [],
-                        )),
-                ]),
+        return Section::make('05 Deliverables and acceptance criteria')
+            ->description('Preview of the approved Bangla print wording.')
+            ->collapsible()
+            ->collapsed()
+            ->schema([
+                TextEntry::make('deliverables_preview')
+                    ->hiddenLabel()
+                    ->html()
+                    ->state(fn (Get $get) => self::table(
+                        ['Deliverable', 'Minimum contractual output', 'Client acceptance criteria'],
+                        WorkOrder::sector($get('sector'))['deliverables'] ?? [],
+                    )),
+            ]);
+    }
 
-            Section::make('06 Milestones and schedule')
-                ->schema([
-                    Group::make(fn (Get $get) => collect(self::sectorText($get('sector'), 'stages', []))
-                        ->map(fn (array $stage, int $i) => DatePicker::make("details.stage_dates.{$i}")
-                            ->label($stage[0])
-                            ->helperText('Verification: '.$stage[1])
-                            ->native(false))
-                        ->all())
-                        ->columns(4),
-                    Grid::make(3)->schema([
-                        DatePicker::make('details.start_date')->label('Start date')->native(false),
-                        DatePicker::make('details.end_date')->label('Estimated completion date')->native(false)->afterOrEqual('details.start_date'),
-                        ToggleButtons::make('details.mode')->label('Delivery mode')->options(config('work_order_admin.modes'))->inline(),
-                    ]),
-                ]),
+    public static function schedule(array $proposalDates = []): Section
+    {
+        $fields = [
+            Group::make(fn (Get $get) => collect(self::sectorText($get('sector'), 'stages', []))
+                ->map(fn (array $stage, int $i) => DatePicker::make("details.stage_dates.{$i}")
+                    ->label($stage[0])
+                    ->helperText('Verification: '.$stage[1])
+                    ->native(false))
+                ->all())
+                ->columns(4),
+            Grid::make(3)->schema([
+                ...($proposalDates === [] ? [
+                    DatePicker::make('details.start_date')->label('Start date')->native(false),
+                    DatePicker::make('details.end_date')->label('Estimated completion date')->native(false)->afterOrEqual('details.start_date'),
+                ] : []),
+                ToggleButtons::make('details.mode')->label('Delivery mode')->options(config('work_order_admin.modes'))->inline(),
+            ]),
         ];
+
+        return Section::make('Milestones and schedule')
+            ->collapsible()
+            ->schema($proposalDates === [] ? $fields : [
+                Grid::make(3)->schema($proposalDates),
+                Group::make($fields)->statePath('work_order'),
+            ]);
     }
 
     /* ------------------------------------------------------------ ০৭–০৮ */
@@ -417,8 +477,20 @@ class WorkOrderForm
 
     protected static function installmentsSection(): Section
     {
-        return Section::make('Installments and payment terms')
+        return Section::make('Installments')
             ->schema([
+                Select::make('details.interim_milestone')
+                    ->label('Milestone for the second installment')
+                    ->options(fn (Get $get) => collect(self::sectorText($get('sector'), 'stages', []))
+                        ->map(function (array $stage, int $index) use ($get): string {
+                            $date = $get("details.stage_dates.{$index}");
+
+                            return filled($date) ? "{$stage[0]} ({$date})" : $stage[0];
+                        })->all())
+                    ->visible(fn (Get $get) => filled($get('sector')))
+                    ->native(false)
+                    ->helperText('The second installment is due after the client approves the selected milestone.')
+                    ->columnSpanFull(),
                 Grid::make(3)->schema(collect(config('work_order_admin.payment_steps'))
                     ->map(fn (array $step, int $i) => TextInput::make("details.installments.{$i}.percent")
                         ->label($step['label'])
@@ -428,10 +500,6 @@ class WorkOrderForm
                         ->maxValue(100)
                         ->suffix('%'))
                     ->all()),
-                TextInput::make('details.payment_due')
-                    ->label('Quotation validity / payment deadline')
-                    ->placeholder('e.g. within 7 days of receiving the invoice')
-                    ->maxLength(200),
             ]);
     }
 
@@ -526,11 +594,6 @@ class WorkOrderForm
                         ->label('Additional technical review / project manager approval (if applicable)')
                         ->maxLength(150),
                     DatePicker::make('details.tech_approval_date')->label('Date')->native(false),
-                    CheckboxList::make('details.checklist')
-                        ->label('Pre-issue checklist')
-                        ->options(config('work_order_admin.checklist'))
-                        ->columns(4)
-                        ->columnSpanFull(),
                     Callout::make('Signatures and seals are signed by hand on the printed copy.')
                         ->info()
                         ->columnSpanFull(),

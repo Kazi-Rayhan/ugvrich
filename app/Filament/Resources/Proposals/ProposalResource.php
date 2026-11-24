@@ -94,7 +94,7 @@ class ProposalResource extends Resource
         ]);
     }
 
-    protected static function documentDetails(?string $heading = null): Section
+    protected static function documentDetails(?string $heading = null, bool $includeDates = true): Section
     {
         return Section::make($heading)
             ->columns(3)
@@ -107,23 +107,7 @@ class ProposalResource extends Resource
                     ->maxLength(200)
                     ->columnSpanFull(),
 
-                DatePicker::make('issue_date')
-                    ->label('Proposal date')
-                    ->default(now())
-                    ->required()
-                    ->native(false),
-
-                DatePicker::make('valid_until')
-                    ->label('Valid until')
-                    ->default(now()->addDays(30))
-                    ->afterOrEqual('issue_date')
-                    ->native(false)
-                    ->helperText('The offer stands until this date.'),
-
-                TextInput::make('delivery_timeline')
-                    ->label('Estimated delivery')
-                    ->placeholder('e.g. 6 weeks from start')
-                    ->maxLength(150),
+                ...($includeDates ? self::proposalDateFields() : []),
 
                 Select::make('consultancy_request_id')
                     ->label('Linked consultancy request')
@@ -134,6 +118,37 @@ class ProposalResource extends Resource
                     ->helperText('Optional: the website request this proposal answers.')
                     ->columnSpanFull(),
             ]);
+    }
+
+    protected static function proposalDateFields(bool $automaticDelivery = false): array
+    {
+        return [
+            DatePicker::make('issue_date')
+                ->label('Proposal date')
+                ->default(now())
+                ->required()
+                ->native(false)
+                ->when($automaticDelivery, fn (DatePicker $field) => $field->live()->helperText('Also used as the work order start date.')),
+
+            DatePicker::make('valid_until')
+                ->label('Valid until')
+                ->default(now()->addDays(30))
+                ->afterOrEqual('issue_date')
+                ->native(false)
+                ->when($automaticDelivery, fn (DatePicker $field) => $field->live())
+                ->helperText($automaticDelivery ? 'Also used as the estimated completion date.' : 'The offer stands until this date.'),
+
+            $automaticDelivery
+                ? TextEntry::make('delivery_timeline')
+                    ->label('Estimated delivery')
+                    ->state(fn (Get $get) => Proposal::deliveryTimelineForDates($get('issue_date'), $get('valid_until')))
+                    ->placeholder('Set both dates')
+                    ->helperText('Calendar days from the proposal date to the valid-until date.')
+                : TextInput::make('delivery_timeline')
+                    ->label('Estimated delivery')
+                    ->placeholder('e.g. 6 weeks from start')
+                    ->maxLength(150),
+        ];
     }
 
     protected static function editClientField(): Select
@@ -241,13 +256,15 @@ class ProposalResource extends Resource
             ],
             [
                 'title' => 'Terms & review',
-                'description' => 'Payment terms, then check',
+                'description' => 'Terms and final review',
                 'icon' => 'heroicon-o-check-badge',
                 'schema' => [
                     Section::make('Terms')
                         ->columns(2)
                         ->schema([
                             Textarea::make('payment_terms')
+                                ->visible(fn ($livewire) => ! $workOrderFirst
+                                    && (! ($livewire instanceof EditProposal) || $livewire->workOrderId === null))
                                 ->rows(4)
                                 ->placeholder("e.g. 50% advance on signing\n50% on delivery"),
                             Textarea::make('terms')
@@ -333,6 +350,7 @@ class ProposalResource extends Resource
             clientFields: $creating ? self::newDocumentClientFields(autoFillWorkOrder: true) : [self::editClientField()],
             canEdit: $creating ? true : fn (EditProposal $livewire) => $livewire->canManageWorkOrder(),
             useCategoryLabels: $creating,
+            includeSchedule: ! $creating,
         );
 
         foreach ($parts as &$part) {
@@ -341,7 +359,8 @@ class ProposalResource extends Resource
         unset($part);
 
         if ($creating) {
-            $parts[0]['schema'][] = self::documentDetails('Document details');
+            $parts[0]['schema'][] = self::documentDetails('Document details', includeDates: false);
+            $parts[1]['schema'][] = WorkOrderForm::schedule(self::proposalDateFields(automaticDelivery: true));
 
             return $parts;
         }

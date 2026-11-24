@@ -183,7 +183,10 @@ class SalesDocumentCreationTest extends TestCase
                     ],
                 ],
             ])
-            ->set('data.work_order.details.services', ['website']);
+            ->set('data.work_order.details.services', ['website'])
+            ->assertSee('30 days')
+            ->set('data.valid_until', '2026-12-11')
+            ->assertSee('21 days');
         $itemKey = array_key_first($form->get('data.items'));
         $form->set("data.items.{$itemKey}.unit_price", 100)
             ->set("data.items.{$itemKey}.discount", '')
@@ -196,6 +199,7 @@ class SalesDocumentCreationTest extends TestCase
         $workOrder = WorkOrder::sole();
 
         $proposal = Proposal::sole();
+        $this->assertSame('21 days', $proposal->delivery_timeline);
         $this->assertEquals(0, $proposal->extra_discount);
         $this->assertEquals(0, $proposal->tax_rate);
         $this->assertEquals(0, $proposal->items()->sole()->discount);
@@ -301,7 +305,6 @@ class SalesDocumentCreationTest extends TestCase
                 'title' => 'Site assessment',
                 'issue_date' => '2026-11-20',
                 'valid_until' => '2026-12-20',
-                'payment_terms' => 'Payment on delivery',
             ])
             ->call('create')
             ->assertHasErrors(['data.work_order.sector']);
@@ -325,8 +328,8 @@ class SalesDocumentCreationTest extends TestCase
                 'sector' => $sector,
                 'details' => [
                     'coordinator' => 'Project coordinator',
-                    'start_date' => '2026-12-01',
-                    'end_date' => '2026-12-12',
+                    'stage_dates' => ['2026-12-01'],
+                    'mode' => 'online',
                     'rich_signatory' => 'Office lead',
                     'installments' => [['percent' => 65]],
                 ],
@@ -334,7 +337,9 @@ class SalesDocumentCreationTest extends TestCase
         ]);
 
         $form->set('data.work_order.sector', $sector)
-            ->set('data.work_order.details.services', ['website']);
+            ->set('data.work_order.details.services', ['website'])
+            ->set('data.work_order.details.info.languages', ['Bangla', 'English', 'Japanese'])
+            ->set('data.work_order.details.interim_milestone', '0');
 
         $itemKey = array_key_first($form->get('data.items'));
         $form->assertSet("data.items.{$itemKey}.service_name", 'Institutional website development')
@@ -358,20 +363,31 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertSame(19000, Money::toMinor($workOrder->total));
         $this->assertSame($proposal->number, $workOrder->detail('quotation_number'));
         $this->assertStringContainsString('Institutional website development', $workOrder->detail('included'));
-        $this->assertSame('Payment on delivery', $workOrder->detail('payment_due'));
+        $this->assertNull($proposal->payment_terms);
         $this->assertSame('Project coordinator', $workOrder->detail('coordinator'));
-        $this->assertSame('2026-12-12', $workOrder->detail('end_date'));
+        $this->assertSame('2026-11-20', $workOrder->detail('start_date'));
+        $this->assertSame('2026-12-20', $workOrder->detail('end_date'));
+        $this->assertSame('2026-12-01', $workOrder->detail('stage_dates.0'));
+        $this->assertSame('online', $workOrder->detail('mode'));
+        $this->assertSame('Bangla, English, Japanese', $workOrder->detail('info.languages'));
         $this->assertSame('Office lead', $workOrder->detail('rich_signatory'));
         $this->assertEquals(65, $workOrder->detail('installments.0.percent'));
         $this->assertEquals(30, $workOrder->detail('installments.1.percent'));
+        $this->assertSame('0', (string) $workOrder->detail('interim_milestone'));
         $editUrl = '/admin/proposals/'.$proposal->id.'/edit?work_order='.$workOrder->id;
         $form->assertRedirect($editUrl);
+        $this->get(route('sales.work-orders.print', $workOrder))
+            ->assertOk()
+            ->assertSeeInOrder([
+                config('work_orders.payment_steps.1.label'),
+                WorkOrder::sector($sector)['stages'][0][0],
+            ]);
         $this->get('/admin/work-orders')->assertOk()->assertSee($editUrl);
         $this->get($editUrl)->assertOk()->assertSee('Work order PDF')->assertDontSee('07 Fees and payment approval');
         $this->get(WorkOrderResource::getUrl('edit', ['record' => $workOrder]))
             ->assertOk()
             ->assertSeeInOrder(['Work order', 'Scope & schedule', 'Payments', 'Work order review'])
-            ->assertSeeInOrder(['Contracting parties', 'Work order template', 'Installments and payment terms'])
+            ->assertSeeInOrder(['Contracting parties', 'Work order template', 'Installments'])
             ->assertDontSee('01-02 Parties and services');
 
         $editPage = $this->get('/admin/proposals/'.$proposal->id.'/edit')->assertOk();
@@ -380,7 +396,8 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee('Document details')
             ->assertSee('Proposal title')
             ->assertDontSee('07 Fees and payment approval')
-            ->assertSee('Installments and payment terms');
+            ->assertSee('Installments')
+            ->assertDontSee('Payment terms');
         $this->assertDoesNotMatchRegularExpression('/class="fi-tabs-item-label">\s*(Client|Proposal)\s*<\/span>/', $editPage->getContent());
         $editPage->assertSee('Work order template')
             ->assertSee('First Party (Client)')
@@ -388,14 +405,18 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee('Consultancy services')
             ->assertSee('Institutional website development')
             ->assertSee('Deployment environment')
+            ->assertDontSee('Integrations and data')
+            ->assertDontSee('Domain, hosting, licensing, and equipment ownership')
+            ->assertDontSee('Security baseline')
             ->assertSee('Requirements assessment')
             ->assertSee('Approved requirements / statement of work')
-            ->assertSee('Pre-issue checklist')
+            ->assertDontSee('Pre-issue checklist')
             ->assertSee('Bangla print previews');
 
         $workOrder->update(['status' => 'issued']);
 
         Livewire::test(EditProposal::class, ['record' => $proposal->id])
+            ->assertSet('data.work_order.details.info.languages', ['Bangla', 'English', 'Japanese'])
             ->assertSet('data.work_order.details.client.name', 'Example Client')
             ->assertSet('data.work_order.details.coordinator', 'Project coordinator')
             ->callAction(TestAction::make('createOption')->schemaComponent('work_order.client_id', 'form'), data: [
@@ -422,7 +443,7 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertSame('New client contact', $workOrder->fresh()->detail('client.contact'));
         $this->assertSame('issued', $workOrder->fresh()->status);
         $this->assertSame(19000, Money::toMinor($workOrder->fresh()->total));
-        $this->assertSame('2026-12-12', $workOrder->fresh()->detail('end_date'));
+        $this->assertSame('2026-12-20', $workOrder->fresh()->detail('end_date'));
 
         Livewire::test(EditProposal::class, ['record' => $proposal->id])
             ->callAction('confirmWorkOrder');

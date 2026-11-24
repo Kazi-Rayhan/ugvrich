@@ -14,14 +14,8 @@ return [
     ],
     'payment_steps' => [
         ['label' => 'On acceptance / at the start of work', 'proof' => 'Signed work order / invoice'],
-        ['label' => 'After approval of the interim milestone', 'proof' => 'Progress or delivery approval'],
+        ['label' => 'After approval of the selected milestone', 'proof' => 'Progress or delivery approval'],
         ['label' => 'After final acceptance and handover', 'proof' => 'Final acceptance letter / invoice'],
-    ],
-    'checklist' => [
-        'scope' => 'Scope defined',
-        'price' => 'Price approved',
-        'attachments' => 'Attachments included',
-        'security' => 'Required security and privacy checks completed',
     ],
     'sectors' => [
         'ict' => [
@@ -35,15 +29,11 @@ return [
             ],
             'info_groups' => [
                 'Deployment environment', 'System / platform', 'Users and access',
-                'Integrations and data', 'Infrastructure', 'Security baseline',
             ],
             'info_labels' => [
                 'env_cloud' => 'Cloud', 'env_own' => 'Own server', 'env_hybrid' => 'Hybrid', 'env_undecided' => 'Undecided',
                 'platform' => 'Web, mobile, CMS, ERP, network, or CCTV',
                 'users' => 'Expected users', 'roles' => 'Roles', 'languages' => 'Languages',
-                'integrations' => 'API, payments, SSO, and legacy data migration',
-                'infrastructure' => 'Domain, hosting, licensing, and equipment ownership',
-                'security' => 'Access, backups, privacy, and authorization to test',
             ],
             'stages' => [
                 ['Requirements assessment', 'Finalize the requirements baseline'],

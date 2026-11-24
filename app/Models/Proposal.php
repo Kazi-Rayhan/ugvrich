@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasSalesLines;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,6 +48,24 @@ class Proposal extends Model
     protected function categoryPivotTable(): string
     {
         return 'proposal_service_category';
+    }
+
+    public static function deliveryTimelineForDates(?string $issueDate, ?string $validUntil): ?string
+    {
+        if (! CarbonImmutable::canBeCreatedFromFormat($issueDate, 'Y-m-d')
+            || ! CarbonImmutable::canBeCreatedFromFormat($validUntil, 'Y-m-d')) {
+            return null;
+        }
+
+        $start = CarbonImmutable::createFromFormat('!Y-m-d', $issueDate);
+        $end = CarbonImmutable::createFromFormat('!Y-m-d', $validUntil);
+        if ($end->lt($start)) {
+            return null;
+        }
+
+        $days = (int) $start->diffInDays($end);
+
+        return $days.' '.($days === 1 ? 'day' : 'days');
     }
 
     /** Still being written or with the client: the only states it can be edited in. */

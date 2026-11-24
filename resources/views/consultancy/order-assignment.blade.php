@@ -49,7 +49,6 @@
             'UGV RICH signature date' => $date($detail('rich_sign_date')),
             'Technical approval' => $detail('tech_approval'),
             'Technical approval date' => $date($detail('tech_approval_date')),
-            'Completed checks' => $selected('checklist', config('work_order_admin.checklist', [])),
         ],
     ];
 
