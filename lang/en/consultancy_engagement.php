@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'profile_design' => [
+        'photo' => 'Public profile photo',
+        'photo_help' => 'Choose a JPG, PNG, or WebP up to 3 MB, then save your profile.',
+        'photo_failed' => 'The photo could not be saved. Please try again.',
+    ],
     'task_board' => [
         'title' => 'Task board',
         'columns' => 'Task columns',

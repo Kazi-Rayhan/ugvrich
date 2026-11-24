@@ -404,6 +404,7 @@ class ConsultancyExpertController extends Controller
             'affiliation_type' => ['sometimes', 'nullable', Rule::in(Application::AFFILIATIONS)],
             'current_job' => ['sometimes', 'nullable', 'string', 'max:150'],
             'linkedin' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
         ]);
 
         $profile = [
@@ -433,15 +434,40 @@ class ConsultancyExpertController extends Controller
             }
         }
 
-        DB::transaction(function () use ($application, $data, $profile) {
-            $application->update([
-                'phone' => $data['phone'],
-                'location' => $data['location'],
-            ]);
-            $application->expert()->firstOrFail()->update($profile);
-        });
+        $photoPath = null;
+        if ($photo = $data['profile_photo'] ?? null) {
+            $photoPath = $photo->store("experts/profile-photos/{$application->id}", 'public');
+            if (! $photoPath) {
+                return back()->withInput()->withErrors(['profile_photo' => __('consultancy_engagement.profile_design.photo_failed')]);
+            }
+            $profile['photo'] = $photoPath;
+        }
 
-        return back()->with('status', __('consultancy_engagement.saved'));
+        try {
+            $previousPhoto = DB::transaction(function () use ($application, $data, $profile) {
+                $application->update([
+                    'phone' => $data['phone'],
+                    'location' => $data['location'],
+                ]);
+                $expert = $application->expert()->lockForUpdate()->firstOrFail();
+                $previousPhoto = $expert->photo;
+                $expert->update($profile);
+
+                return $previousPhoto;
+            });
+        } catch (Throwable $exception) {
+            if ($photoPath) {
+                Storage::disk('public')->delete($photoPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($photoPath && $photoPath !== $previousPhoto && Str::startsWith($previousPhoto ?? '', "experts/profile-photos/{$application->id}/")) {
+            Storage::disk('public')->delete($previousPhoto);
+        }
+
+        return back()->withFragment('edit-profile')->with('status', __('consultancy_engagement.saved'));
     }
 
     public function upload(Request $request)

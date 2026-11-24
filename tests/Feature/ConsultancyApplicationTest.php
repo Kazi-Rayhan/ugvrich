@@ -234,7 +234,8 @@ class ConsultancyApplicationTest extends TestCase
         $this->get('/en/expert/dashboard/profile')->assertOk()
             ->assertSee('Research Assistant')->assertSee('2020-01-01')->assertSee('2021-12-31')
             ->assertSee('BSc')->assertSee('2022 to present')->assertSee('Planning')->assertSee('expert@example.org')
-            ->assertSee('Areas of expertise')->assertSee('data-editor', false);
+            ->assertSee('Areas of expertise')->assertSee('data-editor', false)
+            ->assertSee('Public profile photo')->assertSee('enctype="multipart/form-data"', false);
         $this->get('/expert/dashboard/portfolio')->assertOk();
         $this->get('/en/expert/dashboard/contract')->assertOk()->assertSee('Scope of work')->assertSee('12.50%');
 
@@ -248,13 +249,17 @@ class ConsultancyApplicationTest extends TestCase
             'department' => 'Engineering',
             'current_job' => 'Gridworks',
             'research_interests' => 'Reliable infrastructure',
+            'profile_photo' => UploadedFile::fake()->image('portrait.png', 160, 160),
         ])->assertRedirect();
         $expert = $application->expert()->sole();
         $this->assertSame('Updated Expert', $expert->name);
+        Storage::disk('public')->assertExists($expert->photo);
+        $this->assertStringStartsWith('experts/profile-photos/'.$application->id.'/', $expert->photo);
         $this->assertSame(['Systems design', 'Automation'], $expert->expertise);
         $this->assertSame(['Documentation', 'Mentoring'], $expert->professional_skills);
         $this->assertStringNotContainsString('style=', $expert->bio_html);
         $this->get('/en/experts/'.$expert->slug)->assertOk()
+            ->assertSee(Storage::disk('public')->url($expert->photo))
             ->assertSee('<strong>Public biography</strong>', false)->assertSee('Mentoring')
             ->assertSee('Gridworks')->assertSee('External')->assertDontSee('Reliable infrastructure')
             ->assertDontSee('expert@example.org')->assertDontSee('1234567');
