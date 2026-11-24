@@ -102,6 +102,8 @@ class OrderDeliveryTest extends TestCase
 
         $this->actingAs(User::findOrFail($first->user_id))->get('/en/expert/dashboard')
             ->assertOk()
+            ->assertSeeInOrder(['expert-mobile-nav"', 'Overview', 'Assignments', 'Profile', 'Portfolio', 'popovertarget="expert-mobile-menu"'], escape: false)
+            ->assertSee('id="expert-mobile-menu" popover', escape: false)
             ->assertSee('Tasks by status')
             ->assertSee('1 of 2 milestones completed')
             ->assertSee('value="100"', escape: false)

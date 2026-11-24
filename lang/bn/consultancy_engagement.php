@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'mobile_nav' => [
+        'overview' => 'ওভারভিউ',
+        'assignments' => 'অ্যাসাইনমেন্ট',
+        'profile' => 'প্রোফাইল',
+        'portfolio' => 'পোর্টফোলিও',
+        'onboarding_nav' => 'অনবোর্ডিং',
+        'menu' => 'মেনু',
+        'close' => 'মেনু বন্ধ করুন',
+    ],
     'dashboard_ui' => [
         'tasks' => 'নির্ধারিত কাজ',
         'completed_milestones' => 'সম্পন্ন মাইলফলক',

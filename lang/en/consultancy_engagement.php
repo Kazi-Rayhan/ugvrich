@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'mobile_nav' => [
+        'overview' => 'Overview',
+        'assignments' => 'Assignments',
+        'profile' => 'Profile',
+        'portfolio' => 'Portfolio',
+        'onboarding_nav' => 'Onboarding',
+        'menu' => 'Menu',
+        'close' => 'Close menu',
+    ],
     'dashboard_ui' => [
         'tasks' => 'Scheduled tasks',
         'completed_milestones' => 'Milestones completed',
