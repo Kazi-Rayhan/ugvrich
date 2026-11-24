@@ -126,6 +126,11 @@ class Order extends Model
         return $this->belongsTo(Proposal::class);
     }
 
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(WorkOrder::class);
+    }
+
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');

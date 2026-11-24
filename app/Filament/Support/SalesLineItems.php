@@ -47,12 +47,15 @@ class SalesLineItems
             ->columnSpanFull();
     }
 
-    public static function items(bool $locked = false): Repeater
+    public static function items(bool $locked = false, bool $pricingOnly = false): Repeater
     {
         return Repeater::make('items')
             ->relationship()
             ->orderColumn('sort')
-            ->label('Services')
+            ->label($pricingOnly ? 'Pricing per subcategory' : 'Services')
+            ->addable(! $pricingOnly)
+            ->deletable(! $pricingOnly)
+            ->defaultItems($pricingOnly ? 0 : 1)
             ->addActionLabel('Add a service')
             ->minItems(1)
             ->required()
@@ -63,6 +66,7 @@ class SalesLineItems
             ->schema([
                 Grid::make(12)->schema([
                     Select::make('service_id')
+                        ->hidden($pricingOnly)
                         ->label('Service')
                         ->options(fn (Get $get) => self::serviceOptions((array) $get('../../categories')))
                         ->searchable()
@@ -90,7 +94,8 @@ class SalesLineItems
                         ->columnSpan(6),
 
                     TextInput::make('service_name')
-                        ->label('Name on the proposal')
+                        ->label($pricingOnly ? 'Subcategory' : 'Name on the proposal')
+                        ->readOnly($pricingOnly)
                         ->required()
                         ->maxLength(200)
                         ->columnSpan(6),
@@ -126,6 +131,7 @@ class SalesLineItems
                         ->minValue(0)
                         ->step('0.01')
                         ->default(0)
+                        ->dehydrateStateUsing(fn ($state) => blank($state) ? 0 : $state)
                         ->prefix(Money::CURRENCY)
                         ->live(onBlur: true)
                         ->columnSpan(3),
@@ -154,6 +160,7 @@ class SalesLineItems
                     ->minValue(0)
                     ->step('0.01')
                     ->default(0)
+                    ->dehydrateStateUsing(fn ($state) => blank($state) ? 0 : $state)
                     ->prefix(Money::CURRENCY)
                     ->disabled($locked)
                     ->live(onBlur: true),
@@ -165,6 +172,7 @@ class SalesLineItems
                     ->maxValue(100)
                     ->step('0.01')
                     ->default(0)
+                    ->dehydrateStateUsing(fn ($state) => blank($state) ? 0 : $state)
                     ->suffix('%')
                     ->disabled($locked)
                     ->live(onBlur: true),

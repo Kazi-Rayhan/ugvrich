@@ -8,10 +8,13 @@ use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\Proposals\ProposalResource;
+use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Filament\Support\SalesConditions;
 use App\Filament\Support\SalesLineItems;
 use App\Models\Client;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\WorkOrder;
 use App\Models\User;
 use App\Support\Money;
 use BackedEnum;
@@ -21,8 +24,10 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -52,7 +57,8 @@ class OrderResource extends Resource
     /** Only an order with no payments, and not made from a proposal, can be removed; others are cancelled. */
     public static function canDelete(Model $record): bool
     {
-        return $record->proposal_id === null && ! $record->payments()->exists() && parent::canDelete($record);
+        return $record->proposal_id === null && $record->work_order_id === null
+            && ! $record->payments()->exists() && parent::canDelete($record);
     }
 
     public static function form(Schema $schema): Schema
@@ -118,90 +124,123 @@ class OrderResource extends Resource
         ]);
     }
 
+    public static function paymentSummary(): Section
+    {
+        $money = fn (string $field, string $label) => TextEntry::make($field)
+            ->label($label)
+            ->formatStateUsing(fn ($state) => Money::format($state))
+            ->size('lg')
+            ->weight('bold');
+
+        return Section::make('Payment summary')
+            ->icon('heroicon-o-banknotes')
+            ->columns(['sm' => 2, 'lg' => 4])
+            ->schema([
+                $money('amount_outstanding', 'Balance due')
+                    ->color(fn (Order $record) => $record->outstandingMinor() > 0 ? 'warning' : 'success'),
+                $money('total', 'Order total'),
+                $money('amount_paid', 'Payments received'),
+                TextEntry::make('payment_status')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => Order::PAYMENT_STATUSES[$state] ?? $state)
+                    ->color(fn (string $state) => Order::PAYMENT_STATUS_COLORS[$state] ?? 'gray')
+                    ->helperText(function (Order $record): ?string {
+                        $pending = $record->payments->where('status', Payment::PENDING)
+                            ->sum(fn (Payment $payment) => Money::toMinor($payment->amount));
+
+                        return $pending > 0 ? Money::format($pending, true).' awaiting confirmation' : null;
+                    }),
+            ]);
+    }
+
     public static function infolist(Schema $schema): Schema
     {
-        $money = fn (string $label, callable $state) => TextEntry::make(str($label)->snake()->toString())
-            ->label($label)
-            ->state(fn (Order $record) => Money::format($state($record)));
-
         return $schema->components([
-            Section::make()
-                ->columns(4)
-                ->schema([
-                    TextEntry::make('number')->weight('bold')->copyable(),
-                    TextEntry::make('status')
-                        ->label('Work status')
-                        ->badge()
-                        ->formatStateUsing(fn (string $state) => Order::STATUSES[$state] ?? $state)
-                        ->color(fn (string $state) => Order::STATUS_COLORS[$state] ?? 'gray'),
-                    TextEntry::make('payment_status')
-                        ->label('Payment status')
-                        ->badge()
-                        ->formatStateUsing(fn (string $state) => Order::PAYMENT_STATUSES[$state] ?? $state)
-                        ->color(fn (string $state) => Order::PAYMENT_STATUS_COLORS[$state] ?? 'gray'),
-                    TextEntry::make('assignee.name')->label('Responsible staff')->placeholder('Not assigned'),
-                    TextEntry::make('order_date')->label('Order date')->date('j M Y'),
-                    TextEntry::make('expected_delivery_date')->label('Expected delivery')->date('j M Y')->placeholder('—'),
-                    TextEntry::make('proposal.number')
-                        ->label('From proposal')
-                        ->placeholder('Entered directly')
-                        ->url(fn (Order $record) => $record->proposal ? ProposalResource::getUrl('view', ['record' => $record->proposal]) : null),
-                    TextEntry::make('proposal.title')->label('Proposal title')->placeholder('—'),
-                ]),
+            Grid::make(['lg' => 2])->schema([
+                Section::make('Order details')
+                    ->icon('heroicon-o-clipboard-document-list')
+                    ->columns(['sm' => 2])
+                    ->schema([
+                        TextEntry::make('status')
+                            ->label('Work status')
+                            ->badge()
+                            ->formatStateUsing(fn (string $state) => Order::STATUSES[$state] ?? $state)
+                            ->color(fn (string $state) => Order::STATUS_COLORS[$state] ?? 'gray'),
+                        TextEntry::make('assignee.name')->label('Assigned to')->placeholder('Unassigned'),
+                        TextEntry::make('order_date')->label('Order date')->date('j M Y'),
+                        TextEntry::make('expected_delivery_date')->label('Expected delivery')->date('j M Y')->placeholder('Unscheduled'),
+                        TextEntry::make('workOrder.number')
+                            ->label('Work order')
+                            ->visible(fn (Order $record) => $record->work_order_id !== null)
+                            ->url(fn (Order $record) => $record->workOrder && WorkOrder::sector($record->workOrder->sector) !== []
+                                && WorkOrderResource::canView($record->workOrder)
+                                ? route('sales.work-orders.print', $record->workOrder)
+                                : null),
+                        TextEntry::make('proposal.number')
+                            ->label('Proposal')
+                            ->visible(fn (Order $record) => $record->proposal_id !== null)
+                            ->helperText(fn (Order $record) => $record->proposal?->title)
+                            ->url(fn (Order $record) => $record->proposal && ProposalResource::canView($record->proposal)
+                                ? ProposalResource::getUrl('view', ['record' => $record->proposal])
+                                : null),
+                    ]),
+                Section::make('Client')
+                    ->icon('heroicon-o-user')
+                    ->columns(['sm' => 2])
+                    ->schema([
+                        TextEntry::make('client.name')->label('Name'),
+                        TextEntry::make('client.organization')->label('Organization')
+                            ->visible(fn (Order $record) => filled($record->client?->organization)),
+                        TextEntry::make('client.phone')->label('Phone')->copyable()
+                            ->visible(fn (Order $record) => filled($record->client?->phone)),
+                        TextEntry::make('client.email')->label('Email')->copyable()
+                            ->visible(fn (Order $record) => filled($record->client?->email)),
+                        TextEntry::make('client.address')->label('Billing address')->columnSpanFull()
+                            ->visible(fn (Order $record) => filled($record->client?->address)),
+                    ]),
+            ]),
 
-            Section::make('Money')
-                ->columns(4)
+            Section::make('Itemized charges')
+                ->icon('heroicon-o-list-bullet')
                 ->schema([
-                    $money('Order total', fn (Order $o) => $o->total)->weight('bold'),
-                    $money('Paid (confirmed)', fn (Order $o) => $o->amount_paid)->color('success'),
-                    $money('Outstanding', fn (Order $o) => $o->amount_outstanding)
-                        ->color(fn (Order $record) => $record->outstandingMinor() > 0 ? 'danger' : 'success')
-                        ->weight('bold'),
-                    TextEntry::make('pending_note')
-                        ->label('Awaiting confirmation')
-                        ->state(fn (Order $record) => Money::format(
-                            $record->payments->where('status', 'pending')->sum(fn ($p) => Money::toMinor($p->amount)),
-                            true,
-                        )),
-                ]),
-
-            Section::make('Client')
-                ->columns(4)
-                ->schema([
-                    TextEntry::make('client.name')->label('Name'),
-                    TextEntry::make('client.organization')->label('Organization')->placeholder('—'),
-                    TextEntry::make('client.phone')->label('Phone')->placeholder('—')->copyable(),
-                    TextEntry::make('client.email')->label('Email')->placeholder('—')->copyable(),
-                ]),
-
-            Section::make('Services and agreed prices')
-                ->schema([
-                    TextEntry::make('categories.name')->label('Categories')->badge(),
+                    TextEntry::make('categories.name')->label('Categories')->badge()
+                        ->visible(fn (Order $record) => $record->categories->isNotEmpty()),
                     RepeatableEntry::make('items')
                         ->hiddenLabel()
-                        ->columns(6)
+                        ->placeholder('No charges recorded')
+                        ->table([
+                            TableColumn::make('Service'),
+                            TableColumn::make('Qty')->alignEnd(),
+                            TableColumn::make('Unit price')->alignEnd(),
+                            TableColumn::make('Discount')->alignEnd(),
+                            TableColumn::make('Line total')->alignEnd(),
+                        ])
                         ->schema([
-                            TextEntry::make('service_name')->label('Service')->columnSpan(2)
+                            TextEntry::make('service_name')->weight('medium')
                                 ->helperText(fn ($record) => $record->description),
-                            TextEntry::make('quantity')->label('Qty'),
-                            TextEntry::make('unit_price')->label('Unit price')->formatStateUsing(fn ($state) => Money::format($state)),
-                            TextEntry::make('discount')->label('Discount')->formatStateUsing(fn ($state) => Money::format($state)),
-                            TextEntry::make('line_total')->label('Line total')->weight('bold')->formatStateUsing(fn ($state) => Money::format($state)),
+                            TextEntry::make('quantity')->alignEnd(),
+                            TextEntry::make('unit_price')->alignEnd()->formatStateUsing(fn ($state) => Money::format($state)),
+                            TextEntry::make('discount')->alignEnd()->formatStateUsing(fn ($state) => Money::format($state)),
+                            TextEntry::make('line_total')->alignEnd()->weight('bold')->formatStateUsing(fn ($state) => Money::format($state)),
                         ]),
+                    Grid::make(['sm' => 3])->schema([
+                        TextEntry::make('subtotal')->formatStateUsing(fn ($state) => Money::format($state)),
+                        TextEntry::make('discount_total')->label('Discounts')->formatStateUsing(fn ($state) => Money::format($state)),
+                        TextEntry::make('tax_amount')->label('Tax / VAT')->formatStateUsing(fn ($state) => Money::format($state)),
+                    ]),
                 ]),
 
-            SalesConditions::section(),
-
-            ProposalResource::figures(),
+            SalesConditions::section()->collapsible()->collapsed(),
 
             Section::make('Terms and notes')
-                ->columns(3)
+                ->icon('heroicon-o-document-text')
                 ->collapsible()
                 ->collapsed()
+                ->visible(fn (Order $record) => filled($record->payment_terms) || filled($record->terms) || filled($record->notes))
                 ->schema([
-                    TextEntry::make('payment_terms')->placeholder('—'),
-                    TextEntry::make('terms')->label('Terms and conditions')->placeholder('—'),
-                    TextEntry::make('notes')->label('Internal notes')->placeholder('—'),
+                    TextEntry::make('payment_terms')->visible(fn (Order $record) => filled($record->payment_terms)),
+                    TextEntry::make('terms')->label('Terms and conditions')->visible(fn (Order $record) => filled($record->terms)),
+                    TextEntry::make('notes')->label('Internal notes')->visible(fn (Order $record) => filled($record->notes)),
                 ]),
         ]);
     }
@@ -282,7 +321,7 @@ class OrderResource extends Resource
 
     public static function getRelations(): array
     {
-        return [PaymentsRelationManager::class];
+        return ['payments' => PaymentsRelationManager::class];
     }
 
     public static function getGloballySearchableAttributes(): array

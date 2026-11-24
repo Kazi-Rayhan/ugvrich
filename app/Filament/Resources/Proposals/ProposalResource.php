@@ -83,29 +83,10 @@ class ProposalResource extends Resource
                 ->persistTabInQueryString()
                 ->columnSpanFull()
                 ->tabs([
-                    Tab::make('Work order')
-                        ->icon('heroicon-o-clipboard-document-check')
-                        ->visible(fn ($livewire) => $livewire instanceof EditProposal)
-                        ->schema([
-                            TextEntry::make('work_order_number')
-                                ->label('Linked work order')
-                                ->state(fn (EditProposal $livewire) => $livewire->getLinkedWorkOrder()?->number)
-                                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() !== null),
-                            Callout::make('Choose a sector to create a linked work order when you save.')
-                                ->info()
-                                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() === null),
-                            self::documentDetails('Document details')
-                                ->icon('heroicon-o-document-text')
-                                ->description('Set the title, issue date, and validity used on the proposal.')
-                                ->collapsible(),
-                            Group::make(WorkOrderForm::linkedFields(
-                                requireSector: fn (EditProposal $livewire) => $livewire->workOrderId !== null,
-                                clientFields: [self::editClientField()],
-                                canEdit: fn (EditProposal $livewire) => $livewire->canManageWorkOrder(),
-                            ))
-                                ->statePath('work_order')
-                                ->columnSpanFull(),
-                        ]),
+                    ...collect(self::workOrderParts())->map(fn (array $part, int $index) => Tab::make($part['title'])
+                        ->icon($part['icon'])
+                        ->visible(fn ($livewire) => $livewire instanceof EditProposal && ($index === 0 || $livewire->canManageWorkOrder()))
+                        ->schema($part['schema']))->all(),
                     ...collect(self::parts())->map(fn (array $part) => Tab::make($part['title'])
                         ->icon($part['icon'])
                         ->schema($part['schema']))->all(),
@@ -191,13 +172,7 @@ class ProposalResource extends Resource
         $parts = self::parts(creating: true, workOrderFirst: $workOrderFirst);
 
         if ($workOrderFirst) {
-            $parts[0]['title'] = 'Work order';
-            $parts[0]['description'] = 'Client, document details, and sector';
-            $parts[0]['icon'] = 'heroicon-o-clipboard-document-check';
-            $parts[0]['schema'] = [
-                self::linkedWorkOrderSection(required: true),
-                self::documentDetails('Document details'),
-            ];
+            array_splice($parts, 0, 1, self::workOrderParts(creating: true));
         }
 
         return collect($parts)
@@ -230,7 +205,16 @@ class ProposalResource extends Resource
                     self::documentDetails(),
                 ],
             ]] : []),
-            [
+            $workOrderFirst ? [
+                'title' => 'Pricing',
+                'description' => 'Set prices for the selected subcategories',
+                'icon' => 'heroicon-o-banknotes',
+                'schema' => [
+                    SalesLineItems::categories()->required(false)->hidden()->saveRelationshipsWhenHidden(),
+                    SalesLineItems::items(pricingOnly: true),
+                    SalesLineItems::totals(),
+                ],
+            ] : [
                 'title' => 'Services & pricing',
                 'description' => 'What is offered, at what price',
                 'icon' => 'heroicon-o-squares-plus',
@@ -341,18 +325,55 @@ class ProposalResource extends Resource
         ];
     }
 
-    protected static function linkedWorkOrderSection(bool $required = false): Section
+    protected static function workOrderParts(bool $creating = false): array
+    {
+        $parts = WorkOrderForm::parts(
+            linked: true,
+            requireSector: $creating,
+            clientFields: $creating ? self::newDocumentClientFields(autoFillWorkOrder: true) : [self::editClientField()],
+            canEdit: $creating ? true : fn (EditProposal $livewire) => $livewire->canManageWorkOrder(),
+            useCategoryLabels: $creating,
+        );
+
+        foreach ($parts as &$part) {
+            $part['schema'] = [Group::make($part['schema'])->statePath('work_order')->columnSpanFull()];
+        }
+        unset($part);
+
+        if ($creating) {
+            $parts[0]['schema'][] = self::documentDetails('Document details');
+
+            return $parts;
+        }
+
+        $parts[0]['schema'] = [
+            TextEntry::make('work_order_number')
+                ->label('Linked work order')
+                ->state(fn (EditProposal $livewire) => $livewire->getLinkedWorkOrder()?->number)
+                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() !== null),
+            Callout::make('Choose a sector to create a linked work order when you save.')
+                ->info()
+                ->visible(fn (EditProposal $livewire) => $livewire->canManageWorkOrder() && $livewire->getLinkedWorkOrder() === null),
+            self::documentDetails('Document details')
+                ->icon('heroicon-o-document-text')
+                ->description('Set the title, issue date, and validity used on the proposal.')
+                ->collapsible(),
+            ...$parts[0]['schema'],
+        ];
+
+        return $parts;
+    }
+
+    protected static function linkedWorkOrderSection(): Section
     {
         return Section::make('Linked work order')
             ->description('The client, issue date, and proposal reference are shared.')
             ->visible(fn () => WorkOrderResource::canCreate())
             ->schema([
-                ...($required ? [] : [Toggle::make('create_work_order')->label('Also create a work order')->live()]),
-                Group::make(WorkOrderForm::linkedFields(
-                    clientFields: $required ? self::newDocumentClientFields(autoFillWorkOrder: true) : [],
-                ))
+                Toggle::make('create_work_order')->label('Also create a work order')->live(),
+                Group::make(array_merge(...array_column(WorkOrderForm::parts(linked: true), 'schema')))
                     ->statePath('work_order')
-                    ->visible(fn (Get $get) => $required || $get('create_work_order'))
+                    ->visible(fn (Get $get) => $get('create_work_order'))
                     ->columnSpanFull(),
             ]);
     }

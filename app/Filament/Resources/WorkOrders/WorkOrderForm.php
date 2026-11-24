@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\WorkOrders;
 
+use App\Filament\Support\SalesConditions;
 use App\Models\Client;
 use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
+use App\Models\ServiceCategory;
 use App\Models\WorkOrder;
 use App\Support\Money;
 use Closure;
@@ -21,9 +23,12 @@ use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 /**
  * The work order form, in the order and wording of the printed form
@@ -35,103 +40,162 @@ class WorkOrderForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            self::contractingParties()
-                ->heading('Contracting parties')
-                ->icon('heroicon-o-users'),
-            ...self::organizedFields(),
+            Tabs::make('Work order details')
+                ->persistTabInQueryString()
+                ->columnSpanFull()
+                ->tabs(array_map(
+                    fn (array $part) => Tab::make($part['title'])->icon($part['icon'])->schema($part['schema']),
+                    self::parts(),
+                )),
         ]);
     }
 
-    public static function linkedFields(
-        bool|Closure $requireSector = true,
+    public static function parts(
+        bool $linked = false,
+        bool|Closure $requireSector = false,
         array $clientFields = [],
         bool|Closure $canEdit = true,
+        bool $useCategoryLabels = false,
     ): array {
-        return [
-            self::contractingParties(linked: true, clientFields: $clientFields, canEdit: $canEdit)
-                ->heading('Contracting parties')
-                ->icon('heroicon-o-users'),
-            Group::make(self::organizedFields(linked: true, requireSector: $requireSector))
-                ->visible($canEdit)
-                ->columnSpanFull(),
-        ];
-    }
-
-    protected static function organizedFields(bool $linked = false, bool|Closure $requireSector = true): array
-    {
         [$scope, $requirements] = self::scopeAndInfo();
         [$deliverables, $schedule] = self::deliveryAndSchedule();
         [$conditions, $generalTerms, $attachments] = self::conditionsAndAttachments();
         [$approval] = self::approval();
 
-        return [
-            Section::make('Work order template')
-                ->description('Choose the sector before entering the scope. It determines the available services and print template.')
-                ->icon('heroicon-o-document-check')
-                ->columns(2)
-                ->schema([
-                    self::sectorField($requireSector)->label('Sector'),
-                    self::revisionField(),
-                    ...($linked ? [] : [
-                        DatePicker::make('issue_date')->label('Issue date')->default(now())->native(false),
-                        Select::make('status')->options(WorkOrder::STATUSES)->default('draft')->required()->native(false),
-                        TextInput::make('details.quotation_number')->label('Proposal / quotation number')->maxLength(60),
-                        Select::make('proposal_id')->label('Linked proposal')->relationship('proposal', 'number')->searchable()->preload(),
-                    ]),
-                    self::revisionRoundsField(),
+        $template = Section::make('Work order template')
+            ->description($useCategoryLabels
+                ? 'The category determines the available subcategories and print template.'
+                : 'Choose the sector before entering the scope. It determines the available services and print template.')
+            ->icon('heroicon-o-document-check')
+            ->columns(2)
+            ->schema([
+                self::sectorField($requireSector, $useCategoryLabels),
+                self::revisionField(),
+                ...($linked ? [] : [
+                    DatePicker::make('issue_date')->label('Issue date')->native(false),
+                    TextInput::make('details.quotation_number')->label('Proposal / quotation number')->maxLength(60),
+                    Select::make('proposal_id')->label('Linked proposal')->relationship('proposal', 'number')->searchable()->preload(),
                 ]),
-            self::servicesSection()
-                ->description('Select the services covered by this work order.')
-                ->visible(fn (Get $get) => filled($get('sector'))),
-            $scope->heading('Scope of work')
-                ->icon('heroicon-o-clipboard-document-list')
-                ->collapsible(),
-            $requirements->heading('Sector requirements')
-                ->visible(fn (Get $get) => filled($get('sector')))
-                ->collapsible(),
-            $schedule->heading('Milestones and schedule')
-                ->icon('heroicon-o-calendar-days')
-                ->collapsible(),
-            ...($linked ? [] : [self::feesSection()->collapsible()]),
-            self::installmentsSection()
-                ->icon('heroicon-o-banknotes')
-                ->collapsible(),
-            $attachments->heading('Attachments')
-                ->collapsible(),
-            $approval->heading('Signatories and pre-issue checks')
-                ->icon('heroicon-o-pencil-square')
-                ->collapsible(),
-            Section::make('Bangla print previews')
-                ->description('Review the deliverables, sector conditions, and standard terms as they appear on the printed form.')
-                ->icon('heroicon-o-document-text')
-                ->schema([$deliverables->collapsed(false), $conditions, $generalTerms->collapsed(false)])
-                ->collapsible()
-                ->collapsed(),
+                self::revisionRoundsField(),
+            ]);
+
+        return [
+            [
+                'title' => 'Work order',
+                'description' => 'Client and work order details',
+                'icon' => 'heroicon-o-document-text',
+                'schema' => [
+                    self::contractingParties($linked, $clientFields, $canEdit, showDepartment: ! $useCategoryLabels)
+                        ->heading('Contracting parties')
+                        ->icon('heroicon-o-users'),
+                    Group::make([
+                        $template,
+                        self::servicesSection($useCategoryLabels)
+                            ->description($useCategoryLabels ? null : 'Select the services covered by this work order.')
+                            ->visible(fn (Get $get) => filled($get('sector'))),
+                    ])->visible($canEdit)->columnSpanFull(),
+                ],
+            ],
+            [
+                'title' => 'Scope & schedule',
+                'description' => 'Requirements and milestones',
+                'icon' => 'heroicon-o-calendar-days',
+                'schema' => [
+                    $scope->heading('Scope of work')->collapsible(),
+                    $requirements->heading($useCategoryLabels ? 'Category requirements' : 'Sector requirements')
+                        ->visible(fn (Get $get) => filled($get('sector')))
+                        ->collapsible(),
+                    $schedule->heading('Milestones and schedule')->collapsible(),
+                ],
+            ],
+            [
+                'title' => 'Payments',
+                'description' => 'Installment schedule',
+                'icon' => 'heroicon-o-banknotes',
+                'schema' => [
+                    ...($linked ? [] : [self::feesSection()->collapsible()]),
+                    self::installmentsSection()->collapsible(),
+                ],
+            ],
+            [
+                'title' => 'Work order review',
+                'description' => 'Attachments and approvals',
+                'icon' => 'heroicon-o-clipboard-document-check',
+                'schema' => [
+                    $attachments->heading('Attachments')->collapsible(),
+                    $approval->heading('Signatories and pre-issue checks')->collapsible(),
+                    Section::make('Bangla print previews')
+                        ->description('Review the deliverables, service conditions, and standard terms as they appear on the printed form.')
+                        ->schema([$deliverables->collapsed(false), $conditions, $generalTerms->collapsed(false)])
+                        ->collapsible()
+                        ->collapsed(),
+                ],
+            ],
         ];
     }
 
-    protected static function sectorField(bool|Closure $required = true): Select
+    protected static function sectorField(bool|Closure $required, bool $useCategoryLabels): Select
     {
         return Select::make('sector')
-            ->label('Sector / form')
-            ->options(WorkOrder::sectorOptions())
+            ->label($useCategoryLabels ? 'Category' : 'Sector')
+            ->options(WorkOrder::sectorOptions(includeDepartment: ! $useCategoryLabels))
             ->required($required)
             ->native(false)
             ->live()
-            ->helperText('Chooses the form: WO-ICT-01, WO-EEE-01, …');
+            ->afterStateUpdated($useCategoryLabels ? function ($state, Get $get, Set $set): void {
+                $set('details.services', []);
+                self::syncProposalPricing($state, [], $get, $set);
+            } : null)
+            ->helperText($useCategoryLabels ? null : 'Chooses the form: WO-ICT-01, WO-EEE-01, …');
     }
 
     /* ------------------------------------------------------------ ০১–০২ */
 
-    protected static function servicesSection(): Section
+    protected static function servicesSection(bool $useCategoryLabels): Section
     {
-        return Section::make('Consultancy services')
+        return Section::make($useCategoryLabels ? 'Subcategories' : 'Consultancy services')
             ->schema([
                 CheckboxList::make('details.services')
+                    ->label($useCategoryLabels ? 'Subcategories' : 'Services')
                     ->hiddenLabel()
                     ->options(fn (Get $get) => self::sectorText($get('sector'), 'services', []))
+                    ->required($useCategoryLabels)
+                    ->live($useCategoryLabels)
+                    ->afterStateUpdated($useCategoryLabels ? fn ($state, Get $get, Set $set) => self::syncProposalPricing(
+                        $get('sector'), (array) $state, $get, $set,
+                    ) : null)
                     ->columns(fn (Get $get) => WorkOrder::sector($get('sector'))['service_columns'] ?? 2),
             ]);
+    }
+
+    protected static function syncProposalPricing(?string $sector, array $selected, Get $get, Set $set): void
+    {
+        $slugs = WorkOrder::sector($sector)['categories'] ?? [];
+        $categoryIds = ServiceCategory::whereIn('slug', $slugs)->pluck('id', 'slug');
+        $categoryId = collect($slugs)->map(fn (string $slug) => $categoryIds->get($slug))->first(fn ($id) => $id !== null);
+        $categories = $categoryId === null ? [] : [$categoryId];
+        $services = array_intersect_key(self::sectorText($sector, 'services', []), array_fill_keys($selected, true));
+        $existing = collect((array) $get('../items'));
+        $items = [];
+
+        foreach ($services as $name) {
+            $key = $existing->search(fn (array $item) => ($item['service_name'] ?? null) === $name);
+            if ($key !== false) {
+                $items[$key] = $existing[$key];
+                continue;
+            }
+
+            $items[(string) Str::uuid()] = [
+                'service_name' => $name,
+                'service_category_id' => $categoryId,
+                'quantity' => 1,
+                'discount' => 0,
+            ];
+        }
+
+        $set('../items', $items);
+        $set('../categories', $categories);
+        $set('../conditions', SalesConditions::sync((array) $get('../conditions'), $categories, []));
     }
 
     protected static function revisionField(): TextInput
@@ -155,6 +219,7 @@ class WorkOrderForm
         bool $linked = false,
         array $clientFields = [],
         bool|Closure $canEdit = true,
+        bool $showDepartment = true,
     ): Section {
         return Section::make('01 Contracting parties')
             ->columns(2)
@@ -178,7 +243,7 @@ class WorkOrderForm
                         ]),
                         ...$clientFields,
                         Group::make([
-                            TextInput::make('details.client.name')->label('Name / organization')->required(! $linked)->maxLength(200)
+                            TextInput::make('details.client.name')->label('Name / organization')->maxLength(200)
                                 ->helperText($linked ? 'Leave blank to use the client from the proposal.' : null),
                             TextInput::make('details.client.contact')->label('Contact person')->maxLength(150),
                             TextInput::make('details.client.phone_email')->label('Phone / email')->maxLength(200),
@@ -194,8 +259,8 @@ class WorkOrderForm
                             ->hiddenLabel()
                             ->html()
                             ->state(fn (Get $get) => e(config('work_order_admin.provider.name')).'<br>'
-                                .e(config('work_order_admin.provider.university')).'<br>'
-                                .'Responsible department: <b>'.e(self::sectorText($get('sector'), 'department', '—')).'</b>'),
+                                .e(config('work_order_admin.provider.university'))
+                                .($showDepartment ? '<br>Responsible department: <b>'.e(self::sectorText($get('sector'), 'department', '—')).'</b>' : '')),
                         TextInput::make('details.coordinator')->label('Contact / coordinator')->maxLength(150),
                     ])->visible($canEdit),
             ]);

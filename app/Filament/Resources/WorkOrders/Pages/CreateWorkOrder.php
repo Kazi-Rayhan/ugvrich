@@ -18,7 +18,7 @@ class CreateWorkOrder extends CreateRecord
     {
         $this->authorizeAccess();
 
-        if (! request()->integer('proposal') && ProposalResource::canCreate()) {
+        if (! request()->boolean('draft') && ! request()->integer('proposal') && ProposalResource::canCreate()) {
             $this->redirect(ProposalResource::getUrl('create', array_filter([
                 'work_order' => 1,
                 'request' => request()->integer('request'),
@@ -29,7 +29,7 @@ class CreateWorkOrder extends CreateRecord
 
         parent::mount();
 
-        $this->form->fill(WorkOrderForm::prefill(
+        $this->form->fill(request()->boolean('draft') ? [] : WorkOrderForm::prefill(
             request()->integer('request') ?: null,
             request()->integer('proposal') ?: null,
         ));

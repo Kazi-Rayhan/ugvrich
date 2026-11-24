@@ -74,6 +74,6 @@ class PaymentsRelationManager extends RelationManager
 
     public function reloadOrder(): void
     {
-        $this->redirect(OrderResource::getUrl('view', ['record' => $this->getOwnerRecord()]));
+        $this->redirect(OrderResource::getUrl('view', ['record' => $this->getOwnerRecord(), 'relation' => 'payments']));
     }
 }

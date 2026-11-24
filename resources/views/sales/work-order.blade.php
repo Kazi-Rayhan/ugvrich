@@ -28,10 +28,25 @@
         : '<span class="blank w-sm"></span>';
     $num = fn (int $i) => $bn(sprintf('%02d', $i));
 
-    $services = (array) $get('services');
-    $attachments = (array) $get('attachments');
-    $checklist = (array) $get('checklist');
+    $services = collect($sector['services'])->only((array) $get('services'));
+    $attachments = collect($sector['attachments'])->only((array) $get('attachments'));
+    $checklist = collect(config('work_orders.checklist'))->only((array) $get('checklist'));
     $info = (array) $get('info');
+    $infoRows = collect($sector['info'])->filter(fn ($row) => collect($row[1])->contains(
+        fn ($part) => match ($part[0]) {
+            'field' => filled($info[$part[1]] ?? null),
+            'check' => (bool) ($info[$part[1]] ?? false),
+            default => false,
+        },
+    ));
+    $stages = collect($sector['stages'])->filter(fn ($stage, $i) => filled($get("stage_dates.{$i}")));
+    $fees = collect(config('work_orders.fee_lines'))->filter(fn ($label, $i) => collect(
+        $get("fees.{$i}"),
+    )->contains(fn ($value) => filled($value)));
+    $installments = collect(config('work_orders.payment_steps'))->filter(fn ($step, $i) => (
+        filled($get("installments.{$i}.percent")) || filled($get("installments.{$i}.amount"))
+    ));
+    $hasTax = filled($get('tax_amount')) && Money::toMinor($get('tax_amount')) !== 0;
     $grand = $get('grand_total');
     $words = $get('amount_words') ?: $get('amount_words_auto');
 
@@ -212,46 +227,72 @@
             <tr>
                 <td class="lbl">কার্যাদেশ নম্বর</td>
                 <td class="val num">{{ $order->number }}</td>
-                <td class="lbl">ইস্যুর তারিখ</td>
-                <td class="val">{!! $date($order->issue_date) !!}</td>
+                @if (filled($order->issue_date))
+                    <td class="lbl">ইস্যুর তারিখ</td>
+                    <td class="val">{!! $date($order->issue_date) !!}</td>
+                @else
+                    <td colspan="2"></td>
+                @endif
             </tr>
-            <tr>
-                <td class="lbl">প্রস্তাব / মূল্যপ্রস্তাব নম্বর</td>
-                <td class="val">{!! $fill($get('quotation_number'), 'xl') !!}</td>
-                <td class="lbl">সংশোধন / সংস্করণ</td>
-                <td class="val"><b>সংস্করণ</b> {!! $fill($get('revision'), 'sm') !!}</td>
-            </tr>
+            @if (filled($get('quotation_number')) || filled($get('revision')))
+                <tr>
+                    @if (filled($get('quotation_number')))
+                        <td class="lbl">প্রস্তাব / মূল্যপ্রস্তাব নম্বর</td>
+                        <td class="val">{!! $fill($get('quotation_number'), 'xl') !!}</td>
+                    @else
+                        <td colspan="2"></td>
+                    @endif
+                    @if (filled($get('revision')))
+                        <td class="lbl">সংশোধন / সংস্করণ</td>
+                        <td class="val"><b>সংস্করণ</b> {!! $fill($get('revision'), 'sm') !!}</td>
+                    @else
+                        <td colspan="2"></td>
+                    @endif
+                </tr>
+            @endif
         </table>
 
         <div class="sec"><span class="n">{{ $num(1) }}</span> চুক্তিবদ্ধ পক্ষসমূহ</div>
         <table class="parties">
             <tr class="head-row"><td>গ্রাহক / কার্যাদেশ প্রদানকারী</td><td>সেবা প্রদানকারী / বাস্তবায়নকারী পক্ষ</td></tr>
-            <tr><td>নাম / প্রতিষ্ঠান: {!! $fill($get('client.name'), 'xl') !!}</td><td>{{ config('work_orders.provider.name') }}</td></tr>
-            <tr><td>যোগাযোগের ব্যক্তি: {!! $fill($get('client.contact'), 'xl') !!}</td><td>{{ config('work_orders.provider.university') }}</td></tr>
-            <tr><td>ফোন / ইমেইল: {!! $fill($get('client.phone_email'), 'xl') !!}</td><td>দায়িত্বপ্রাপ্ত বিভাগ: {{ $sector['department'] }}</td></tr>
-            <tr><td>ঠিকানা: {!! $fill($get('client.address'), 'xl') !!}</td><td>যোগাযোগ / সমন্বয়কারী: {!! $fill($get('coordinator'), 'lg') !!}</td></tr>
+            <tr><td>@if (filled($get('client.name')))নাম / প্রতিষ্ঠান: {!! $fill($get('client.name'), 'xl') !!}@endif</td><td>{{ config('work_orders.provider.name') }}</td></tr>
+            <tr><td>@if (filled($get('client.contact')))যোগাযোগের ব্যক্তি: {!! $fill($get('client.contact'), 'xl') !!}@endif</td><td>{{ config('work_orders.provider.university') }}</td></tr>
+            <tr><td>@if (filled($get('client.phone_email')))ফোন / ইমেইল: {!! $fill($get('client.phone_email'), 'xl') !!}@endif</td><td>দায়িত্বপ্রাপ্ত বিভাগ: {{ $sector['department'] }}</td></tr>
+            @if (filled($get('client.address')) || filled($get('coordinator')))
+                <tr><td>@if (filled($get('client.address')))ঠিকানা: {!! $fill($get('client.address'), 'xl') !!}@endif</td><td>@if (filled($get('coordinator')))যোগাযোগ / সমন্বয়কারী: {!! $fill($get('coordinator'), 'lg') !!}@endif</td></tr>
+            @endif
         </table>
 
-        <div class="sec"><span class="n">{{ $num(2) }}</span> নির্বাচিত পরামর্শসেবা</div>
-        <table class="grid">
-            @foreach (collect($sector['services'])->chunk($sector['service_columns']) as $row)
-                <tr>
-                    @foreach ($row as $key => $label)
-                        <td>{!! $box(in_array($key, $services, true), $label) !!}</td>
-                    @endforeach
-                    @for ($i = $row->count(); $i < $sector['service_columns']; $i++)<td></td>@endfor
-                </tr>
-            @endforeach
-        </table>
-        <div class="note" style="border-top:1px solid var(--line);padding-top:4px">নির্বাচিত সেবার চূড়ান্ত পরিধি, মূল্য ও হস্তান্তরযোগ্য কাজ অনুমোদিত প্রস্তাব ও সংযুক্তি অনুযায়ী নির্ধারিত হবে।</div>
+        @if ($services->isNotEmpty())
+            <div class="sec"><span class="n">{{ $num(2) }}</span> নির্বাচিত পরামর্শসেবা</div>
+            <table class="grid">
+                @foreach ($services->chunk($sector['service_columns']) as $row)
+                    <tr>
+                        @foreach ($row as $label)
+                            <td>{!! $box(true, $label) !!}</td>
+                        @endforeach
+                        @for ($i = $row->count(); $i < $sector['service_columns']; $i++)<td></td>@endfor
+                    </tr>
+                @endforeach
+            </table>
+            <div class="note" style="border-top:1px solid var(--line);padding-top:4px">নির্বাচিত সেবার চূড়ান্ত পরিধি, মূল্য ও হস্তান্তরযোগ্য কাজ অনুমোদিত প্রস্তাব ও সংযুক্তি অনুযায়ী নির্ধারিত হবে।</div>
+        @endif
 
-        <div class="sec"><span class="n">{{ $num(3) }}</span> অর্পিত কাজের পরিধি</div>
-        <div class="lead">কাজ / সমস্যার সারসংক্ষেপ &nbsp; <span style="font-weight:400;color:var(--ink)">{{ $sector['summary_hint'] }}</span></div>
-        {!! $text($get('summary')) !!}
-        <div class="lead">অন্তর্ভুক্ত কাজ ও সীমানা &nbsp; <span style="font-weight:400">সাইট, কাজ, যন্ত্রপাতি, ব্যক্তি এবং সম্মত কার্যক্রম উল্লেখ করুন।</span></div>
-        {!! $text($get('included')) !!}
-        <div class="lead">বহির্ভূত কাজ / নির্ভরশীলতা &nbsp; <span style="font-weight:400">অন্তর্ভুক্ত নয় এমন কাজ ও গ্রাহক-সরবরাহকৃত উপকরণ/অনুমোদন লিখুন।</span></div>
-        {!! $text($get('excluded')) !!}
+        @if (collect([$get('summary'), $get('included'), $get('excluded')])->contains(fn ($value) => filled($value)))
+            <div class="sec"><span class="n">{{ $num(3) }}</span> অর্পিত কাজের পরিধি</div>
+        @endif
+        @if (filled($get('summary')))
+            <div class="lead">কাজ / সমস্যার সারসংক্ষেপ &nbsp; <span style="font-weight:400;color:var(--ink)">{{ $sector['summary_hint'] }}</span></div>
+            {!! $text($get('summary')) !!}
+        @endif
+        @if (filled($get('included')))
+            <div class="lead">অন্তর্ভুক্ত কাজ ও সীমানা &nbsp; <span style="font-weight:400">সাইট, কাজ, যন্ত্রপাতি, ব্যক্তি এবং সম্মত কার্যক্রম উল্লেখ করুন।</span></div>
+            {!! $text($get('included')) !!}
+        @endif
+        @if (filled($get('excluded')))
+            <div class="lead">বহির্ভূত কাজ / নির্ভরশীলতা &nbsp; <span style="font-weight:400">অন্তর্ভুক্ত নয় এমন কাজ ও গ্রাহক-সরবরাহকৃত উপকরণ/অনুমোদন লিখুন।</span></div>
+            {!! $text($get('excluded')) !!}
+        @endif
     </div>
     {!! $footer(1) !!}
 </section>
@@ -261,25 +302,27 @@
     <div class="content">
         {!! $header() !!}
 
-        <div class="sec" style="margin-top:4px"><span class="n">{{ $num(4) }}</span> সেবাভিত্তিক প্রয়োজনীয় তথ্য</div>
-        <table class="grid">
-            @foreach ($sector['info'] as [$label, $parts])
-                <tr>
-                    <td class="lbl-col">{{ $label }}</td>
-                    <td>
-                        @foreach ($parts as $part)
-                            @if ($part[0] === 'text')
-                                {{ $part[1] }}
-                            @elseif ($part[0] === 'field')
-                                {!! $fill($info[$part[1]] ?? null, $part[2] ?? 'md') !!}
-                            @else
-                                {!! $box((bool) ($info[$part[1]] ?? false), $part[2]) !!}
-                            @endif
-                        @endforeach
-                    </td>
-                </tr>
-            @endforeach
-        </table>
+        @if ($infoRows->isNotEmpty())
+            <div class="sec" style="margin-top:4px"><span class="n">{{ $num(4) }}</span> সেবাভিত্তিক প্রয়োজনীয় তথ্য</div>
+            <table class="grid">
+                @foreach ($infoRows as [$label, $parts])
+                    <tr>
+                        <td class="lbl-col">{{ $label }}</td>
+                        <td>
+                            @foreach ($parts as $part)
+                                @if ($part[0] === 'text')
+                                    {{ $part[1] }}
+                                @elseif ($part[0] === 'field' && filled($info[$part[1]] ?? null))
+                                    {!! $fill($info[$part[1]] ?? null, $part[2] ?? 'md') !!}
+                                @elseif ($part[0] === 'check' && ! empty($info[$part[1]]))
+                                    {!! $box(true, $part[2]) !!}
+                                @endif
+                            @endforeach
+                        </td>
+                    </tr>
+                @endforeach
+            </table>
+        @endif
 
         <div class="kicker">সম্পাদন ও নিয়ন্ত্রণ</div>
         <div class="lead">কার্যসম্পাদন ও আর্থিক বিবরণ</div>
@@ -293,20 +336,28 @@
             @endforeach
         </table>
 
-        <div class="sec"><span class="n">{{ $num(6) }}</span> কাজের ধাপ ও সময়সূচি</div>
-        <table class="grid">
-            <tr class="head-row"><td style="width:28%">কাজের ধাপ</td><td>যাচাই / সিদ্ধান্তের বিষয়</td><td style="width:24%">লক্ষ্য তারিখ</td></tr>
-            @foreach ($sector['stages'] as $i => [$stage, $check])
-                <tr><td>{{ $stage }}</td><td>{{ $check }}</td><td class="r">{!! $date($get("stage_dates.{$i}")) !!}</td></tr>
-            @endforeach
-        </table>
+        @if ($stages->isNotEmpty() || filled($get('start_date')) || filled($get('end_date')) || filled($get('mode')))
+            <div class="sec"><span class="n">{{ $num(6) }}</span> কাজের ধাপ ও সময়সূচি</div>
+        @endif
+        @if ($stages->isNotEmpty())
+            <table class="grid">
+                <tr class="head-row"><td style="width:28%">কাজের ধাপ</td><td>যাচাই / সিদ্ধান্তের বিষয়</td><td style="width:24%">লক্ষ্য তারিখ</td></tr>
+                @foreach ($stages as $i => [$stage, $check])
+                    <tr><td>{{ $stage }}</td><td>{{ $check }}</td><td class="r">{!! $date($get("stage_dates.{$i}")) !!}</td></tr>
+                @endforeach
+            </table>
+        @endif
         <div style="margin-top:6px">
-            কাজ শুরুর তারিখ: {!! $date($get('start_date')) !!} &nbsp;&nbsp;
-            সম্ভাব্য সমাপ্তি: {!! $date($get('end_date')) !!} &nbsp;&nbsp;
-            মাধ্যম:
-            @foreach (config('work_orders.modes') as $key => $label)
-                {!! $box($get('mode') === $key, $label) !!}
-            @endforeach
+            @if (filled($get('start_date')))
+                কাজ শুরুর তারিখ: {!! $date($get('start_date')) !!} &nbsp;&nbsp;
+            @endif
+            @if (filled($get('end_date')))
+                সম্ভাব্য সমাপ্তি: {!! $date($get('end_date')) !!} &nbsp;&nbsp;
+            @endif
+            @if (filled($get('mode')))
+                মাধ্যম:
+                {!! $box(true, config('work_orders.modes')[$get('mode')] ?? $get('mode')) !!}
+            @endif
         </div>
     </div>
     {!! $footer(2) !!}
@@ -317,38 +368,52 @@
     <div class="content">
         {!! $header() !!}
 
-        <div class="sec" style="margin-top:4px"><span class="n">{{ $num(7) }}</span> কাজের মূল্য ও পরিশোধ অনুমোদন</div>
-        <table class="grid">
-            <tr class="head-row"><td>ফি / বিলযোগ্য খাত</td><td style="width:17%;white-space:nowrap">পরিমাণ / একক</td><td style="width:14%">হার (টাকা)</td><td style="width:15%">মোট (টাকা)</td></tr>
-            @foreach (config('work_orders.fee_lines') as $i => $label)
-                @php
-                    $qty = trim(collect([$get("fees.{$i}.qty"), $get("fees.{$i}.unit")])->filter()->implode(' '));
-                @endphp
-                <tr>
-                    <td>{{ $label }}</td>
-                    <td>{!! $fill($qty, 'sm') !!}</td>
-                    <td>{!! $money($get("fees.{$i}.rate")) !!}</td>
-                    <td>{!! $money($get("fees.{$i}.total")) !!}</td>
-                </tr>
-            @endforeach
-            <tr><td colspan="3">উপমোট</td><td>{!! $money($get('subtotal')) !!}</td></tr>
-            <tr><td colspan="3">ভ্যাট / কর / উৎসে কর্তন (প্রযোজ্য ক্ষেত্রে){{ filled($get('tax_amount')) && $get('tax_mode') === 'deduct' ? ' (−)' : '' }}</td><td>{!! $money($get('tax_amount')) !!}</td></tr>
-            <tr class="total-row"><td colspan="3">সর্বমোট কার্যাদেশ মূল্য (টাকা)</td><td>{!! $money($grand) !!}</td></tr>
-        </table>
-        <div style="margin-top:6px">টাকার পরিমাণ কথায় (BDT): {!! $fill($words, 'xxl') !!}</div>
+        @if ($fees->isNotEmpty() || $hasTax || filled($words))
+            <div class="sec" style="margin-top:4px"><span class="n">{{ $num(7) }}</span> কাজের মূল্য ও পরিশোধ অনুমোদন</div>
+        @endif
+        @if ($fees->isNotEmpty() || $hasTax)
+            <table class="grid">
+                <tr class="head-row"><td>ফি / বিলযোগ্য খাত</td><td style="width:17%;white-space:nowrap">পরিমাণ / একক</td><td style="width:14%">হার (টাকা)</td><td style="width:15%">মোট (টাকা)</td></tr>
+                @foreach ($fees as $i => $label)
+                    @php
+                        $qty = trim(collect([$get("fees.{$i}.qty"), $get("fees.{$i}.unit")])->filter(fn ($value) => filled($value))->implode(' '));
+                    @endphp
+                    <tr>
+                        <td>{{ $label }}</td>
+                        <td>{!! $fill($qty, 'sm') !!}</td>
+                        <td>{!! $money($get("fees.{$i}.rate")) !!}</td>
+                        <td>{!! $money($get("fees.{$i}.total")) !!}</td>
+                    </tr>
+                @endforeach
+                <tr><td colspan="3">উপমোট</td><td>{!! $money($get('subtotal')) !!}</td></tr>
+                @if ($hasTax)
+                    <tr><td colspan="3">ভ্যাট / কর / উৎসে কর্তন (প্রযোজ্য ক্ষেত্রে){{ filled($get('tax_amount')) && $get('tax_mode') === 'deduct' ? ' (−)' : '' }}</td><td>{!! $money($get('tax_amount')) !!}</td></tr>
+                @endif
+                <tr class="total-row"><td colspan="3">সর্বমোট কার্যাদেশ মূল্য (টাকা)</td><td>{!! $money($grand) !!}</td></tr>
+            </table>
+        @endif
+        @if (filled($words))
+            <div style="margin-top:6px">টাকার পরিমাণ কথায় (BDT): {!! $fill($words, 'xxl') !!}</div>
+        @endif
 
-        <div class="sec"><span class="n">{{ $num(8) }}</span> কিস্তিতে পরিশোধ ও বাণিজ্যিক শর্ত</div>
-        <table class="grid">
-            <tr class="head-row"><td style="width:34%">অর্থপ্রদানের ধাপ</td><td style="width:33%">প্রাপ্য / শতাংশ</td><td>প্রমাণ / অনুমোদন</td></tr>
-            @foreach (config('work_orders.payment_steps') as $i => $step)
-                <tr>
-                    <td>{{ $step['label'] }}</td>
-                    <td><span style="white-space:nowrap">{!! $fill($get("installments.{$i}.percent"), 'xs', true) !!} % / টাকা {!! $money($get("installments.{$i}.amount")) !!}</span></td>
-                    <td>{{ $step['proof'] }}</td>
-                </tr>
-            @endforeach
-        </table>
-        <div class="note">মূল্যপ্রস্তাবের মেয়াদ / বিল পরিশোধের সময়: {!! $fill($get('payment_due'), 'lg') !!} &nbsp;•&nbsp; পরিশোধের মাধ্যম ও প্রাপক অনুমোদিত চালান অনুযায়ী।</div>
+        @if ($installments->isNotEmpty() || filled($get('payment_due')))
+            <div class="sec"><span class="n">{{ $num(8) }}</span> কিস্তিতে পরিশোধ ও বাণিজ্যিক শর্ত</div>
+        @endif
+        @if ($installments->isNotEmpty())
+            <table class="grid">
+                <tr class="head-row"><td style="width:34%">অর্থপ্রদানের ধাপ</td><td style="width:33%">প্রাপ্য / শতাংশ</td><td>প্রমাণ / অনুমোদন</td></tr>
+                @foreach ($installments as $i => $step)
+                    <tr>
+                        <td>{{ $step['label'] }}</td>
+                        <td><span style="white-space:nowrap">{!! $fill($get("installments.{$i}.percent"), 'xs', true) !!} % / টাকা {!! $money($get("installments.{$i}.amount")) !!}</span></td>
+                        <td>{{ $step['proof'] }}</td>
+                    </tr>
+                @endforeach
+            </table>
+        @endif
+        @if (filled($get('payment_due')))
+            <div class="note">মূল্যপ্রস্তাবের মেয়াদ / বিল পরিশোধের সময়: {!! $fill($get('payment_due'), 'lg') !!} &nbsp;•&nbsp; পরিশোধের মাধ্যম ও প্রাপক অনুমোদিত চালান অনুযায়ী।</div>
+        @endif
 
         <div class="kicker">প্রশাসন ও অনুমোদন</div>
         <div class="lead">বাস্তবায়নের শর্ত ও গ্রহণ</div>
@@ -376,39 +441,51 @@
             <div class="bullet">• <b>{{ $title }}</b> {{ $body }}</div>
         @endforeach
 
-        <div class="sec"><span class="n">{{ $bn(11) }}</span> সংযুক্ত ও রেফারেন্স নথি</div>
-        <table class="grid">
-            @foreach (collect($sector['attachments'])->chunk(2) as $row)
-                <tr>
-                    @foreach ($row as $key => $label)
-                        <td style="width:50%">{!! $box(in_array($key, $attachments, true), $label) !!}</td>
-                    @endforeach
-                </tr>
-            @endforeach
-        </table>
-        <div style="margin-top:6px">অন্যান্য সংযুক্তি / পৃষ্ঠাসংখ্যা: {!! $fill($get('other_attachments'), 'xxl') !!}</div>
+        @if ($attachments->isNotEmpty() || filled($get('other_attachments')))
+            <div class="sec"><span class="n">{{ $bn(11) }}</span> সংযুক্ত ও রেফারেন্স নথি</div>
+        @endif
+        @if ($attachments->isNotEmpty())
+            <table class="grid">
+                @foreach ($attachments->chunk(2) as $row)
+                    <tr>
+                        @foreach ($row as $label)
+                            <td style="width:50%">{!! $box(true, $label) !!}</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </table>
+        @endif
+        @if (filled($get('other_attachments')))
+            <div style="margin-top:6px">অন্যান্য সংযুক্তি / পৃষ্ঠাসংখ্যা: {!! $fill($get('other_attachments'), 'xxl') !!}</div>
+        @endif
 
         <div class="sec"><span class="n">{{ $bn(12) }}</span> আনুষ্ঠানিক গ্রহণ ও অনুমোদন</div>
         <div style="margin-bottom:6px">স্বাক্ষরের মাধ্যমে উভয় পক্ষ এই কার্যাদেশে উল্লিখিত কাজ, হস্তান্তর, সময়সীমা, গ্রহণযোগ্যতার শর্ত ও মূল্য অনুমোদন করছেন; স্বাক্ষরিত চুক্তি ও সংযুক্তি প্রযোজ্য।</div>
         <table class="signs">
             <tr class="head-row"><td>গ্রাহকের পক্ষে / অনুমোদিত স্বাক্ষরকারী</td><td><b style="font-family:'Noto Serif',serif">UGV RICH</b>-এর পক্ষে / অনুমোদিত স্বাক্ষরকারী</td></tr>
             <tr><td>স্বাক্ষর: <span class="blank w-xxl" style="width:190px"></span></td><td>স্বাক্ষর: <span class="blank" style="width:190px"></span></td></tr>
-            <tr><td>নাম / পদবি: {!! $fill($get('client_signatory'), 'xl') !!}</td><td>নাম / পদবি: {!! $fill($get('rich_signatory'), 'xl') !!}</td></tr>
+            @if (filled($get('client_signatory')) || filled($get('rich_signatory')))
+                <tr><td>@if (filled($get('client_signatory')))নাম / পদবি: {!! $fill($get('client_signatory'), 'xl') !!}@endif</td><td>@if (filled($get('rich_signatory')))নাম / পদবি: {!! $fill($get('rich_signatory'), 'xl') !!}@endif</td></tr>
+            @endif
             <tr>
                 <td>তারিখ: {!! filled($get('client_sign_date')) ? $date($get('client_sign_date')) : '<span class="blank w-md"></span>' !!} &nbsp; সিল: <span class="blank w-md"></span></td>
                 <td>তারিখ: {!! filled($get('rich_sign_date')) ? $date($get('rich_sign_date')) : '<span class="blank w-md"></span>' !!} &nbsp; সিল: <span class="blank w-md"></span></td>
             </tr>
         </table>
-        <div class="note" style="margin-top:6px">
-            অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে): {!! $fill($get('tech_approval'), 'xl') !!}
-            &nbsp; তারিখ: {!! filled($get('tech_approval_date')) ? $date($get('tech_approval_date')) : '<span class="blank w-md"></span>' !!}
-        </div>
-        <div class="pre-check">
-            ইস্যুর আগে যাচাই &nbsp;
-            @foreach (config('work_orders.checklist') as $key => $label)
-                {!! $box(in_array($key, $checklist, true), $label) !!}
-            @endforeach
-        </div>
+        @if (filled($get('tech_approval')) || filled($get('tech_approval_date')))
+            <div class="note" style="margin-top:6px">
+                অতিরিক্ত প্রযুক্তিগত যাচাই / প্রকল্প ব্যবস্থাপকের অনুমোদন (প্রযোজ্য হলে): {!! $fill($get('tech_approval'), 'xl') !!}
+                &nbsp; তারিখ: {!! filled($get('tech_approval_date')) ? $date($get('tech_approval_date')) : '<span class="blank w-md"></span>' !!}
+            </div>
+        @endif
+        @if ($checklist->isNotEmpty())
+            <div class="pre-check">
+                ইস্যুর আগে যাচাই &nbsp;
+                @foreach ($checklist as $label)
+                    {!! $box(true, $label) !!}
+                @endforeach
+            </div>
+        @endif
     </div>
     {!! $footer(4) !!}
 </section>

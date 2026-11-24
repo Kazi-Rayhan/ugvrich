@@ -6,6 +6,7 @@ use App\Support\BanglaNumberWords;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 /**
@@ -20,6 +21,8 @@ class WorkOrder extends Model
     public const STATUSES = [
         'draft' => 'Draft',
         'issued' => 'Issued',
+        'accepted' => 'Accepted',
+        'confirmed' => 'Confirmed',
         'signed' => 'Signed',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled',
@@ -28,12 +31,16 @@ class WorkOrder extends Model
     public const STATUS_COLORS = [
         'draft' => 'gray',
         'issued' => 'info',
+        'accepted' => 'info',
+        'confirmed' => 'success',
         'signed' => 'success',
         'completed' => 'primary',
         'cancelled' => 'danger',
     ];
 
     protected $guarded = ['id', 'number', 'total'];
+
+    public const CONFIRMABLE = ['draft', 'issued', 'signed', 'accepted'];
 
     protected $casts = [
         'issue_date' => 'date',
@@ -75,11 +82,13 @@ class WorkOrder extends Model
     }
 
     /** @return array<string, string> key => "ICT — Smart ICT Services" */
-    public static function sectorOptions(): array
+    public static function sectorOptions(bool $includeDepartment = true): array
     {
         return collect(config('work_orders.sectors'))
             ->mapWithKeys(fn (array $s, string $key) => [
-                $key => $s['code'].' — '.$s['name'].' ('.config("work_order_admin.sectors.{$key}.department", $s['department']).')',
+                $key => $includeDepartment
+                    ? $s['code'].' — '.$s['name'].' ('.config("work_order_admin.sectors.{$key}.department", $s['department']).')'
+                    : $s['name'],
             ])
             ->all();
     }
@@ -149,6 +158,11 @@ class WorkOrder extends Model
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class);
     }
 
     public function consultancyRequest(): BelongsTo

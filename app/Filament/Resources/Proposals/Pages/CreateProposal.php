@@ -100,7 +100,9 @@ class CreateProposal extends CreateRecord
             $sector = $data['work_order']['sector'] ?? null;
 
             if (! is_string($sector) || ! array_key_exists($sector, WorkOrder::sectorOptions())) {
-                throw ValidationException::withMessages(['data.work_order.sector' => 'Choose a work order sector.']);
+                throw ValidationException::withMessages([
+                    'data.work_order.sector' => $this->startsFromWorkOrders ? 'Choose a work order category.' : 'Choose a work order sector.',
+                ]);
             }
 
             $this->workOrderData = $data['work_order'];

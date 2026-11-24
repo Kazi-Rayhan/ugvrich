@@ -2,22 +2,28 @@
 
 namespace App\Filament\Resources\WorkOrders;
 
+use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\WorkOrders\Pages\CreateWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Models\WorkOrder;
 use App\Support\Money;
+use App\Support\Sales\WorkOrderConfirmation;
 use BackedEnum;
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Service work orders (সেবা কার্যাদেশ): the controlled forms WO-ICT-01 …
@@ -44,8 +50,73 @@ class WorkOrderResource extends Resource
             ->label('View / PDF')
             ->icon('heroicon-o-document-arrow-down')
             ->color('gray')
+            ->visible(fn (WorkOrder $record) => WorkOrder::sector($record->sector) !== [])
             ->url(fn (WorkOrder $record) => route('sales.work-orders.print', $record))
             ->openUrlInNewTab();
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return $record->status !== 'confirmed' && parent::canEdit($record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return $record->status !== 'confirmed' && ! $record->order()->exists() && parent::canDelete($record);
+    }
+
+    public static function acceptAction(): Action
+    {
+        return Action::make('acceptWorkOrder')
+            ->label('Accept')
+            ->icon('heroicon-o-check-badge')
+            ->authorize('update')
+            ->visible(fn (WorkOrder $record) => in_array($record->status ?? 'draft', ['draft', 'issued', 'signed'], true))
+            ->requiresConfirmation()
+            ->action(function (WorkOrder $record): void {
+                WorkOrder::whereKey($record->id)
+                    ->where(fn ($query) => $query->whereNull('status')->orWhereIn('status', ['draft', 'issued', 'signed']))
+                    ->update(['status' => 'accepted']);
+                $record->refresh();
+            });
+    }
+
+    public static function confirmAction(): Action
+    {
+        return Action::make('confirmWorkOrder')
+            ->label('Confirm & create order')
+            ->icon('heroicon-o-shopping-bag')
+            ->color('success')
+            ->authorize(fn (WorkOrder $record) => static::canEdit($record) && OrderResource::canCreate())
+            ->visible(fn (WorkOrder $record) => in_array($record->status ?? 'draft', WorkOrder::CONFIRMABLE, true))
+            ->requiresConfirmation()
+            ->modalDescription('Confirm the saved work order and open the resulting order to record payments and print the invoice.')
+            ->action(function (WorkOrder $record, Action $action): void {
+                try {
+                    $order = WorkOrderConfirmation::confirm($record, auth()->user());
+                } catch (DomainException $exception) {
+                    Notification::make()->title($exception->getMessage())->danger()->send();
+                    $action->cancel();
+
+                    return;
+                }
+
+                Notification::make()->title("Work order confirmed as {$order->number}")->success()->send();
+                if (OrderResource::canView($order)) {
+                    $action->redirect(OrderResource::getUrl('view', ['record' => $order]));
+                } else {
+                    $action->redirect(static::getUrl('index'));
+                }
+            });
+    }
+
+    public static function orderAction(): Action
+    {
+        return Action::make('openOrder')
+            ->label('Open order')
+            ->icon('heroicon-o-arrow-top-right-on-square')
+            ->visible(fn (WorkOrder $record) => $record->order && Gate::allows('view', $record->order))
+            ->url(fn (WorkOrder $record) => $record->order ? OrderResource::getUrl('view', ['record' => $record->order]) : null);
     }
 
     public static function editUrl(WorkOrder $workOrder): string
@@ -63,6 +134,7 @@ class WorkOrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('order'))
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->columns([
@@ -100,6 +172,9 @@ class WorkOrderResource extends Resource
             ->recordUrl(fn (WorkOrder $record) => static::canEdit($record) ? static::editUrl($record) : null)
             ->recordActions([
                 self::printAction(),
+                self::acceptAction(),
+                self::confirmAction(),
+                self::orderAction(),
                 EditAction::make()->url(fn (WorkOrder $record) => static::editUrl($record)),
                 DeleteAction::make(),
             ])

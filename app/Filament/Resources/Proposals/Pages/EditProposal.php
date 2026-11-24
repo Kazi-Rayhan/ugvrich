@@ -45,11 +45,17 @@ class EditProposal extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        $workOrder = $this->getLinkedWorkOrder();
+
         return [
+            ...($workOrder ? [
+                WorkOrderResource::acceptAction()->record($workOrder),
+                WorkOrderResource::confirmAction()->record($workOrder),
+            ] : []),
             Action::make('printWorkOrder')
                 ->label('Work order PDF')
                 ->icon('heroicon-o-document-arrow-down')
-                ->visible(fn () => ($workOrder = $this->getLinkedWorkOrder()) && WorkOrderResource::canView($workOrder))
+                ->visible(fn () => $workOrder && WorkOrder::sector($workOrder->sector) !== [] && WorkOrderResource::canView($workOrder))
                 ->url(fn () => ($workOrder = $this->getLinkedWorkOrder()) ? route('sales.work-orders.print', $workOrder) : null)
                 ->openUrlInNewTab(),
             ViewAction::make(),
@@ -91,7 +97,10 @@ class EditProposal extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $this->workOrderInput = filled($data['work_order']['sector'] ?? null) ? $data['work_order'] : null;
+        $this->workOrderInput = $this->canManageWorkOrder()
+            && ($this->workOrderId !== null || filled($data['work_order']['sector'] ?? null))
+            ? $data['work_order']
+            : null;
         $data['client_id'] = $data['work_order']['client_id'];
         $this->clientChanged = (int) $data['client_id'] !== (int) $this->record->client_id;
         unset($data['client_mode'], $data['new_client'], $data['work_order']);
@@ -121,7 +130,7 @@ class EditProposal extends EditRecord
             }
 
             $workOrder->update([
-                'sector' => $input['sector'],
+                'sector' => $input['sector'] ?? null,
                 ...($this->clientChanged ? ['client_id' => $this->record->client_id] : []),
                 'details' => $details,
             ]);
