@@ -17,6 +17,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $title }} | UGV RICH Client Portal</title>
     <link rel="icon" href="{{ asset('favicon.png') }}">
+    {{ Vite::fonts(['plus-jakarta-sans', 'inter', 'noto-sans-bengali']) }}
     <link rel="stylesheet" href="{{ asset('css/client-portal.css') }}">
 </head>
 <body>
@@ -47,10 +48,14 @@
             </div>
         </aside>
         <main id="client-content">
-            <header class="page-heading">
-                <h1>{{ $title }}</h1>
-                @if ($description)<p>{{ $description }}</p>@endif
-            </header>
+            @isset($heading)
+                {{ $heading }}
+            @else
+                <header class="page-heading">
+                    <h1>{{ $title }}</h1>
+                    @if ($description)<p>{{ $description }}</p>@endif
+                </header>
+            @endisset
             @if (session('status'))
                 <p class="notice" role="status">{{ session('status') }}</p>
             @endif

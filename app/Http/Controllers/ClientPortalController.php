@@ -22,7 +22,10 @@ class ClientPortalController extends Controller
 
         return view('client.orders', [
             'client' => $client,
-            'orders' => $client->orders()->with('payments')->latest('order_date')->latest('id')->limit(5)->get(),
+            'orders' => $client->orders()->with(['payments', 'proposal'])->latest('order_date')->latest('id')->limit(5)->get(),
+            'featuredOrder' => $client->orders()->with(['payments', 'proposal'])
+                ->whereIn('status', ['pending', 'confirmed', 'in_progress', 'on_hold'])
+                ->latest('order_date')->latest('id')->first(),
             'orderCount' => $client->orders()->count(),
             'activeCount' => $client->orders()->whereIn('status', ['pending', 'confirmed', 'in_progress', 'on_hold'])->count(),
             'completedCount' => $client->orders()->where('status', 'completed')->count(),
@@ -36,7 +39,7 @@ class ClientPortalController extends Controller
 
         return view('client.orders', [
             'client' => $client,
-            'orders' => $client->orders()->with('payments')->latest('order_date')->latest('id')->paginate(12),
+            'orders' => $client->orders()->with(['payments', 'proposal'])->latest('order_date')->latest('id')->paginate(12),
             'overview' => false,
         ]);
     }
