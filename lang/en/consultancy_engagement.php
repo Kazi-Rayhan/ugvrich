@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'assignments' => 'My assignments',
     'contracts' => [
         'long_term' => 'Long-term contract',
         'freelancer' => 'Freelancer (short-term contract)',

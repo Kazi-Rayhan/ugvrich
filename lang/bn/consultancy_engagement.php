@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'assignments' => 'আমার অর্পিত কাজ',
     'contracts' => [
         'long_term' => 'দীর্ঘমেয়াদি চুক্তি',
         'freelancer' => 'ফ্রিল্যান্সার (স্বল্পমেয়াদি চুক্তি)',

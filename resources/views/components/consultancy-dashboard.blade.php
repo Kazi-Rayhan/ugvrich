@@ -4,6 +4,7 @@
     $links = ['expert.dashboard' => ['grid', 'overview']];
     if ($application->signed_at) {
         $links += [
+            'expert.orders.index' => ['briefcase', 'assignments'],
             'expert.profile.show' => ['user', 'profile'],
             'expert.portfolio.index' => ['document', 'portfolio'],
         ];

@@ -118,6 +118,11 @@ class ConsultancyApplication extends Model
         return $this->hasMany(ExpertWalletEntry::class);
     }
 
+    public function orderAssignments()
+    {
+        return $this->hasMany(OrderExpertAssignment::class);
+    }
+
     public function engagementAssigner()
     {
         return $this->belongsTo(User::class, 'engagement_assigned_by');

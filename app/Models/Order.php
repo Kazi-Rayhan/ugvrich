@@ -57,6 +57,7 @@ class Order extends Model
         'order_date' => 'date',
         'expected_delivery_date' => 'date',
         'conditions' => 'array',
+        'delivery_milestones' => 'array',
     ];
 
     protected function categoryPivotTable(): string
@@ -129,6 +130,11 @@ class Order extends Model
     public function workOrder(): BelongsTo
     {
         return $this->belongsTo(WorkOrder::class);
+    }
+
+    public function expertAssignments(): HasMany
+    {
+        return $this->hasMany(OrderExpertAssignment::class)->orderBy('consultancy_application_id');
     }
 
     public function assignee(): BelongsTo

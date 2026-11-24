@@ -7,10 +7,12 @@ use App\Models\ConsultancyApplication as Application;
 use App\Models\Expert;
 use App\Models\ExpertPortfolio;
 use App\Models\ExpertWalletEntry;
+use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Services\ConsultancyReview;
 use App\Services\ExpertWallet;
+use App\Services\OrderDelivery;
 use App\Support\ExpertBiography;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -128,7 +130,40 @@ class ConsultancyExpertController extends Controller
 
     public function dashboard(Request $request)
     {
-        return view('consultancy.dashboard', ['application' => $this->application($request)->load('category', 'expert')]);
+        $application = $this->application($request)->load('category', 'expert');
+        if ($application->signed_at) {
+            $application->loadCount('orderAssignments');
+        }
+
+        return view('consultancy.dashboard', ['application' => $application]);
+    }
+
+    public function assignments(Request $request)
+    {
+        $application = $this->application($request, signed: true)->load('expert');
+
+        return view('consultancy.order-assignments', [
+            'application' => $application,
+            'assignments' => $application->orderAssignments()->with('order.proposal')->latest('id')->paginate(8),
+        ]);
+    }
+
+    public function moveOrderTask(Request $request, Order $order, string $milestone, string $task, OrderDelivery $delivery)
+    {
+        $expert = $this->application($request, signed: true);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(array_keys(OrderDelivery::TASK_STATUSES))],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $delivery->moveTask($order, $expert, $milestone, $task, $data['status']);
+
+        if ($request->expectsJson()) {
+            return response()->noContent();
+        }
+
+        $query = isset($data['page']) ? ['page' => $data['page']] : [];
+
+        return redirect()->to(route('expert.orders.index', $query).'#milestone-'.$milestone)->with('status', 'Task updated.');
     }
 
     public function onboarding(Request $request)

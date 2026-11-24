@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Pages;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
 use App\Filament\Support\PaymentActions;
+use App\Filament\Support\OrderDeliveryActions;
 use App\Models\Order;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -56,6 +57,7 @@ class ViewOrder extends ViewRecord
                 ->icon('heroicon-o-document-text')
                 ->url(fn (Order $record) => route('sales.orders.invoice', $record))
                 ->openUrlInNewTab(),
+            OrderDeliveryActions::group(),
             ActionGroup::make([
                 EditAction::make(),
                 Action::make('print')

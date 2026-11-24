@@ -13,6 +13,9 @@ Route::prefix('consultancy/expert-registration')->name('consultancy.registration
 
 Route::middleware('auth')->prefix('expert/dashboard')->name('expert.')->group(function () {
     Route::get('/', [ConsultancyExpertController::class, 'dashboard'])->name('dashboard');
+    Route::get('/assignments', [ConsultancyExpertController::class, 'assignments'])->name('orders.index');
+    Route::patch('/assignments/{order}/milestones/{milestone}/tasks/{task}', [ConsultancyExpertController::class, 'moveOrderTask'])
+        ->whereUuid(['milestone', 'task'])->name('orders.tasks.update');
     Route::get('/onboarding', [ConsultancyExpertController::class, 'onboarding'])->name('onboarding');
     Route::get('/profile', [ConsultancyExpertController::class, 'showProfile'])->name('profile.show');
     Route::get('/portfolio', [ConsultancyExpertController::class, 'showPortfolio'])->name('portfolio.index');

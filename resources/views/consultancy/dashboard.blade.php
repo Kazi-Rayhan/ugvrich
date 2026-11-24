@@ -6,6 +6,12 @@
 @endphp
 
 <x-consultancy-dashboard :application="$application">
+    @if ($application->signed_at && $application->order_assignments_count)
+        <a href="{{ route('expert.orders.index') }}" class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 px-5 py-4 text-teal-900">
+            <span class="font-semibold">{{ __('consultancy_engagement.assignments') }} <span class="ml-2 rounded-full border border-teal-200 bg-white px-2 py-0.5 text-xs">{{ $application->order_assignments_count }}</span></span>
+            <span class="inline-flex items-center gap-2 text-sm font-semibold">{{ __('Open task boards') }} <x-ui-icon name="arrow-right" class="size-4" /></span>
+        </a>
+    @endif
     <section aria-labelledby="engagement-summary" class="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-ink-100 bg-linear-to-r from-teal-50/80 to-white px-5 py-6 sm:px-8 sm:py-8">
             <div class="flex min-w-0 items-center gap-4">

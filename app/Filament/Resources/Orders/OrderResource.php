@@ -29,6 +29,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -58,7 +59,7 @@ class OrderResource extends Resource
     public static function canDelete(Model $record): bool
     {
         return $record->proposal_id === null && $record->work_order_id === null
-            && ! $record->payments()->exists() && parent::canDelete($record);
+            && ! $record->payments()->exists() && ! $record->expertAssignments()->exists() && parent::canDelete($record);
     }
 
     public static function form(Schema $schema): Schema
@@ -199,6 +200,10 @@ class OrderResource extends Resource
                             ->visible(fn (Order $record) => filled($record->client?->address)),
                     ]),
             ]),
+
+            Section::make('Delivery and expert team')
+                ->icon('heroicon-o-rectangle-stack')
+                ->schema([View::make('filament.orders.delivery')]),
 
             Section::make('Itemized charges')
                 ->icon('heroicon-o-list-bullet')
