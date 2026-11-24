@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Orders\OrderResource;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Resources\Proposals\Pages\CreateProposal;
@@ -31,6 +32,33 @@ use Tests\TestCase;
 class SalesDocumentCreationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_client_edit_can_enable_portal_access_and_replace_a_password(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $client = Client::create(['name' => 'Portal client', 'email' => 'portal-client@example.test']);
+
+        $this->get('/admin/clients/'.$client->id.'/edit')
+            ->assertOk()
+            ->assertSee('/en/client/dashboard', escape: false)
+            ->assertSee('New portal password');
+
+        Livewire::test(EditClient::class, ['record' => $client->id])
+            ->fillForm(['portal_password' => 'initial-portal-pass'])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('data.portal_password', null);
+        $user = $client->fresh()->portalUser;
+        $this->assertSame(User::CLIENT, $user->role);
+        $this->assertTrue(Hash::check('initial-portal-pass', $user->password));
+
+        Livewire::test(EditClient::class, ['record' => $client->id])
+            ->fillForm(['portal_password' => 'changed-portal-pass'])
+            ->call('save')
+            ->assertHasNoErrors();
+        $this->assertSame($user->id, $client->fresh()->user_id);
+        $this->assertTrue(Hash::check('changed-portal-pass', $user->fresh()->password));
+    }
 
     public function test_blank_work_order_can_be_confirmed_after_it_has_a_client_and_invoiced_after_payment(): void
     {

@@ -60,6 +60,11 @@ class Client extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function portalUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

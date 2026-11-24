@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -42,6 +43,34 @@ class ClientResource extends Resource
             Section::make('Client')
                 ->columns(2)
                 ->schema(self::detailFields()),
+
+            Section::make('Client portal')
+                ->icon('heroicon-o-key')
+                ->visibleOn('edit')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('portal_link')
+                        ->label('Client Portal link')
+                        ->state(fn () => route('en.client.dashboard'))
+                        ->copyable()
+                        ->url(fn () => route('en.client.dashboard'), shouldOpenInNewTab: true)
+                        ->columnSpanFull(),
+                    TextEntry::make('portalUser.email')
+                        ->label('Portal sign-in email')
+                        ->placeholder('Portal access has not been set up.'),
+                    TextInput::make('portal_password')
+                        ->label('New portal password')
+                        ->password()
+                        ->autocomplete('new-password')
+                        ->minLength(8)
+                        ->rule(fn () => function (string $attribute, $value, \Closure $fail): void {
+                            if (is_string($value) && strlen($value) > 72) {
+                                $fail('Use a password no longer than 72 bytes.');
+                            }
+                        })
+                        ->visible(fn () => auth()->user()?->isAdmin())
+                        ->helperText('Leave blank to keep the current password. Setting a password also enables access for a client without a portal account.'),
+                ]),
 
             Section::make('Notes')
                 ->schema([
