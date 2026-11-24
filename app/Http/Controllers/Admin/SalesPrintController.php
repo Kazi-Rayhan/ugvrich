@@ -28,7 +28,7 @@ class SalesPrintController extends Controller
     {
         abort_unless(auth()->user()?->can('view', $order), 403);
 
-        $order->load(['client', 'items', 'categories', 'proposal', 'payments']);
+        $order->load(['client', 'items', 'categories', 'proposal', 'payments.financeAccount']);
 
         return view('sales.print', ['document' => $order, 'kind' => 'order']);
     }
@@ -37,7 +37,8 @@ class SalesPrintController extends Controller
     {
         abort_unless(auth()->user()?->can('view', $order), 403);
 
-        $order->load(['client', 'items', 'workOrder', 'payments' => fn ($query) => $query->where('status', Payment::CONFIRMED)]);
+        $order->load(['client', 'items', 'workOrder', 'payments' => fn ($query) => $query
+            ->where('status', Payment::CONFIRMED)->with('financeAccount')]);
 
         return view('sales.invoice', ['order' => $order]);
     }

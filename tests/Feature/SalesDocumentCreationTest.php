@@ -10,6 +10,7 @@ use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Filament\Resources\WorkOrders\Pages\CreateWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
 use App\Models\Client;
+use App\Models\FinanceAccount;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Proposal;
@@ -66,11 +67,13 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertSame($order->id, WorkOrderConfirmation::confirm($workOrder, $user)->id);
         $this->assertDatabaseCount('orders', 1);
 
+        $account = FinanceAccount::create(['name' => 'Main receiving account', 'type' => 'bank', 'is_active' => true]);
+
         Livewire::test(ViewOrder::class, ['record' => $order->id])
             ->callAction('recordPayment', data: [
                 'amount' => 25,
                 'paid_on' => now()->toDateString(),
-                'method' => array_key_first(Payment::METHODS),
+                'finance_account_id' => $account->id,
                 'transaction_id' => 'INVOICE-TEST-25',
                 'status' => Payment::CONFIRMED,
             ])->assertHasNoActionErrors();
@@ -79,12 +82,13 @@ class SalesDocumentCreationTest extends TestCase
             ->callAction('recordPayment', data: [
                 'amount' => 10,
                 'paid_on' => now()->toDateString(),
-                'method' => array_key_first(Payment::METHODS),
+                'finance_account_id' => $account->id,
                 'transaction_id' => 'PENDING-TEST-10',
                 'status' => Payment::PENDING,
             ])->assertHasNoActionErrors();
 
         $order->refresh();
+        $this->assertEquals($account->id, $order->payments()->where('status', Payment::CONFIRMED)->sole()->finance_account_id);
         $this->assertSame(7500, $order->outstandingMinor());
         $orderUrl = OrderResource::getUrl('view', ['record' => $order]);
         $this->get($orderUrl)
@@ -100,6 +104,7 @@ class SalesDocumentCreationTest extends TestCase
             ->assertOk()
             ->assertSee('Invoice client')
             ->assertSee('INVOICE-TEST-25')
+            ->assertSee('Main receiving account')
             ->assertDontSee('PENDING-TEST-10')
             ->assertSee(Money::format($order->amount_outstanding))
             ->assertSee('Balance due')

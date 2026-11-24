@@ -37,7 +37,7 @@ class PaymentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('reference')
             ->defaultSort('paid_on')
-            ->modifyQueryUsing(fn ($query) => $query->with(['recorder', 'confirmer', 'reverser']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['recorder', 'confirmer', 'reverser', 'financeAccount']))
             ->columns([
                 TextColumn::make('reference')->weight('semibold')->copyable()->searchable(),
                 TextColumn::make('paid_on')->label('Date')->date('j M Y')->sortable(),
@@ -46,7 +46,7 @@ class PaymentsRelationManager extends RelationManager
                     ->alignEnd()
                     ->weight('semibold')
                     ->color(fn (Payment $record) => $record->status === Payment::CONFIRMED ? null : 'gray'),
-                TextColumn::make('method')->formatStateUsing(fn (string $state) => Payment::METHODS[$state] ?? $state),
+                TextColumn::make('receiving_account_label')->label('Receiving account'),
                 TextColumn::make('transaction_id')->label('Transaction ID')->placeholder('—')->copyable()->searchable(),
                 TextColumn::make('status')
                     ->badge()

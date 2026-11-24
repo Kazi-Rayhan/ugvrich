@@ -1,6 +1,5 @@
 @php
     use App\Models\Order;
-    use App\Models\Payment;
     use App\Support\Money;
     use App\Support\Sales\Totals;
 
@@ -151,13 +150,13 @@
             <h2 id="payments">Confirmed payments</h2>
             <div class="table-scroll">
                 <table>
-                    <thead><tr><th scope="col">Date</th><th scope="col">Receipt</th><th scope="col">Method</th><th scope="col">Transaction reference</th><th scope="col" class="amount">Amount</th></tr></thead>
+                    <thead><tr><th scope="col">Date</th><th scope="col">Receipt</th><th scope="col">Receiving account</th><th scope="col">Transaction reference</th><th scope="col" class="amount">Amount</th></tr></thead>
                     <tbody>
                         @foreach ($order->payments as $payment)
                             <tr>
                                 <td>{{ $payment->paid_on->format('j M Y') }}</td>
                                 <td>{{ $payment->reference }}</td>
-                                <td>{{ Payment::METHODS[$payment->method] ?? $payment->method }}</td>
+                                <td>{{ $payment->receiving_account_label }}</td>
                                 <td>{{ $payment->transaction_id ?: '—' }}</td>
                                 <td class="amount">{{ Money::format($payment->amount) }}</td>
                             </tr>

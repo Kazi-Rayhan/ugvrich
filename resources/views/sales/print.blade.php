@@ -154,13 +154,13 @@
         <div class="section">
             <div class="label">Payments received</div>
             <table>
-                <thead><tr><th>Reference</th><th>Date</th><th>Method</th><th>Transaction ID</th><th class="num">Amount</th></tr></thead>
+                <thead><tr><th>Reference</th><th>Date</th><th>Receiving account</th><th>Transaction ID</th><th class="num">Amount</th></tr></thead>
                 <tbody>
                 @foreach ($document->payments->where('status', Payment::CONFIRMED) as $payment)
                     <tr>
                         <td>{{ $payment->reference }}</td>
                         <td>{{ $payment->paid_on->format('j M Y') }}</td>
-                        <td>{{ Payment::METHODS[$payment->method] ?? $payment->method }}</td>
+                        <td>{{ $payment->receiving_account_label }}</td>
                         <td>{{ $payment->transaction_id ?: '—' }}</td>
                         <td class="num">{{ Money::format($payment->amount) }}</td>
                     </tr>

@@ -50,7 +50,17 @@ class Payment extends Model
     ];
 
     /** The fields that make a payment what it is; none of them may change after it is recorded. */
-    protected const FIXED = ['order_id', 'amount', 'paid_on', 'method', 'transaction_id', 'reference', 'recorded_by'];
+    protected const FIXED = ['order_id', 'amount', 'paid_on', 'method', 'finance_account_id', 'transaction_id', 'reference', 'recorded_by'];
+
+    public function financeAccount(): BelongsTo
+    {
+        return $this->belongsTo(FinanceAccount::class);
+    }
+
+    public function getReceivingAccountLabelAttribute(): string
+    {
+        return $this->financeAccount?->name ?? self::METHODS[$this->method] ?? $this->method;
+    }
 
     /** status => the statuses it may move on to. */
     protected const MOVES = [

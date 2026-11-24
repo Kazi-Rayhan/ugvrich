@@ -2,6 +2,7 @@
 
 namespace App\Support\Sales;
 
+use App\Models\FinanceAccount;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
@@ -19,7 +20,7 @@ use Illuminate\Validation\ValidationException;
  */
 class PaymentRecorder
 {
-    /** @param  array<string, mixed>  $data  amount, paid_on, method, transaction_id, status, notes, receipt */
+    /** @param  array<string, mixed>  $data  amount, paid_on, finance_account_id (or legacy method), transaction_id, status, notes, receipt */
     public static function record(Order $order, array $data, User $user): Payment
     {
         return DB::transaction(function () use ($order, $data, $user) {
@@ -32,6 +33,17 @@ class PaymentRecorder
             $amount = Money::toMinor($data['amount'] ?? null);
             $status = ($data['status'] ?? Payment::PENDING) === Payment::CONFIRMED ? Payment::CONFIRMED : Payment::PENDING;
             $transactionId = filled($data['transaction_id'] ?? null) ? trim($data['transaction_id']) : null;
+            $account = null;
+            $method = $data['method'] ?? null;
+            if (array_key_exists('finance_account_id', $data)) {
+                $account = FinanceAccount::where('is_active', true)->lockForUpdate()->find($data['finance_account_id']);
+                if (! $account instanceof FinanceAccount) {
+                    self::fail('finance_account_id', 'Select an active receiving account.');
+                }
+                $method = 'account';
+            } elseif (! is_string($method) || ! isset(Payment::METHODS[$method])) {
+                self::fail('finance_account_id', 'Select a receiving account.');
+            }
 
             if ($amount <= 0) {
                 self::fail('amount', 'The amount must be more than zero.');
@@ -58,7 +70,8 @@ class PaymentRecorder
                 ->where('recorded_by', $user->id)
                 ->where('amount', Money::fromMinor($amount))
                 ->whereDate('paid_on', $data['paid_on'])
-                ->where('method', $data['method'])
+                ->where('method', $method)
+                ->where('finance_account_id', $account?->id)
                 ->where('created_at', '>=', now()->subMinutes(2))
                 ->exists();
 
@@ -69,7 +82,8 @@ class PaymentRecorder
             return $locked->payments()->create([
                 'amount' => Money::fromMinor($amount),
                 'paid_on' => $data['paid_on'],
-                'method' => $data['method'],
+                'method' => $method,
+                'finance_account_id' => $account?->id,
                 'transaction_id' => $transactionId,
                 'status' => $status,
                 'notes' => $data['notes'] ?? null,

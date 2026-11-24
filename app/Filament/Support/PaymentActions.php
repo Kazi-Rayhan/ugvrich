@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Models\FinanceAccount;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Support\Money;
@@ -50,7 +51,12 @@ class PaymentActions
                     ->maxValue(fn () => (float) $order()->amount_outstanding)
                     ->helperText('Cannot be more than the outstanding balance.'),
                 DatePicker::make('paid_on')->label('Payment date')->default(now())->maxDate(now())->required(),
-                Select::make('method')->options(Payment::METHODS)->required()->native(false),
+                Select::make('finance_account_id')
+                    ->label('Receiving account')
+                    ->options(fn () => FinanceAccount::where('is_active', true)->orderBy('name')->pluck('name', 'id'))
+                    ->searchable()
+                    ->required()
+                    ->helperText('Choose the finance account that received the payment.'),
                 TextInput::make('transaction_id')->label('Transaction / reference no.')->maxLength(100),
                 Select::make('status')
                     ->options([Payment::CONFIRMED => 'Confirmed (money received)', Payment::PENDING => 'Pending (to be verified)'])
