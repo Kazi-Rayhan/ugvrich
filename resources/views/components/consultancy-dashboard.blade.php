@@ -13,6 +13,7 @@
     }
     $walletActive = request()->routeIs('expert.wallet.*', 'en.expert.wallet.*');
     $contractActive = request()->routeIs('expert.contract.show', 'en.expert.contract.show');
+    $portfolioActive = request()->routeIs('expert.portfolio.index', 'en.expert.portfolio.index');
     $isCurrent = fn ($routeName) => request()->routeIs($routeName, 'en.'.$routeName)
         || ($routeName === 'expert.orders.index' && request()->routeIs('expert.orders.*', 'en.expert.orders.*'));
     $walletLinks = ['show' => __('expert_wallet.overview'), 'methods' => __('consultancy_engagement.wallet_methods'), 'withdrawals' => __('expert_wallet.withdrawals')];
@@ -194,12 +195,13 @@
 
         <nav class="expert-mobile-nav" aria-label="{{ __('consultancy_engagement.dashboard_navigation') }}">
             @foreach ($links as $routeName => [$icon, $label])
+                @continue($routeName === 'expert.portfolio.index')
                 <a class="expert-nav-item" href="{{ route($routeName) }}" @if ($isCurrent($routeName)) aria-current="page" @endif>
                     <span class="expert-nav-icon"><x-ui-icon :name="$icon" /></span>
                     <span>{{ __('consultancy_engagement.mobile_nav.'.$label) }}</span>
                 </a>
             @endforeach
-            <button type="button" @class(['expert-nav-item expert-nav-toggle', 'is-active' => $walletActive || $contractActive]) popovertarget="expert-mobile-menu">
+            <button type="button" @class(['expert-nav-item expert-nav-toggle', 'is-active' => $walletActive || $contractActive || $portfolioActive]) popovertarget="expert-mobile-menu">
                 <span class="expert-nav-icon"><x-ui-icon name="menu" /></span>
                 <span>{{ __('consultancy_engagement.mobile_nav.menu') }}</span>
             </button>
@@ -213,6 +215,9 @@
                 </div>
                 <div class="expert-mobile-menu-links">
                     @if ($application->signed_at)
+                        <a href="{{ route('expert.portfolio.index') }}" @if ($portfolioActive) aria-current="page" @endif class="{{ $linkClasses }}">
+                            <x-ui-icon name="document" class="size-5 shrink-0" /> {{ __('consultancy_engagement.portfolio') }}
+                        </a>
                         <a href="{{ route('expert.contract.show') }}" @if ($contractActive) aria-current="page" @endif class="{{ $linkClasses }}">
                             <x-ui-icon name="briefcase" class="size-5 shrink-0" /> {{ __('consultancy_engagement.details') }}
                         </a>

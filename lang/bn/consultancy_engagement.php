@@ -5,7 +5,6 @@ return [
         'overview' => 'ওভারভিউ',
         'assignments' => 'অ্যাসাইনমেন্ট',
         'profile' => 'প্রোফাইল',
-        'portfolio' => 'পোর্টফোলিও',
         'onboarding_nav' => 'অনবোর্ডিং',
         'menu' => 'মেনু',
         'close' => 'মেনু বন্ধ করুন',

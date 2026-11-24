@@ -5,7 +5,6 @@ return [
         'overview' => 'Overview',
         'assignments' => 'Assignments',
         'profile' => 'Profile',
-        'portfolio' => 'Portfolio',
         'onboarding_nav' => 'Onboarding',
         'menu' => 'Menu',
         'close' => 'Close menu',
