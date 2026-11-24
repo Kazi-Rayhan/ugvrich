@@ -52,8 +52,12 @@
                 <a class="button secondary featured-order-action" href="{{ route('client.orders.show', $featuredOrder) }}">View order <x-ui-icon name="arrow-right" width="17" height="17" /></a>
             </section>
         @endif
+    @else
+        <x-slot:heading>
+            <x-client-section-heading title="Orders" description="View delivery progress, payment status, and invoices for your consultancy orders." variant="orders" />
+        </x-slot:heading>
     @endif
-    <section class="panel" aria-labelledby="orders-heading">
+    <section class="panel orders-panel" aria-labelledby="orders-heading">
         <div class="panel-heading">
             <h2 id="orders-heading">{{ $overview ? 'Recent orders' : 'Order history' }}</h2>
             @if ($overview && $orderCount > 5)
@@ -75,8 +79,13 @@
                     @foreach ($orders as $order)
                         <tr>
                             <th scope="row">
-                                <a class="text-link" href="{{ route('client.orders.show', $order) }}">{{ $order->number }}</a>
-                                @if ($order->proposal?->title)<small class="line-note">{{ $order->proposal->title }}</small>@endif
+                                <div class="order-reference">
+                                    <span class="order-reference-icon"><x-ui-icon name="document" width="17" height="17" /></span>
+                                    <div>
+                                        <a class="text-link" href="{{ route('client.orders.show', $order) }}">{{ $order->number }}</a>
+                                        @if ($order->proposal?->title)<small class="line-note">{{ $order->proposal->title }}</small>@endif
+                                    </div>
+                                </div>
                             </th>
                             <td data-label="Date">{{ $order->order_date?->format('j M Y') }}</td>
                             <td data-label="Work status"><span class="status" data-status="{{ $order->status }}">{{ Order::STATUSES[$order->status] ?? $order->status }}</span></td>

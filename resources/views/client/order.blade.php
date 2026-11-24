@@ -9,11 +9,17 @@
 @endphp
 
 <x-client-portal :client="$client" :title="$order->number" section="orders" :description="$order->proposal?->title">
-    <div class="order-toolbar">
-        <a class="text-link" href="{{ route('client.orders') }}">← All orders</a>
-        <a class="button" href="{{ route('client.orders.invoice', $order) }}">Print invoice</a>
-    </div>
-    <dl class="overview-metrics">
+    <x-slot:heading>
+        <x-client-section-heading :title="$order->number" :description="$order->proposal?->title" variant="orders">
+            <x-slot:breadcrumb>
+                <a class="text-link section-breadcrumb" href="{{ route('client.orders') }}">← All orders</a>
+            </x-slot:breadcrumb>
+            <x-slot:actions>
+                <a class="button" href="{{ route('client.orders.invoice', $order) }}"><x-ui-icon name="document" width="17" height="17" /> Print invoice</a>
+            </x-slot:actions>
+        </x-client-section-heading>
+    </x-slot:heading>
+    <dl class="overview-metrics order-metrics">
         <div><dt>Order total</dt><dd>{{ Money::format($order->total) }}</dd></div>
         <div><dt>Payments received</dt><dd>{{ Money::format($order->amount_paid) }}</dd></div>
         <div><dt>Balance due</dt><dd>{{ Money::format($order->amount_outstanding) }}</dd></div>

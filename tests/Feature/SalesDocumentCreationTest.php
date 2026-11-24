@@ -229,16 +229,18 @@ class SalesDocumentCreationTest extends TestCase
             ->assertSee('width="17" height="17"', escape: false)
             ->assertSee('Welcome, New contact')
             ->assertSee($order->number)->assertDontSee($otherOrder->number);
-        $this->get(route('client.orders.show', $order))->assertOk()->assertSee('Site assessment')->assertDontSee('Private staff note');
+        $this->get(route('client.orders'))->assertOk()->assertSee('section-intro--orders')->assertSee($order->number);
+        $this->get(route('client.orders.show', $order))->assertOk()->assertSee('Print invoice')
+            ->assertSee('Site assessment')->assertDontSee('Private staff note');
         $this->get(route('client.orders.invoice', $order))->assertOk()->assertSee('Site assessment');
         $this->get(route('client.orders.show', $otherOrder))->assertNotFound();
         $this->get(route('client.orders.invoice', $otherOrder))->assertNotFound();
         $this->get('/admin')->assertForbidden();
 
-        $this->get(route('client.profile'))->assertOk()->assertSee('Billing address');
+        $this->get(route('client.profile'))->assertOk()->assertSee('section-intro--profile')->assertSee('Billing address');
         $this->put(route('client.profile.update'), ['name' => 'Updated client', 'address' => 'Dhaka'])->assertSessionHasNoErrors();
         $this->assertSame('Dhaka', $client->fresh()->address);
-        $this->get(route('client.security'))->assertOk()->assertSee('Change password');
+        $this->get(route('client.security'))->assertOk()->assertSee('section-intro--security')->assertSee('Change password');
         $this->put(route('client.security.update'), [
             'current_password' => 'initial-client-pass',
             'password' => 'changed-client-pass',
