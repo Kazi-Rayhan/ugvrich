@@ -30,7 +30,8 @@ class WorkOrderConfirmation
                 ? self::fromProposal($locked, $user)
                 : self::fromWorkOrder($locked, $user);
 
-            $order->work_order_id = $locked->id;
+            $order->workOrder()->associate($locked);
+            $order->expected_delivery_date ??= $order->workOrderDeliveryDate();
             if ($order->status === 'pending') {
                 $order->status = 'confirmed';
             }
@@ -93,7 +94,6 @@ class WorkOrderConfirmation
             'client_id' => $clientId,
             'status' => 'confirmed',
             'order_date' => now()->toDateString(),
-            'expected_delivery_date' => $workOrder->detail('end_date'),
             'extra_discount' => $deductTax ? Money::fromMinor($tax) : 0,
             'payment_terms' => $workOrder->detail('payment_due'),
             'created_by' => $user->id,

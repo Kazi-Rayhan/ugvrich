@@ -21,6 +21,39 @@ class OrderDeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_staff_can_update_delivery_details_from_the_order_overview(): void
+    {
+        $admin = User::factory()->create(['name' => 'Delivery Manager']);
+        $estimate = today()->addWeek();
+        $delivery = today()->addWeeks(2);
+        $workOrder = WorkOrder::create(['sector' => 'ict', 'details' => ['end_date' => $estimate->toDateString()]]);
+        $order = Order::create([
+            'client_id' => Client::create(['name' => 'Example client'])->id,
+            'order_date' => today(),
+            'work_order_id' => $workOrder->id,
+        ]);
+
+        $this->actingAs($admin);
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->assertSee('Unassigned')
+            ->assertSee($estimate->format('j M Y'))
+            ->assertSee('Work order estimate')
+            ->assertActionVisible('deliveryDetails')
+            ->callAction('deliveryDetails', data: [
+                'assigned_to' => $admin->id,
+                'expected_delivery_date' => today()->subDay()->toDateString(),
+            ])->assertHasActionErrors(['expected_delivery_date' => 'after_or_equal'])
+            ->fillForm(['expected_delivery_date' => $delivery->toDateString()])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertSee('Delivery Manager')
+            ->assertSee($delivery->format('j M Y'))
+            ->assertDontSee('Work order estimate');
+
+        $this->assertEquals($admin->id, $order->refresh()->assigned_to);
+        $this->assertSame($delivery->toDateString(), $order->expected_delivery_date->toDateString());
+    }
+
     public function test_an_expert_without_a_contract_uses_an_order_specific_rate(): void
     {
         $admin = User::factory()->create();

@@ -1,4 +1,5 @@
 @php
+    use App\Models\ConsultancyApplication;
     use App\Services\OrderDelivery;
     use App\Support\Money;
 
@@ -8,56 +9,67 @@
     $earned = app(OrderDelivery::class)->earnings($order);
 @endphp
 
-<div class="order-delivery">
-    <style>
-        .order-delivery .delivery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap:1.25rem; }
-        .order-delivery h3 { font-weight:700; margin-block-end:.5rem; }
-        .order-delivery progress { display:block; width:100%; height:.6rem; accent-color:#0d9488; margin:.5rem 0 .75rem; }
-        .order-delivery .delivery-row { display:flex; justify-content:space-between; gap:.75rem; padding:.65rem 0; border-bottom:1px solid currentColor; border-color:color-mix(in srgb,currentColor 15%,transparent); }
-        .order-delivery .delivery-muted { font-size:.825rem; opacity:.78; }
-        .order-delivery .delivery-amount { text-align:end; white-space:nowrap; font-variant-numeric:tabular-nums; }
-    </style>
-    <div class="delivery-grid">
-        <section aria-label="Milestone progress">
-            <h3>Milestones <span class="delivery-muted">· {{ $progress['completed'] }} of {{ $progress['total'] }} complete</span></h3>
-            <progress value="{{ $progress['percent'] }}" max="100" aria-label="Delivery progress">{{ $progress['percent'] }}%</progress>
-            <div class="delivery-muted">{{ $progress['percent'] }}% delivery progress</div>
-            @forelse ($order->delivery_milestones ?? [] as $milestone)
-                @php($taskCount = collect($milestone['tasks'])->where('status', 'done')->count())
-                <div class="delivery-row">
-                    <div>
-                        <strong>{{ $milestone['title'] }}</strong>
-                        @if ($milestone['due'])<div class="delivery-muted">Due {{ \Illuminate\Support\Carbon::parse($milestone['due'])->format('j M Y') }}</div>@endif
-                    </div>
-                    <div class="delivery-muted">{{ $milestone['completed_at'] ? 'Complete' : $taskCount.' / '.count($milestone['tasks']).' tasks done' }}</div>
+<div class="order-workspace order-delivery-grid">
+    <section class="order-delivery-panel" aria-label="Milestone progress">
+        <div class="order-delivery-heading">
+            <svg class="order-delivery-ring" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <circle cx="24" cy="24" r="19" stroke="var(--order-accent-soft)" stroke-width="5"/>
+                @if ($progress['percent'] > 0)
+                    <circle class="order-ring-value" cx="24" cy="24" r="19" stroke="currentColor" stroke-width="5" stroke-linecap="round"
+                        pathLength="100" stroke-dasharray="{{ $progress['percent'] }} 100" transform="rotate(-90 24 24)"/>
+                @endif
+            </svg>
+            <div>
+                <h3>{{ $progress['percent'] }}% delivery progress</h3>
+                <p class="order-muted">{{ $progress['completed'] }} of {{ $progress['total'] }} complete</p>
+            </div>
+        </div>
+        @if (filled($order->delivery_milestones))
+            <ol class="order-milestones" aria-label="Milestones">
+                @foreach ($order->delivery_milestones as $milestone)
+                    @php
+                        $tasks = collect($milestone['tasks'] ?? []);
+                        $complete = filled($milestone['completed_at'] ?? null);
+                        $done = $tasks->where('status', 'done')->count();
+                    @endphp
+                    <li class="order-delivery-row" data-complete="{{ $complete ? 'true' : 'false' }}">
+                        <div>
+                            <strong>{{ $milestone['title'] }}</strong>
+                            @if (filled($milestone['due'] ?? null))
+                                <p class="order-muted">Due {{ \Illuminate\Support\Carbon::parse($milestone['due'])->format('j M Y') }}</p>
+                            @endif
+                        </div>
+                        <span class="order-pill" data-complete="{{ $complete ? 'true' : 'false' }}">
+                            {{ $complete ? 'Complete' : ($tasks->isEmpty() ? 'Pending' : $done.' / '.$tasks->count().' tasks done') }}
+                        </span>
+                    </li>
+                @endforeach
+            </ol>
+        @else
+            <p class="order-muted order-delivery-empty">No milestones planned. Add them from the Delivery menu.</p>
+        @endif
+    </section>
+
+    <section class="order-delivery-panel" aria-label="Expert earnings">
+        <h3>Expert earnings</h3>
+        @forelse ($assignments as $assignment)
+            @php($available = max(0, ($earned[$assignment->id] ?? 0) - $assignment->credited_minor))
+            <div class="order-delivery-row order-expert">
+                <div>
+                    <strong>{{ $assignment->application->name }}</strong>
+                    <p class="order-muted">{{ ConsultancyApplication::contractLabel($assignment->application->contract_type ?? 'freelancer') }}</p>
+                    <p class="order-muted">{{ rtrim(rtrim($assignment->engagement_percentage, '0'), '.') }}% ÷ {{ $assignments->count() }} {{ $assignments->count() === 1 ? 'expert' : 'experts' }}</p>
                 </div>
-            @empty
-                <p class="delivery-muted">No milestones planned. Add them from the Delivery menu.</p>
-            @endforelse
-        </section>
-        <section aria-label="Expert earnings">
-            <h3>Expert earnings</h3>
-            @forelse ($assignments as $assignment)
-                @php($available = max(0, ($earned[$assignment->id] ?? 0) - $assignment->credited_minor))
-                <div class="delivery-row">
-                    <div>
-                        <strong>{{ $assignment->application->name }}</strong>
-                        @if ($assignment->application->contract_type)
-                            <div class="delivery-muted">{{ \App\Models\ConsultancyApplication::contractLabel($assignment->application->contract_type) }}</div>
-                        @endif
-                        <div class="delivery-muted">{{ rtrim(rtrim($assignment->engagement_percentage, '0'), '.') }}% ÷ {{ $assignments->count() }} experts</div>
-                    </div>
-                    <div class="delivery-amount">
-                        <strong>{{ Money::format($available, true) }} ready</strong>
-                        <div class="delivery-muted">{{ Money::format($assignment->credited_minor, true) }} credited</div>
-                        @if ($assignment->credited_minor > ($earned[$assignment->id] ?? 0) && $order->status !== 'cancelled')
-                            <div class="delivery-muted">Credits exceed current earnings</div>
-                        @endif
-                    </div>
+                <div class="order-amount">
+                    <strong>{{ Money::format($available, true) }} ready</strong>
+                    <p class="order-muted">{{ Money::format($assignment->credited_minor, true) }} credited</p>
+                    @if ($assignment->credited_minor > ($earned[$assignment->id] ?? 0) && $order->status !== 'cancelled')
+                        <p class="order-muted order-credit-warning">Credits exceed current earnings</p>
+                    @endif
                 </div>
-            @empty
-                <p class="delivery-muted">No experts assigned.</p>
-            @endforelse
-        </section>
-    </div>
+            </div>
+        @empty
+            <p class="order-muted order-delivery-empty">No experts assigned.</p>
+        @endforelse
+    </section>
 </div>

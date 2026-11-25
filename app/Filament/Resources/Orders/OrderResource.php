@@ -95,11 +95,7 @@ class OrderResource extends Resource
                     DatePicker::make('order_date')->label('Order date')->default(now())->required(),
                     DatePicker::make('expected_delivery_date')->label('Expected delivery')->afterOrEqual('order_date'),
 
-                    Select::make('assigned_to')
-                        ->label('Responsible staff')
-                        ->options(fn () => User::query()->where('role', User::ADMIN)->orderBy('name')->pluck('name', 'id'))
-                        ->searchable()
-                        ->native(false),
+                    self::assigneeField(),
                 ]),
 
             Section::make('Services')
@@ -127,6 +123,15 @@ class OrderResource extends Resource
                     Textarea::make('notes')->label('Internal notes')->rows(2)->columnSpanFull(),
                 ]),
         ]);
+    }
+
+    public static function assigneeField(): Select
+    {
+        return Select::make('assigned_to')
+            ->label('Responsible staff')
+            ->options(fn () => User::query()->where('role', User::ADMIN)->orderBy('name')->pluck('name', 'id'))
+            ->searchable()
+            ->native(false);
     }
 
     public static function paymentSummary(): Section
@@ -161,7 +166,7 @@ class OrderResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            Grid::make(['lg' => 2])->schema([
+            Grid::make(['lg' => 2])->columnSpanFull()->schema([
                 Section::make('Order details')
                     ->icon('heroicon-o-clipboard-document-list')
                     ->columns(['sm' => 2])
@@ -171,9 +176,7 @@ class OrderResource extends Resource
                             ->badge()
                             ->formatStateUsing(fn (string $state) => Order::STATUSES[$state] ?? $state)
                             ->color(fn (string $state) => Order::STATUS_COLORS[$state] ?? 'gray'),
-                        TextEntry::make('assignee.name')->label('Assigned to')->placeholder('Unassigned'),
                         TextEntry::make('order_date')->label('Order date')->date('j M Y'),
-                        TextEntry::make('expected_delivery_date')->label('Expected delivery')->date('j M Y')->placeholder('Unscheduled'),
                         TextEntry::make('workOrder.number')
                             ->label('Work order')
                             ->visible(fn (Order $record) => $record->work_order_id !== null)
@@ -207,10 +210,12 @@ class OrderResource extends Resource
 
             Section::make('Delivery and expert team')
                 ->icon('heroicon-o-rectangle-stack')
+                ->columnSpanFull()
                 ->schema([View::make('filament.orders.delivery')]),
 
             Section::make('Itemized charges')
                 ->icon('heroicon-o-list-bullet')
+                ->columnSpanFull()
                 ->schema([
                     TextEntry::make('categories.name')->label('Categories')->badge()
                         ->visible(fn (Order $record) => $record->categories->isNotEmpty()),

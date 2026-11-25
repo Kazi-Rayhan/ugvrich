@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasSalesLines;
 use App\Support\Money;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -130,6 +131,15 @@ class Order extends Model
     public function workOrder(): BelongsTo
     {
         return $this->belongsTo(WorkOrder::class);
+    }
+
+    public function workOrderDeliveryDate(): ?Carbon
+    {
+        $date = $this->workOrder?->detail('end_date');
+
+        return is_string($date) && Carbon::canBeCreatedFromFormat($date, 'Y-m-d')
+            ? Carbon::createFromFormat('!Y-m-d', $date)
+            : null;
     }
 
     public function expertAssignments(): HasMany
