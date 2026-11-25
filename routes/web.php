@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\IdeaSubmissionExportController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\SalesPrintController;
+use App\Http\Controllers\Admin\SignatureImageController;
 use App\Http\Middleware\SetLocale;
 use App\Mail\IdeaSelectionNotice;
 use Illuminate\Support\Facades\Mail;
@@ -49,6 +50,9 @@ Route::middleware('auth')->prefix('admin/print')->name('sales.')->group(function
 // "Export PDF" on the idea submissions list.
 Route::middleware('auth')->get('/admin/export/idea-submissions', IdeaSubmissionExportController::class)
     ->name('exports.idea-submissions');
+
+Route::middleware('auth')->get('/admin/signatures/{signature}/image', SignatureImageController::class)
+    ->name('admin.signatures.image');
 
 Route::prefix('en')->name('en.')->group(function () {
     Route::get('/impersonate', [ImpersonationController::class, 'stop'])->name('impersonate.stop');

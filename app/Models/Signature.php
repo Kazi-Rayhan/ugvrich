@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Signature extends Model
 {
-    protected $fillable = ['key', 'title', 'image'];
+    protected $fillable = ['key', 'title', 'title_bn', 'image'];
 
     protected static function booted(): void
     {

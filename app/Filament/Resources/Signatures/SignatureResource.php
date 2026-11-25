@@ -32,7 +32,8 @@ class SignatureResource extends Resource
     {
         return $schema->components([
             TextInput::make('key')->required()->maxLength(100)->rule('alpha_dash:ascii')->unique(ignoreRecord: true),
-            TextInput::make('title')->label('Title / designation')->required()->maxLength(180),
+            TextInput::make('title')->label('Title / designation (English)')->required()->maxLength(180),
+            TextInput::make('title_bn')->label('Title / designation (বাংলা)')->maxLength(180),
             FileUpload::make('image')
                 ->label('Signature image')
                 ->required()
@@ -43,6 +44,18 @@ class SignatureResource extends Resource
                 ->directory('signatures')
                 ->visibility('private')
                 ->preventFilePathTampering()
+                ->getUploadedFileUsing(function (FileUpload $component, string $file, ?Signature $record): ?array {
+                    if ($record?->image !== $file) {
+                        return null;
+                    }
+
+                    $upload = $component->getUploadedFile($file, null);
+                    if ($upload !== null) {
+                        $upload['url'] = route('admin.signatures.image', $record, absolute: false);
+                    }
+
+                    return $upload;
+                })
                 ->columnSpanFull(),
         ]);
     }
@@ -52,9 +65,11 @@ class SignatureResource extends Resource
         return $table
             ->defaultSort('key')
             ->columns([
-                ImageColumn::make('image')->label('Signature')->disk('local')->visibility('private')->imageHeight(48),
+                ImageColumn::make('image_preview')->label('Signature')->imageHeight(48)
+                    ->defaultImageUrl(fn (Signature $record) => route('admin.signatures.image', $record, absolute: false)),
                 TextColumn::make('key')->searchable()->sortable(),
-                TextColumn::make('title')->label('Title / designation')->searchable()->sortable(),
+                TextColumn::make('title')->label('Title / designation (English)')->searchable()->sortable(),
+                TextColumn::make('title_bn')->label('Title / designation (বাংলা)')->searchable()->sortable(),
             ])
             ->recordActions([
                 EditAction::make(),
