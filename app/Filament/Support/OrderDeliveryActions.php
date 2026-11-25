@@ -67,7 +67,7 @@ class OrderDeliveryActions
                 ->authorize('update')
                 ->visible(fn (Order $record) => self::canPlan($record))
                 ->fillForm(fn (Order $record) => [
-                    'milestones' => $record->delivery_milestones ?: ($record->workOrder?->deliveryMilestones(includeUndatedStages: true) ?? []),
+                    'milestones' => $record->delivery_milestones ?: ($record->workOrder?->deliveryMilestones() ?? []),
                 ])
                 ->schema([
                     Repeater::make('milestones')->defaultItems(0)->maxItems(20)->collapsible()
@@ -76,7 +76,8 @@ class OrderDeliveryActions
                         ->schema([
                             Hidden::make('id'),
                             TextInput::make('title')->required()->maxLength(120),
-                            DatePicker::make('due')->label('Due date'),
+                            DatePicker::make('due')->label('Due date')
+                                ->default(fn (Order $record) => $record->expected_delivery_date ?? $record->workOrderDeliveryDate()),
                             Repeater::make('tasks')->defaultItems(0)->maxItems(20)->collapsible()
                                 ->itemLabel(fn (array $state) => $state['title'] ?? 'Task')
                                 ->addActionLabel('Add task')

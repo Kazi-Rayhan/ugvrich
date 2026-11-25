@@ -52,6 +52,13 @@ class OrderDeliveryTest extends TestCase
         Livewire::test(ViewOrder::class, ['record' => $order->id])
             ->assertSee('Work order schedule')
             ->assertSee('Due '.$date->format('j M Y'));
+
+        $workOrder->update(['details' => []]);
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->mountAction('planMilestones')
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+        $this->assertSame([], $order->refresh()->delivery_milestones);
     }
 
     public function test_staff_can_update_delivery_details_from_the_order_overview(): void

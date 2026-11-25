@@ -114,7 +114,7 @@ class WorkOrder extends Model
         return data_get($this->details, $key, $default);
     }
 
-    public function deliveryMilestones(bool $includeUndatedStages = false): array
+    public function deliveryMilestones(): array
     {
         $milestones = collect($this->detail('milestones'))
             ->filter(fn (array $milestone) => filled($milestone['title'] ?? null))
@@ -131,8 +131,7 @@ class WorkOrder extends Model
         $selectedStage = $this->detail('interim_milestone');
 
         return collect(static::sector($this->sector)['stages'] ?? [])
-            ->filter(fn (array $stage, int $index) => $includeUndatedStages
-                || filled($this->detail("stage_dates.{$index}"))
+            ->filter(fn (array $stage, int $index) => filled($this->detail("stage_dates.{$index}"))
                 || (is_numeric($selectedStage) && (int) $selectedStage === $index))
             ->map(fn (array $stage, int $index) => [
                 'title' => $stage[0],
