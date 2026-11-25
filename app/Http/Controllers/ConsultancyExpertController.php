@@ -152,7 +152,7 @@ class ConsultancyExpertController extends Controller
                     $milestones['total']++;
                     $milestones['completed'] += (int) filled($milestone['completed_at'] ?? null);
 
-                    foreach ($milestone['tasks'] ?? [] as $task) {
+                    foreach (OrderDelivery::tasksForMilestone($milestone) as $task) {
                         $status = $task['status'] ?? 'todo';
                         if (isset($taskCounts[$status])) {
                             $taskCounts[$status]++;

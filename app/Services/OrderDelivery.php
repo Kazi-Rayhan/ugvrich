@@ -98,14 +98,32 @@ class OrderDelivery
                 ];
             })->values()->all();
 
-            return [
+            $planned = [
                 'id' => $previous['id'] ?? (string) Str::uuid(),
                 'title' => $milestone['title'],
                 'due' => $milestone['due'] ?? null,
                 'completed_at' => $previous['completed_at'] ?? null,
                 'tasks' => $tasks,
             ];
+
+            $planned['tasks'] = self::tasksForMilestone($planned);
+
+            return $planned;
         })->values()->all();
+    }
+
+    public static function tasksForMilestone(array $milestone): array
+    {
+        if (! empty($milestone['tasks']) || ! Str::isUuid($milestone['id'] ?? null)) {
+            return $milestone['tasks'] ?? [];
+        }
+
+        return [[
+            'id' => $milestone['id'],
+            'title' => $milestone['title'],
+            'description' => null,
+            'status' => filled($milestone['completed_at'] ?? null) ? 'done' : 'todo',
+        ]];
     }
 
     public function complete(Order $order, User $staff, string $milestoneId): void
@@ -117,6 +135,7 @@ class OrderDelivery
             $milestones = $locked->delivery_milestones ?? [];
             $index = $this->findIndex($milestones, $milestoneId);
             $milestones[$index]['completed_at'] ??= now()->toIso8601String();
+            $milestones[$index]['tasks'] = self::tasksForMilestone($milestones[$index]);
 
             foreach ($milestones[$index]['tasks'] as &$task) {
                 $task['status'] = 'done';
@@ -145,6 +164,7 @@ class OrderDelivery
                 $this->fail('status', 'This milestone is already complete.');
             }
 
+            $milestones[$index]['tasks'] = self::tasksForMilestone($milestones[$index]);
             $taskIndex = $this->findIndex($milestones[$index]['tasks'], $taskId);
             $milestones[$index]['tasks'][$taskIndex]['status'] = $status;
             $locked->update(['delivery_milestones' => $milestones]);

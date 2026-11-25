@@ -2,6 +2,10 @@
     use App\Services\OrderDelivery;
 
     $progress = OrderDelivery::progress($order);
+    $milestones = collect($order->delivery_milestones)->map(fn (array $milestone) => [
+        ...$milestone,
+        'tasks' => OrderDelivery::tasksForMilestone($milestone),
+    ]);
     $title = $order->proposal?->title ?: $order->number;
 @endphp
 
@@ -101,7 +105,7 @@
             </div>
         </header>
 
-        @if ($order->status !== 'cancelled' && collect($order->delivery_milestones)->contains(fn (array $milestone) => ! $milestone['completed_at'] && $milestone['tasks'] !== []))
+        @if ($order->status !== 'cancelled' && $milestones->contains(fn (array $milestone) => ! $milestone['completed_at'] && $milestone['tasks'] !== []))
             <p class="task-instructions" id="task-instructions">
                 {{ __('consultancy_engagement.task_board.instructions') }}
                 <span class="sr-only">{{ __('consultancy_engagement.task_board.keyboard') }}</span>
@@ -109,7 +113,7 @@
         @endif
         <div role="status" aria-live="polite"><p data-board-notice class="task-notice" hidden></p></div>
 
-        @forelse ($order->delivery_milestones ?? [] as $milestone)
+        @forelse ($milestones as $milestone)
             @php
                 $editable = $order->status !== 'cancelled' && ! $milestone['completed_at'];
                 $groups = collect($milestone['tasks'])->groupBy('status');

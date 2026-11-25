@@ -30,7 +30,7 @@
             <ol class="order-milestones" aria-label="Milestones">
                 @foreach ($milestones as $milestone)
                     @php
-                        $tasks = collect($milestone['tasks'] ?? []);
+                        $tasks = collect(OrderDelivery::tasksForMilestone($milestone));
                         $complete = filled($milestone['completed_at'] ?? null);
                         $done = $tasks->where('status', 'done')->count();
                     @endphp

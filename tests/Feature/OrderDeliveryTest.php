@@ -127,7 +127,15 @@ class OrderDeliveryTest extends TestCase
         $this->assertNull($expert->fresh()->contract_type);
         $delivery = app(OrderDelivery::class);
         $delivery->plan($order, $admin, [['title' => 'Delivery', 'tasks' => []]]);
-        $delivery->complete($order, $admin, $order->fresh()->delivery_milestones[0]['id']);
+        $milestone = $order->fresh()->delivery_milestones[0];
+        $this->assertSame('todo', $milestone['tasks'][0]['status']);
+        $order->update(['delivery_milestones' => [[...$milestone, 'tasks' => []]]]);
+        $move = route('expert.orders.tasks.update', [$order, $milestone['id'], $milestone['id']]);
+        $this->actingAs($user)->get(route('expert.orders.tasks', $order))
+            ->assertOk()->assertSee($move, escape: false);
+        $this->patchJson($move, ['status' => 'doing'])->assertOk();
+        $this->assertSame('doing', $order->fresh()->delivery_milestones[0]['tasks'][0]['status']);
+        $delivery->complete($order, $admin, $milestone['id']);
         PaymentRecorder::record($order, [
             'paid_on' => today()->toDateString(), 'method' => 'cash',
             'amount' => '100', 'status' => Payment::CONFIRMED,
