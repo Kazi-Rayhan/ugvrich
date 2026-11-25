@@ -25,20 +25,12 @@ class ConsultancyReview
     {
         $this->notifyStaff($application, Application::WING, 'New consultancy expert application', 'The application is ready for Consultancy Wing review.');
         $this->notifyStaff($application, Application::DIRECTOR, 'New consultancy expert application', 'The application is with the Consultancy Wing. You will receive a separate notification when it is ready for your decision.');
-        try {
-            Notification::route('mail', $application->email)->notifyNow(new ConsultancyUpdate(
-                'Consultancy application received',
-                'Thank you for applying. We will begin reviewing your application as soon as possible and email you when a decision is made.',
-                route('login'),
-                'Visit UGV RICH',
-            ));
-        } catch (TransportExceptionInterface $exception) {
-            report($exception);
-
-            return false;
-        }
-
-        return true;
+        return $this->sendApplicantMail($application, new ConsultancyUpdate(
+            'Consultancy application received',
+            'Thank you for applying. We will begin reviewing your application as soon as possible and email you when a decision is made.',
+            route('login'),
+            'Visit UGV RICH',
+        ));
     }
 
     public function decide(Application $record, User $reviewer, bool $approve, ?string $note): void
@@ -90,8 +82,7 @@ class ConsultancyReview
                 ? route('password.reset', ['token' => Password::broker()->createToken($user), 'email' => $user->email])
                 : route('expert.dashboard');
 
-            $this->notifyApplicant(
-                $application,
+            $notification = new ConsultancyUpdate(
                 'Consultancy application approved',
                 'Your application was approved. We will email you when your engagement is ready. '.($newAccount
                     ? 'Use your application email to sign in after setting a password. If this link expires, request a new one from the sign-in page.'
@@ -99,6 +90,8 @@ class ConsultancyReview
                 $url,
                 $newAccount ? 'Set your password' : 'Sign in',
             );
+
+            DB::afterCommit(fn () => $this->sendApplicantMail($application, $notification));
         });
     }
 
@@ -118,5 +111,18 @@ class ConsultancyReview
         Notification::route('mail', $application->email)->notify(new ConsultancyUpdate(
             $title, $message, $url ?? route('login'), $action,
         ));
+    }
+
+    private function sendApplicantMail(Application $application, ConsultancyUpdate $notification): bool
+    {
+        try {
+            Notification::route('mail', $application->email)->notifyNow($notification);
+        } catch (TransportExceptionInterface $exception) {
+            report($exception);
+
+            return false;
+        }
+
+        return true;
     }
 }
