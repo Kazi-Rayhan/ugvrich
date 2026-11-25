@@ -244,20 +244,35 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('Areas of expertise')->assertSee('data-editor', false)
             ->assertSee('Public profile photo')->assertSee('enctype="multipart/form-data"', false);
         $this->get('/expert/dashboard/portfolio')->assertOk();
-        $this->get('/en/expert/dashboard/contract')->assertOk()->assertSee('Scope of work')->assertSee('12.50%');
+        $representativeImage = UploadedFile::fake()->image('representative.jpg', 100, 40)->getContent();
+        Storage::disk('local')->put('signatures/representative.jpg', $representativeImage);
+        \App\Models\Signature::create([
+            'key' => 'deputy_direactor_consultancy',
+            'title' => 'Deputy Director (Consultancy)',
+            'title_bn' => 'উপপরিচালক (পরামর্শ)',
+            'image' => 'signatures/representative.jpg',
+        ]);
+        $representativeDataUri = 'data:image/jpeg;base64,'.base64_encode($representativeImage);
+        $this->get('/en/expert/dashboard/contract')->assertOk()
+            ->assertSee('Scope of work')->assertSee('12.50%')
+            ->assertSee('Md. Mutassim Fuad')->assertSee('Deputy Director (Consultancy)')
+            ->assertSee($representativeDataUri, escape: false);
         $this->get('/en/expert/dashboard/contract/print')->assertOk()
             ->assertSee('Memorandum of Understanding')
             ->assertSee('the first 2 years.')
             ->assertSee('Schedule A')
             ->assertSee('data:image/png;base64,', escape: false)
+            ->assertSee($representativeDataUri, escape: false)
             ->assertDontSee('Witness');
         $this->get('/expert/dashboard/contract/print')->assertOk()
             ->assertSee('সমঝোতা স্মারক')
+            ->assertSee('উপপরিচালক (পরামর্শ)')
             ->assertDontSee('সাক্ষী');
         $pdf = $this->mock(\App\Services\ExpertMouPdf::class);
         $pdf->shouldReceive('browser')->once()->andReturn('/test/chromium');
         $pdf->shouldReceive('render')->once()->withArgs(fn (array $data, string $browser) =>
             $data['application']->is($application) && $browser === '/test/chromium'
+                && $data['representativeSignature'] === $representativeDataUri
         )->andReturn('%PDF-test');
         $this->get('/en/expert/dashboard/contract/pdf')->assertOk()
             ->assertHeader('Content-Type', 'application/pdf')

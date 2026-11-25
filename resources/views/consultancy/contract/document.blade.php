@@ -24,7 +24,7 @@
             <tr><th scope="row">{{ __('expert_mou.reference') }}</th><td>UGV-RICH/CONS/MOU/{{ $application->id }}</td></tr>
             <tr><th scope="row">{{ __('expert_mou.execution_date') }}</th><td>{{ $signedDate }}</td></tr>
             <tr><th scope="row">{{ __('expert_mou.first_party') }}</th><td>{{ __('expert_mou.institution') }}</td></tr>
-            <tr><th scope="row">{{ __('expert_mou.representative') }}</th><td><span class="mou-line"></span></td></tr>
+            <tr><th scope="row">{{ __('expert_mou.representative') }}</th><td>{{ $representativeName }} · {{ $representativeDesignation }}</td></tr>
             <tr><th scope="row">{{ __('expert_mou.second_party') }}</th><td>{{ $application->name }}{{ $organization ? ' · '.$organization : '' }}</td></tr>
             <tr><th scope="row">{{ __('expert_mou.contact') }}</th><td>{{ $contact }}</td></tr>
             <tr><th scope="row">{{ __('expert_mou.identification') }}</th><td><span class="mou-line"></span></td></tr>
@@ -66,9 +66,12 @@
         <section class="mou-panel">
             <h3>{{ __('expert_mou.first_party_signature') }}</h3>
             <dl>
-                <div><dt>{{ __('expert_mou.signature') }}</dt><dd></dd></div>
-                <div><dt>{{ __('expert_mou.name') }}</dt><dd></dd></div>
-                <div><dt>{{ __('expert_mou.designation') }}</dt><dd></dd></div>
+                <div>
+                    <dt>{{ __('expert_mou.signature') }}</dt>
+                    <dd>@if ($representativeSignature)<img class="mou-signature-image" src="{{ $representativeSignature }}" alt="{{ __('expert_mou.signature') }}">@endif</dd>
+                </div>
+                <div><dt>{{ __('expert_mou.name') }}</dt><dd>{{ $representativeName }}</dd></div>
+                <div><dt>{{ __('expert_mou.designation') }}</dt><dd>{{ $representativeDesignation }}</dd></div>
                 <div><dt>{{ __('expert_mou.date') }}</dt><dd></dd></div>
                 <div><dt>{{ __('expert_mou.seal') }}</dt><dd></dd></div>
             </dl>

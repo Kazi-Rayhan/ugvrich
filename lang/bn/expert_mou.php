@@ -10,6 +10,7 @@ return [
     'execution_date' => 'বিশেষজ্ঞের স্বাক্ষরের তারিখ',
     'first_party' => 'প্রথম পক্ষ',
     'representative' => 'অনুমোদিত প্রতিনিধি',
+    'deputy_director' => 'উপপরিচালক, কনসালটেশন',
     'second_party' => 'দ্বিতীয় পক্ষ',
     'contact' => 'ঠিকানা ও যোগাযোগ',
     'identification' => 'জাতীয় পরিচয়পত্র / নিবন্ধন / টিআইএন',

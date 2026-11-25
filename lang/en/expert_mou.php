@@ -10,6 +10,7 @@ return [
     'execution_date' => 'Expert signature date',
     'first_party' => 'First party',
     'representative' => 'Authorized representative',
+    'deputy_director' => 'Deputy Director, Consultancy',
     'second_party' => 'Second party',
     'contact' => 'Address and contact',
     'identification' => 'NID / Registration / TIN',

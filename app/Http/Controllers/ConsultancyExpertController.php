@@ -10,6 +10,7 @@ use App\Models\ExpertWalletEntry;
 use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\Signature;
 use App\Services\ConsultancyReview;
 use App\Services\ExpertMouPdf;
 use App\Services\ExpertWallet;
@@ -280,11 +281,21 @@ class ConsultancyExpertController extends Controller
     private function contractData(Request $request): array
     {
         $application = $this->application($request, signed: true)->load('expert', 'category', 'expertiseServices');
-        $signature = $application->signature_path ? Storage::disk('local')->get($application->signature_path) : null;
+        $disk = Storage::disk('local');
+        $signature = $application->signature_path ? $disk->get($application->signature_path) : null;
+        $representative = Signature::where('key', 'deputy_direactor_consultancy')->first();
+        $representativeImage = $representative ? $disk->get($representative->image) : null;
+        $mime = $representativeImage ? (new \finfo(FILEINFO_MIME_TYPE))->buffer($representativeImage) : null;
+        $designation = app()->isLocale('bn') ? ($representative?->title_bn ?: $representative?->title) : $representative?->title;
 
         return [
             'application' => $application,
             'signature' => $signature === null ? null : 'data:image/png;base64,'.base64_encode($signature),
+            'representativeName' => 'Md. Mutassim Fuad',
+            'representativeDesignation' => $designation ?: __('expert_mou.deputy_director'),
+            'representativeSignature' => in_array($mime, ['image/png', 'image/jpeg', 'image/webp'], true)
+                ? 'data:'.$mime.';base64,'.base64_encode($representativeImage)
+                : null,
             'logo' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('media/logo-mark.png'))),
         ];
     }
