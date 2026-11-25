@@ -3,7 +3,7 @@
     use App\Services\OrderDelivery;
 @endphp
 
-<x-consultancy-dashboard :application="$application" page="assignments">
+<x-consultancy-dashboard :application="$application" page="assignments" :full-width-on-mobile="true">
     <style>
         .expert-assignments { --ea-ink:#12253a; --ea-muted:#516477; --ea-line:#dce6ec; --ea-teal:#10685e; display:grid; gap:18px; color:var(--ea-ink); }
         .expert-assignments :focus-visible { outline:3px solid #278d81; outline-offset:3px; }
@@ -45,6 +45,11 @@
         .expert-assignment-actions svg { width:16px; height:16px; flex:none; }
         .expert-assignments-empty { display:grid; justify-items:center; gap:8px; padding:28px 18px; background:white; border:1px solid var(--ea-line); border-radius:15px; color:var(--ea-muted); text-align:center; }
         .expert-assignments-empty svg { width:30px; height:30px; color:var(--ea-teal); }
+        @media (min-width:64rem) {
+            .expert-assignment-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; }
+            .expert-assignment-actions a { min-height:34px; padding:4px 10px; font-size:.8rem; }
+            .expert-assignment-actions svg { width:14px; height:14px; }
+        }
         @media (max-width:34rem) {
             .expert-assignments { gap:12px; }
             .expert-assignments-banner { min-height:108px; padding:14px 16px; }

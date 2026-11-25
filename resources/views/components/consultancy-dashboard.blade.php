@@ -1,4 +1,4 @@
-@props(['application', 'page' => 'overview'])
+@props(['application', 'page' => 'overview', 'fullWidthOnMobile' => false])
 
 @php
     $links = ['expert.dashboard' => ['grid', 'overview']];
@@ -48,6 +48,7 @@
             .expert-shell { --expert-nav-height:calc(4.5rem + env(safe-area-inset-bottom)); }
             .expert-sidebar { display:none; }
             .expert-main { padding-bottom:var(--expert-nav-height); }
+            .expert-main .expert-content-full-width { padding-inline:0; }
             .expert-topbar { padding-top:env(safe-area-inset-top); }
             .expert-mobile-mark { display:block; width:28px; height:28px; object-fit:contain; }
             .expert-mobile-nav {
@@ -174,7 +175,7 @@
                 </div>
             </header>
 
-            <div class="mx-auto max-w-7xl space-y-6 px-5 py-6 sm:px-8 sm:py-8 xl:px-10">
+            <div @class(['mx-auto max-w-7xl space-y-6 px-5 py-6 sm:px-8 sm:py-8 xl:px-10', 'expert-content-full-width' => $fullWidthOnMobile])>
                 @if (session('status'))
                     <p role="status" class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">{{ session('status') }}</p>
                 @endif
