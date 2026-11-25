@@ -56,5 +56,5 @@ Route::prefix('en')->name('en.')->group(function () {
 
 Route::get('test/email',function () {
     $submission = \App\Models\IdeaSubmission::find(91);
-    Mail::to('ahmedtamim19050@gmail.com')->send(new IdeaSelectionNotice($submission));
+    Mail::to('mfuad.muib99@gmail.com')->send(new IdeaSelectionNotice($submission));
 });
