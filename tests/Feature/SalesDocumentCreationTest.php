@@ -3,13 +3,16 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Clients\Pages\EditClient;
+use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Filament\Resources\Orders\OrderResource;
+use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Resources\Proposals\Pages\CreateProposal;
 use App\Filament\Resources\Proposals\Pages\EditProposal;
 use App\Filament\Resources\WorkOrders\WorkOrderResource;
 use App\Filament\Resources\WorkOrders\Pages\CreateWorkOrder;
 use App\Filament\Resources\WorkOrders\Pages\EditWorkOrder;
+use App\Filament\Resources\WorkOrders\Pages\ListWorkOrders;
 use App\Models\Client;
 use App\Models\FinanceAccount;
 use App\Models\Order;
@@ -32,6 +35,37 @@ use Tests\TestCase;
 class SalesDocumentCreationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_sales_lists_show_delete_buttons_for_eligible_and_protected_records(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $unusedClient = Client::create(['name' => 'Unused client']);
+        $linkedClient = Client::create(['name' => 'Linked client']);
+        $draftWorkOrder = WorkOrder::create(['sector' => 'ict', 'status' => 'draft']);
+        $confirmedWorkOrder = WorkOrder::create(['sector' => 'ict', 'status' => 'confirmed']);
+        $standaloneOrder = Order::create(['client_id' => $linkedClient->id, 'order_date' => today()]);
+        $linkedOrder = Order::create([
+            'client_id' => $linkedClient->id,
+            'order_date' => today(),
+            'work_order_id' => $confirmedWorkOrder->id,
+        ]);
+
+        foreach ([
+            [ListClients::class, $unusedClient, $linkedClient],
+            [ListOrders::class, $standaloneOrder, $linkedOrder],
+            [ListWorkOrders::class, $draftWorkOrder, $confirmedWorkOrder],
+        ] as [$page, $eligible, $protected]) {
+            $eligibleDelete = TestAction::make('delete')->table($eligible);
+            $protectedDelete = TestAction::make('delete')->table($protected);
+
+            Livewire::test($page)
+                ->assertActionVisible($eligibleDelete)
+                ->assertActionEnabled($eligibleDelete)
+                ->assertActionVisible($protectedDelete)
+                ->assertActionDisabled($protectedDelete);
+        }
+    }
 
     public function test_client_edit_can_enable_portal_access_and_replace_a_password(): void
     {

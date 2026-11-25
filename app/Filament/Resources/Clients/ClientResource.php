@@ -175,7 +175,13 @@ class ClientResource extends Resource
             ->filters([
                 SelectFilter::make('organization_type')->label('Type')->options(Client::organizationTypeOptions()),
             ])
-            ->recordActions([EditAction::make(), DeleteAction::make()])
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make()
+                    ->button()
+                    ->authorizationTooltip()
+                    ->authorizationMessage('Deleting this client requires delete permission and no linked proposals or orders.'),
+            ])
             ->emptyStateHeading('No clients yet')
             ->emptyStateDescription('Clients are added from the proposal form, or here.');
     }

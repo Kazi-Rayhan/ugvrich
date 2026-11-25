@@ -181,7 +181,10 @@ class WorkOrderResource extends Resource
                 self::confirmAction(),
                 self::orderAction(),
                 EditAction::make()->url(fn (WorkOrder $record) => static::editUrl($record)),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->button()
+                    ->authorizationTooltip()
+                    ->authorizationMessage('Deleting this work order requires delete permission, an unconfirmed status, and no linked order.'),
             ])
             ->emptyStateHeading('No work orders yet')
             ->emptyStateDescription('Create one here, or from a consultancy request or a proposal.');

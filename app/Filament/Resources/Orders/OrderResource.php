@@ -309,7 +309,14 @@ class OrderResource extends Resource
                 SelectFilter::make('categories')->relationship('categories', 'name')->multiple()->preload(),
                 SelectFilter::make('assigned_to')->label('Responsible staff')->relationship('assignee', 'name'),
             ])
-            ->recordActions([ViewAction::make(), EditAction::make(), DeleteAction::make()])
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make()
+                    ->button()
+                    ->authorizationTooltip()
+                    ->authorizationMessage('Deleting this order requires delete permission and no linked proposal, work order, payments, or expert assignments.'),
+            ])
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Orders are made by converting an accepted proposal.');
     }
