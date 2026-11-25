@@ -6,6 +6,7 @@ use App\Models\ConsultancyApplication as Application;
 use App\Models\Order;
 use App\Models\OrderExpertAssignment;
 use App\Models\User;
+use App\Models\WorkOrder;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -68,33 +69,43 @@ class OrderDelivery
         DB::transaction(function () use ($order, $data): void {
             $locked = $this->lock($order);
             $this->requireUnpaid($locked);
-            $saved = collect($locked->delivery_milestones)->keyBy('id');
+            $locked->update(['delivery_milestones' => self::buildPlan($data['milestones'], $locked->delivery_milestones ?? [])]);
+        });
+    }
 
-            $milestones = collect($data['milestones'])->map(function (array $milestone) use ($saved): array {
-                $previous = $saved->get($milestone['id'] ?? '');
-                $previousTasks = collect($previous['tasks'] ?? [])->keyBy('id');
-                $tasks = collect($milestone['tasks'])->map(function (array $task) use ($previousTasks): array {
-                    $previousTask = $previousTasks->get($task['id'] ?? '');
+    public static function initialWorkOrderPlan(WorkOrder $workOrder): ?array
+    {
+        $milestones = $workOrder->deliveryMilestones();
 
-                    return [
-                        'id' => $previousTask['id'] ?? (string) Str::uuid(),
-                        'title' => $task['title'],
-                        'description' => $task['description'] ?? null,
-                        'status' => $previousTask['status'] ?? 'todo',
-                    ];
-                })->values()->all();
+        return $milestones === [] ? null : self::buildPlan($milestones, []);
+    }
+
+    private static function buildPlan(array $milestones, array $previousPlan): array
+    {
+        $saved = collect($previousPlan)->keyBy('id');
+
+        return collect($milestones)->map(function (array $milestone) use ($saved): array {
+            $previous = $saved->get($milestone['id'] ?? '');
+            $previousTasks = collect($previous['tasks'] ?? [])->keyBy('id');
+            $tasks = collect($milestone['tasks'])->map(function (array $task) use ($previousTasks): array {
+                $previousTask = $previousTasks->get($task['id'] ?? '');
 
                 return [
-                    'id' => $previous['id'] ?? (string) Str::uuid(),
-                    'title' => $milestone['title'],
-                    'due' => $milestone['due'] ?? null,
-                    'completed_at' => $previous['completed_at'] ?? null,
-                    'tasks' => $tasks,
+                    'id' => $previousTask['id'] ?? (string) Str::uuid(),
+                    'title' => $task['title'],
+                    'description' => $task['description'] ?? null,
+                    'status' => $previousTask['status'] ?? 'todo',
                 ];
             })->values()->all();
 
-            $locked->update(['delivery_milestones' => $milestones]);
-        });
+            return [
+                'id' => $previous['id'] ?? (string) Str::uuid(),
+                'title' => $milestone['title'],
+                'due' => $milestone['due'] ?? null,
+                'completed_at' => $previous['completed_at'] ?? null,
+                'tasks' => $tasks,
+            ];
+        })->values()->all();
     }
 
     public function complete(Order $order, User $staff, string $milestoneId): void

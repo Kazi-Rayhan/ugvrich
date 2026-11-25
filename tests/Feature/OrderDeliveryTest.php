@@ -21,6 +21,39 @@ class OrderDeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_existing_orders_show_and_prefill_saved_work_order_milestones(): void
+    {
+        $date = today()->addWeeks(2);
+        $workOrder = WorkOrder::create(['sector' => 'ict', 'details' => [
+            'milestones' => [['title' => 'Client acceptance', 'date' => $date->toDateString()]],
+        ]]);
+        $order = Order::create([
+            'client_id' => Client::create(['name' => 'Example client'])->id,
+            'order_date' => today(),
+            'work_order_id' => $workOrder->id,
+        ]);
+
+        $this->actingAs(User::factory()->create());
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->assertSee('Work order schedule')
+            ->assertSee('Client acceptance')
+            ->assertSee('Due '.$date->format('j M Y'))
+            ->mountAction('planMilestones')
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertSee('1 complete')
+            ->assertDontSee('Work order schedule');
+
+        $milestone = $order->refresh()->delivery_milestones[0];
+        $this->assertSame('Client acceptance', $milestone['title']);
+        $this->assertSame($date->toDateString(), $milestone['due']);
+
+        $order->update(['delivery_milestones' => []]);
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->assertSee('Work order schedule')
+            ->assertSee('Due '.$date->format('j M Y'));
+    }
+
     public function test_staff_can_update_delivery_details_from_the_order_overview(): void
     {
         $admin = User::factory()->create(['name' => 'Delivery Manager']);

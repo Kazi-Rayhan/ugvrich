@@ -114,6 +114,33 @@ class WorkOrder extends Model
         return data_get($this->details, $key, $default);
     }
 
+    public function deliveryMilestones(bool $includeUndatedStages = false): array
+    {
+        $milestones = collect($this->detail('milestones'))
+            ->filter(fn (array $milestone) => filled($milestone['title'] ?? null))
+            ->map(fn (array $milestone) => [
+                'title' => $milestone['title'],
+                'due' => $milestone['date'] ?? null,
+                'tasks' => [],
+            ])->values()->all();
+
+        if ($milestones !== []) {
+            return $milestones;
+        }
+
+        $selectedStage = $this->detail('interim_milestone');
+
+        return collect(static::sector($this->sector)['stages'] ?? [])
+            ->filter(fn (array $stage, int $index) => $includeUndatedStages
+                || filled($this->detail("stage_dates.{$index}"))
+                || (is_numeric($selectedStage) && (int) $selectedStage === $index))
+            ->map(fn (array $stage, int $index) => [
+                'title' => $stage[0],
+                'due' => $this->detail("stage_dates.{$index}"),
+                'tasks' => [['title' => $stage[1]]],
+            ])->values()->all();
+    }
+
     /**
      * Fee lines → subtotal, tax, grand total; instalment amounts from their
      * percentages; the total in Bangla words when none was typed.

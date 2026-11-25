@@ -5,6 +5,8 @@
 
     $order = $getRecord();
     $progress = OrderDelivery::progress($order);
+    $milestones = $order->delivery_milestones ?: ($order->workOrder?->deliveryMilestones() ?? []);
+    $fromWorkOrder = blank($order->delivery_milestones) && $milestones !== [];
     $assignments = $order->expertAssignments->loadMissing('application');
     $earned = app(OrderDelivery::class)->earnings($order);
 @endphp
@@ -20,13 +22,13 @@
                 @endif
             </svg>
             <div>
-                <h3>{{ $progress['percent'] }}% delivery progress</h3>
-                <p class="order-muted">{{ $progress['completed'] }} of {{ $progress['total'] }} complete</p>
+                <h3>{{ $fromWorkOrder ? 'Milestones' : $progress['percent'].'% delivery progress' }}</h3>
+                <p class="order-muted">{{ $fromWorkOrder ? 'Work order schedule' : $progress['completed'].' of '.$progress['total'].' complete' }}</p>
             </div>
         </div>
-        @if (filled($order->delivery_milestones))
+        @if ($milestones !== [])
             <ol class="order-milestones" aria-label="Milestones">
-                @foreach ($order->delivery_milestones as $milestone)
+                @foreach ($milestones as $milestone)
                     @php
                         $tasks = collect($milestone['tasks'] ?? []);
                         $complete = filled($milestone['completed_at'] ?? null);

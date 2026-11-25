@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Models\WorkOrder;
+use App\Services\OrderDelivery;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use DomainException;
@@ -32,6 +33,7 @@ class WorkOrderConfirmation
 
             $order->workOrder()->associate($locked);
             $order->expected_delivery_date ??= $order->workOrderDeliveryDate();
+            $order->delivery_milestones ??= OrderDelivery::initialWorkOrderPlan($locked);
             if ($order->status === 'pending') {
                 $order->status = 'confirmed';
             }

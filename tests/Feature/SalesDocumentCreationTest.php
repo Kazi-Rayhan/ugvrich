@@ -119,6 +119,7 @@ class SalesDocumentCreationTest extends TestCase
         $workOrder->update(['details' => [
             'client' => ['name' => 'Invoice client'],
             'fees' => [['qty' => 2, 'rate' => 50]],
+            'milestones' => [['title' => 'Handover', 'date' => today()->addWeek()->toDateString()]],
         ]]);
 
         Livewire::test(EditWorkOrder::class, ['record' => $workOrder->id])
@@ -133,6 +134,8 @@ class SalesDocumentCreationTest extends TestCase
         $this->assertSame('confirmed', $workOrder->fresh()->status);
         $this->assertSame('confirmed', $order->status);
         $this->assertEquals($workOrder->id, $order->work_order_id);
+        $this->assertSame('Handover', $order->delivery_milestones[0]['title']);
+        $this->assertSame(today()->addWeek()->toDateString(), $order->delivery_milestones[0]['due']);
         $this->assertSame($order->id, WorkOrderConfirmation::confirm($workOrder, $user)->id);
         $this->assertDatabaseCount('orders', 1);
 

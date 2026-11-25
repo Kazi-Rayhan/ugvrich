@@ -66,7 +66,9 @@ class OrderDeliveryActions
                 ->icon('heroicon-o-rectangle-stack')
                 ->authorize('update')
                 ->visible(fn (Order $record) => self::canPlan($record))
-                ->fillForm(fn (Order $record) => ['milestones' => $record->delivery_milestones ?? self::suggestedMilestones($record)])
+                ->fillForm(fn (Order $record) => [
+                    'milestones' => $record->delivery_milestones ?: ($record->workOrder?->deliveryMilestones(includeUndatedStages: true) ?? []),
+                ])
                 ->schema([
                     Repeater::make('milestones')->defaultItems(0)->maxItems(20)->collapsible()
                         ->itemLabel(fn (array $state) => $state['title'] ?? 'Milestone')
@@ -126,15 +128,5 @@ class OrderDeliveryActions
     private static function openMilestones(Order $order): array
     {
         return collect($order->delivery_milestones)->whereNull('completed_at')->pluck('title', 'id')->all();
-    }
-
-    private static function suggestedMilestones(Order $order): array
-    {
-        return collect(config('work_order_admin.sectors.'.$order->workOrder?->sector.'.stages', []))
-            ->map(fn (array $stage, int $index) => [
-                'title' => $stage[0],
-                'due' => $order->workOrder?->detail("stage_dates.{$index}"),
-                'tasks' => [['title' => $stage[1]]],
-            ])->all();
     }
 }
