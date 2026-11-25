@@ -38,7 +38,7 @@ class ServiceController extends Controller
             'service' => $service,
             'siblings' => $siblings,
             'experts' => Expert::with('category')->active()->where('type', 'expert')
-                ->forServiceArea($serviceCategory, $service->department ?: null)
+                ->whereHas('consultancyApplication.expertiseServices', fn ($query) => $query->whereKey($service->id))
                 ->orderBy('sort_order')->orderBy('id')->take(3)->get(),
         ]);
     }

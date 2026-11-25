@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\ConsultancyApplication;
+use App\Models\Expert;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Database\Seeders\RichContentSeeder;
@@ -128,5 +130,39 @@ class ServiceTreeTest extends TestCase
 
         $this->get($path)->assertOk();
         $this->get("/en{$path}")->assertOk();
+    }
+
+    public function test_service_details_only_show_experts_linked_to_that_service(): void
+    {
+        $service = $this->firstService();
+        $categoryId = $service->category->id;
+        $sibling = $service->category->services()->active()->whereKeyNot($service->id)->firstOrFail();
+
+        foreach ([$service, $sibling] as $index => $expertise) {
+            $expert = Expert::create([
+                'name' => $index === 0 ? 'Matching Service Expert' : 'Sibling Service Expert',
+                'slug' => 'service-expert-'.$index,
+                'service_category_id' => $categoryId,
+                'is_active' => true,
+            ]);
+            $application = ConsultancyApplication::create([
+                'expert_id' => $expert->id,
+                'service_category_id' => $categoryId,
+                'name' => $expert->name,
+                'email' => "service-expert-{$index}@example.test",
+                'phone' => '1234567',
+                'location' => 'Barishal',
+                'occupation' => 'Consultant',
+                'education' => [],
+                'skills' => [],
+                'status' => ConsultancyApplication::APPROVED,
+                'signed_at' => now(),
+            ]);
+            $application->expertiseServices()->attach($expertise);
+        }
+
+        $this->get(route('services.detail', [$service->category, $service]))->assertOk()
+            ->assertSee('Matching Service Expert')
+            ->assertDontSee('Sibling Service Expert');
     }
 }
