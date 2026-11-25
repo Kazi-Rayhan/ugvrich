@@ -5,20 +5,30 @@ namespace App\Support\Sales;
 use App\Models\Client;
 use App\Models\User;
 use App\Notifications\ClientPortalWelcome;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ClientPortalAccess
 {
-    public static function inviteNewClient(Client $client): void
+    public static function inviteNewClient(Client $client, string $emailField = 'data.email'): void
     {
         if (! $client->wasRecentlyCreated || blank($client->email)) {
             return;
         }
 
-        $user = self::createUser($client, Str::password(48), 'data.work_order.new_client.email');
-        $user->notify(new ClientPortalWelcome(Password::createToken($user)));
+        $user = self::createUser($client, Str::password(48), $emailField);
+        $notification = new ClientPortalWelcome(Password::createToken($user));
+
+        DB::afterCommit(function () use ($user, $notification): void {
+            try {
+                $user->notifyNow($notification);
+            } catch (TransportExceptionInterface $exception) {
+                report($exception);
+            }
+        });
     }
 
     public static function setPassword(Client $client, string $password, User $staff): void

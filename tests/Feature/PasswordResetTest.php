@@ -2,17 +2,36 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\User;
 use App\Notifications\ResetAccountPassword;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_an_admin_can_email_a_password_link_from_the_users_list(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->create();
+        $user = User::factory()->create(['role' => User::CLIENT]);
+
+        $this->actingAs($admin);
+        Livewire::test(ListUsers::class)
+            ->callAction(TestAction::make('sendPasswordLink')->table($user))
+            ->assertHasNoActionErrors()
+            ->assertNotified('Password link emailed');
+
+        Notification::assertSentTo($user, ResetAccountPassword::class);
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+    }
 
     public function test_the_login_page_links_to_forgot_password_and_the_other_ways_in(): void
     {

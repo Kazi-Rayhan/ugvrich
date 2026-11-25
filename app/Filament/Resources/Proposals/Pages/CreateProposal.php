@@ -120,9 +120,9 @@ class CreateProposal extends CreateRecord
 
         if ($mode === 'new') {
             $resolved = ClientResolver::resolve((array) ($client['new_client'] ?? []), auth()->id());
-            if ($this->startsFromWorkOrders) {
-                ClientPortalAccess::inviteNewClient($resolved);
-            }
+            ClientPortalAccess::inviteNewClient($resolved, $this->startsFromWorkOrders
+                ? 'data.work_order.new_client.email'
+                : 'data.new_client.email');
 
             $data['client_id'] = $resolved->id;
         } else {

@@ -36,6 +36,23 @@ class SalesDocumentCreationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_creating_a_client_sends_a_welcome_message_directly(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $this->actingAs(User::factory()->create());
+        Livewire::test(\App\Filament\Resources\Clients\Pages\CreateClient::class)
+            ->fillForm(['name' => 'New client', 'email' => 'new-client@example.test'])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $user = Client::sole()->portalUser;
+        $this->assertSame(User::CLIENT, $user->role);
+        $transport = \Illuminate\Support\Facades\Mail::mailer('array')->getSymfonyTransport();
+        $message = $transport->messages()->sole()->getOriginalMessage();
+        $this->assertSame('Set up your UGV RICH client account', $message->getSubject());
+        $this->assertSame($user->email, $message->getTo()[0]->getAddress());
+    }
+
     public function test_sales_lists_show_delete_buttons_for_eligible_and_protected_records(): void
     {
         $this->actingAs(User::factory()->create());

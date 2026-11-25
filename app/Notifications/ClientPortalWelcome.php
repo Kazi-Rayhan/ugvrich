@@ -2,20 +2,12 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeEncrypted;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ClientPortalWelcome extends Notification implements ShouldQueue, ShouldBeEncrypted
+class ClientPortalWelcome extends Notification
 {
-    use Queueable;
-
-    public function __construct(private string $token)
-    {
-        $this->afterCommit();
-    }
+    public function __construct(private string $token) {}
 
     public function via(object $notifiable): array
     {

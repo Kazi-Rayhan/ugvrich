@@ -15,6 +15,7 @@ use App\Models\Client;
 use App\Models\ConsultancyRequest;
 use App\Models\Proposal;
 use App\Support\Money;
+use App\Support\Sales\ClientPortalAccess;
 use App\Support\Sales\ClientResolver;
 use App\Support\Sales\Totals;
 use BackedEnum;
@@ -173,7 +174,12 @@ class ProposalResource extends Resource
             ->createOptionUsing(function (array $data): int {
                 abort_unless(ClientResource::canCreate(), 403);
 
-                return DB::transaction(fn () => ClientResolver::resolve($data, auth()->id())->id);
+                return DB::transaction(function () use ($data): int {
+                    $client = ClientResolver::resolve($data, auth()->id());
+                    ClientPortalAccess::inviteNewClient($client);
+
+                    return $client->id;
+                });
             });
     }
 
