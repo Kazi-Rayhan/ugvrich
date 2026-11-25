@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ConsultancyReview
 {
@@ -20,11 +21,24 @@ class ConsultancyReview
         return ConsultancyReviewStage::where('key', $stage)->sole()->users()->orderBy('name')->get();
     }
 
-    public function submitted(Application $application): void
+    public function submitted(Application $application): bool
     {
         $this->notifyStaff($application, Application::WING, 'New consultancy expert application', 'The application is ready for Consultancy Wing review.');
         $this->notifyStaff($application, Application::DIRECTOR, 'New consultancy expert application', 'The application is with the Consultancy Wing. You will receive a separate notification when it is ready for your decision.');
-        $this->notifyApplicant($application, 'Consultancy application received', 'Thank you for applying. We will begin reviewing your application as soon as possible and email you when a decision is made.');
+        try {
+            Notification::route('mail', $application->email)->notifyNow(new ConsultancyUpdate(
+                'Consultancy application received',
+                'Thank you for applying. We will begin reviewing your application as soon as possible and email you when a decision is made.',
+                route('login'),
+                'Visit UGV RICH',
+            ));
+        } catch (TransportExceptionInterface $exception) {
+            report($exception);
+
+            return false;
+        }
+
+        return true;
     }
 
     public function decide(Application $record, User $reviewer, bool $approve, ?string $note): void

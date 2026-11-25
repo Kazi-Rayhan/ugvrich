@@ -26,7 +26,11 @@
         </section>
 
         <p class="mt-6 text-center text-sm leading-relaxed text-ink-600" role="status">
-            We will email you when there is an update on your application.
+            @if (session('confirmation_email_failed'))
+                Your application was received. The confirmation email could not be sent. Keep your application reference for follow-up.
+            @else
+                We will email you when there is an update on your application.
+            @endif
         </p>
 
         <div class="mt-6 flex justify-center">

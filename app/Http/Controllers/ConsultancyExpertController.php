@@ -123,9 +123,12 @@ class ConsultancyExpertController extends Controller
             throw $exception;
         }
 
-        $review->submitted($application);
+        $confirmationSent = $review->submitted($application);
 
-        return redirect()->route('consultancy.registration.thanks')->with('application_reference', $application->id);
+        return redirect()->route('consultancy.registration.thanks')->with([
+            'application_reference' => $application->id,
+            'confirmation_email_failed' => ! $confirmationSent,
+        ]);
     }
 
     public function dashboard(Request $request)
