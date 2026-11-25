@@ -17,6 +17,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Utilities\Get;
 
 class OrderDeliveryActions
 {
@@ -27,20 +29,30 @@ class OrderDeliveryActions
             ->icon('heroicon-o-user-group')
             ->authorize(fn (Order $record) => auth()->user()->can('update', $record) && ConsultancyEngagement::canAssign(auth()->user()))
             ->visible(fn (Order $record) => self::canPlan($record))
-            ->fillForm(fn (Order $record) => ['experts' => $record->expertAssignments->pluck('consultancy_application_id')->all()])
+            ->fillForm(fn (Order $record) => [
+                'experts' => $record->expertAssignments()->whereHas('application', fn ($query) => $query->withoutTrashed())
+                    ->pluck('consultancy_application_id')->all(),
+                'percentages' => $record->expertAssignments->pluck('engagement_percentage', 'consultancy_application_id')->all(),
+            ])
             ->schema([
-                Select::make('experts')->multiple()->searchable()->maxItems(30)
-                    ->options(fn () => Application::where('status', Application::APPROVED)->whereNotNull('signed_at')
+                Select::make('experts')->multiple()->searchable()->maxItems(30)->live()
+                    ->options(fn () => Application::assignableToOrders()
                         ->orderBy('name')->get(['id', 'name', 'contract_type', 'engagement_percentage'])
                         ->mapWithKeys(fn (Application $expert) => [$expert->id => collect([
                             $expert->name,
-                            $expert->contract_type ? Application::contractLabel($expert->contract_type) : null,
-                            $expert->engagement_percentage !== null ? $expert->engagement_percentage.'%' : 'No rate set',
+                            Application::contractLabel($expert->contract_type ?? 'freelancer'),
+                            $expert->contract_type && $expert->engagement_percentage !== null ? $expert->engagement_percentage.'%' : null,
                         ])->filter()->implode(' · ')])->all())
-                    ->helperText('Each expert’s signed rate is divided by the number of assigned experts. An expert without a rate earns 0% on this order.'),
+                    ->helperText('Each expert’s rate is divided by the number of assigned experts.'),
+                Group::make(fn (Get $get): array => Application::assignableToOrders()
+                    ->whereKey($get('experts') ?? [])->whereNull('contract_type')->orderBy('name')->get(['id', 'name'])
+                    ->map(fn (Application $expert) => TextInput::make("percentages.{$expert->id}")
+                        ->label("{$expert->name} — Short-term percentage")
+                        ->required()->numeric()->minValue(0)->maxValue(100)->step(0.01)->suffix('%')->rule('decimal:0,2'))
+                    ->all()),
             ])
             ->action(function (Order $record, array $data, OrderDelivery $delivery): void {
-                $delivery->assign($record, auth()->user(), $data['experts'] ?? []);
+                $delivery->assign($record, auth()->user(), $data['experts'] ?? [], $data['percentages'] ?? []);
                 $record->refresh();
                 Notification::make()->title('Expert team saved')->success()->send();
             });

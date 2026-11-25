@@ -61,8 +61,9 @@ class ConsultancyEngagementResource extends Resource
                     ->authorize(fn () => ConsultancyEngagement::canAssign(auth()->user()))
                     ->visible(fn (Application $record) => $record->contract_type === null && ! $record->signed_at)
                     ->schema([
-                        Select::make('contract')->label(__('consultancy_engagement.engagement_type'))->options(Application::contractOptions())->required(),
-                        TextInput::make('percentage')->label(__('consultancy_engagement.percentage'))->numeric()
+                        Select::make('contract')->label(__('consultancy_engagement.engagement_type'))
+                            ->options(['long_term' => Application::contractLabel('long_term')])->default('long_term')->required(),
+                        TextInput::make('percentage')->label(__('consultancy_engagement.percentage'))->required()->numeric()
                             ->minValue(0)->maxValue(100)->step(0.01)->suffix('%')->rule('decimal:0,2'),
                     ])
                     ->action(function (Application $record, array $data): void {
@@ -70,6 +71,7 @@ class ConsultancyEngagementResource extends Resource
                         $record->refresh();
                     })
                     ->successNotificationTitle(__('consultancy_engagement.assigned')),
+                ConsultancyApplicationResource::deleteAction(),
             ]);
     }
 

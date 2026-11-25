@@ -20,7 +20,7 @@ class ConsultancyApplicationPolicy
 
     public function delete(User $user, Application $application): bool
     {
-        return $this->deleteAny($user) && $application->status !== Application::APPROVED;
+        return $this->deleteAny($user);
     }
 
     public function deleteAny(User $user): bool

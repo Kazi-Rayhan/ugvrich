@@ -123,7 +123,7 @@
             </svg>
         </section>
 
-        @if ($application->signed_at)
+        @if ($canWorkOnOrders)
             <dl class="expert-panel expert-metrics">
                 @foreach ([
                     ['briefcase', __('consultancy_engagement.assignments'), $assignmentCount],

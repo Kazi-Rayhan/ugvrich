@@ -18,12 +18,14 @@ class ConsultancyEngagement
         return $user->can('assignEngagement', Application::class);
     }
 
+    public const PERCENTAGE_RULES = ['required', 'numeric', 'between:0,100', 'decimal:0,2'];
+
     public function assign(Application $record, User $assigner, string $contract, ?string $percentage): void
     {
         abort_unless(self::canAssign($assigner), 403);
         validator(['contract' => $contract, 'percentage' => $percentage], [
-            'contract' => ['required', Rule::in(array_keys(Application::CONTRACTS))],
-            'percentage' => ['nullable', 'numeric', 'between:0,100', 'decimal:0,2'],
+            'contract' => ['required', Rule::in(['long_term'])],
+            'percentage' => self::PERCENTAGE_RULES,
         ])->validate();
 
         DB::transaction(function () use ($record, $assigner, $contract, $percentage): void {
@@ -33,9 +35,23 @@ class ConsultancyEngagement
             }
 
             $policy = ConsultancyEngagementPolicy::where('contract_type', $contract)->sole();
+            $terms = $policy->only(['version', ...ConsultancyEngagementPolicy::CONTENT_FIELDS]);
+            $rate = number_format((float) $percentage, 2, '.', '').'%';
+            foreach ($terms['sections'] ?? [] as $index => $section) {
+                foreach (['description', 'description_bn'] as $field) {
+                    $description = $section[$field] ?? null;
+                    if (filled($description)) {
+                        $terms['sections'][$index][$field] = preg_replace(
+                            '/:percentage\b(?:\h*%)?|(?:_{2,}|\.{3,}|…|\[\h*\])\h*%/u',
+                            $rate,
+                            $description,
+                        );
+                    }
+                }
+            }
             $application->update([
                 'contract_type' => $contract,
-                'engagement_policy' => $policy->only(['version', ...ConsultancyEngagementPolicy::CONTENT_FIELDS]),
+                'engagement_policy' => $terms,
                 'engagement_percentage' => $percentage,
                 'engagement_assigned_at' => now(),
                 'engagement_assigned_by' => $assigner->id,

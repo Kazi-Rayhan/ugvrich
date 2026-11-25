@@ -26,6 +26,6 @@ class ExpertWalletEntry extends Model
 
     public function application(): BelongsTo
     {
-        return $this->belongsTo(ConsultancyApplication::class, 'consultancy_application_id');
+        return $this->belongsTo(ConsultancyApplication::class, 'consultancy_application_id')->withTrashed();
     }
 }

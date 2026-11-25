@@ -58,7 +58,7 @@ class ConsultancyApplicationResource extends Resource
                     ->url(fn (Application $record) => self::getUrl('view', ['record' => $record])),
                 self::decisionAction(true),
                 self::decisionAction(false),
-                DeleteAction::make(),
+                self::deleteAction(),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make()->authorizeIndividualRecords(),
@@ -68,6 +68,12 @@ class ConsultancyApplicationResource extends Resource
     public static function canView(Model $record): bool
     {
         return auth()->user()?->can('view', $record) ?? false;
+    }
+
+    public static function deleteAction(): DeleteAction
+    {
+        return DeleteAction::make()->button()->databaseTransaction()
+            ->modalDescription('Remove this application and its engagement from active use. Existing order and wallet history will be retained.');
     }
 
     public static function decisionAction(bool $approve): Action

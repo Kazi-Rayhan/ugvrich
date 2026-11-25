@@ -105,7 +105,7 @@ class ConsultancyExpertController extends Controller
 
         try {
             $application = DB::transaction(function () use ($data, $photoPath, $expertiseIds): Application {
-                $application = Application::firstOrCreate(['email' => $data['email']], [
+                $application = Application::withTrashed()->firstOrCreate(['email' => $data['email']], [
                     ...$data,
                     'profile_photo_path' => $photoPath,
                 ]);
@@ -136,7 +136,8 @@ class ConsultancyExpertController extends Controller
         $taskCounts = array_fill_keys(array_keys(OrderDelivery::TASK_STATUSES), 0);
         $milestones = ['completed' => 0, 'total' => 0];
 
-        if ($application->signed_at) {
+        $canWorkOnOrders = $application->canWorkOnOrders();
+        if ($canWorkOnOrders) {
             $orders = Order::query()
                 ->whereHas('expertAssignments', fn ($query) => $query->where('consultancy_application_id', $application->id))
                 ->where('status', '!=', 'cancelled');
@@ -162,12 +163,12 @@ class ConsultancyExpertController extends Controller
                 ->map(fn ($assignment) => $assignment->order);
         }
 
-        return view('consultancy.dashboard', compact('application', 'assignments', 'assignmentCount', 'taskCounts', 'milestones'));
+        return view('consultancy.dashboard', compact('application', 'assignments', 'assignmentCount', 'taskCounts', 'milestones', 'canWorkOnOrders'));
     }
 
     public function assignments(Request $request)
     {
-        $application = $this->application($request, signed: true)->load('expert');
+        $application = $this->workingApplication($request)->load('expert');
 
         return view('consultancy.order-assignments', [
             'application' => $application,
@@ -195,7 +196,7 @@ class ConsultancyExpertController extends Controller
 
     private function assignedExpert(Request $request, Order $order): Application
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
         abort_unless($application->orderAssignments()->where('order_id', $order->id)->exists(), 404);
 
         return $application;
@@ -203,7 +204,7 @@ class ConsultancyExpertController extends Controller
 
     public function moveOrderTask(Request $request, Order $order, string $milestone, string $task, OrderDelivery $delivery)
     {
-        $expert = $this->application($request, signed: true);
+        $expert = $this->workingApplication($request);
         $data = $request->validate(['status' => ['required', Rule::in(array_keys(OrderDelivery::TASK_STATUSES))]]);
         $progress = $delivery->moveTask($order, $expert, $milestone, $task, $data['status']);
 
@@ -241,7 +242,7 @@ class ConsultancyExpertController extends Controller
 
     public function showWallet(Request $request, ExpertWallet $wallet)
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
 
         return view('consultancy.expert-wallet', [
             'application' => $application,
@@ -252,7 +253,7 @@ class ConsultancyExpertController extends Controller
 
     public function savePayoutMethod(Request $request, ExpertWallet $wallet)
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
         $selection = $request->validate([
             'method' => ['required', Rule::in(ExpertWallet::METHODS)],
             'destination_id' => ['nullable', 'string', 'max:36'],
@@ -284,14 +285,14 @@ class ConsultancyExpertController extends Controller
 
     public function showPayoutMethods(Request $request, ExpertWallet $wallet)
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
 
         return view('consultancy.wallet-methods', ['application' => $application, 'destinations' => $wallet->destinations($application)]);
     }
 
     public function showWithdrawals(Request $request, ExpertWallet $wallet)
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
 
         return view('consultancy.wallet-withdrawals', [
             'application' => $application,
@@ -303,7 +304,7 @@ class ConsultancyExpertController extends Controller
 
     public function requestWithdrawal(Request $request, ExpertWallet $wallet)
     {
-        $application = $this->application($request, signed: true);
+        $application = $this->workingApplication($request);
         $data = $request->validate([
             'method' => ['required', 'string', 'max:36'],
             'amount' => ExpertWallet::AMOUNT_RULES,
@@ -533,6 +534,14 @@ class ConsultancyExpertController extends Controller
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    private function workingApplication(Request $request): Application
+    {
+        $application = $this->application($request);
+        abort_unless($application->canWorkOnOrders(), 403, 'Complete onboarding or receive an order assignment first.');
+
+        return $application;
     }
 
     private function application(Request $request, bool $signed = false): Application

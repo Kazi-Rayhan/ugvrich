@@ -169,12 +169,12 @@ class ConsultancyApplicationTest extends TestCase
         $admin = User::factory()->create();
         $this->actingAs($admin)->get('/admin/consultancy-engagement-policies?language=bn')->assertOk()->assertSee('দীর্ঘমেয়াদি চুক্তি');
         $this->get('/admin/consultancy-engagement-policies?language=en')->assertOk()->assertSee('Long-term contract');
-        $policy = ConsultancyEngagementPolicy::where('contract_type', 'freelancer')->sole();
+        $policy = ConsultancyEngagementPolicy::where('contract_type', 'long_term')->sole();
         Livewire::test(ListConsultancyEngagementPolicies::class)
             ->callTableAction('editPolicy', $policy, [
                 'sections' => [
                     ['title' => 'Scope of work', 'title_bn' => 'কাজের পরিধি', 'description' => 'Complete the agreed deliverables.', 'description_bn' => 'সম্মত কাজগুলো সম্পন্ন করুন।'],
-                    ['title' => 'Reporting', 'title_bn' => 'প্রতিবেদন', 'description' => 'Provide a written project summary.', 'description_bn' => 'প্রকল্পের লিখিত সারসংক্ষেপ দিন।'],
+                    ['title' => '6. Revenue Sharing and Payment policies', 'title_bn' => 'প্রতিবেদন', 'description' => 'Provide a written project summary. The expert receives ___ %.', 'description_bn' => 'প্রকল্পের লিখিত সারসংক্ষেপ দিন।'],
                 ],
             ])->assertHasNoErrors();
         $policyVersion = $policy->refresh()->version;
@@ -184,17 +184,18 @@ class ConsultancyApplicationTest extends TestCase
         $this->actingAs($director)->get('/admin/consultancy-engagements')->assertOk()->assertSee('Awaiting assignment');
         $this->get('/admin/consultancy-engagement-policies')->assertForbidden();
         Livewire::test(ListConsultancyEngagements::class)
-            ->callTableAction('assign', $application, ['contract' => 'freelancer', 'percentage' => '101'])
+            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '101'])
             ->assertHasTableActionErrors(['percentage']);
         Livewire::test(ListConsultancyEngagements::class)
-            ->callTableAction('assign', $application, ['contract' => 'freelancer', 'percentage' => '12.50'])
+            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '12.50'])
             ->assertHasNoErrors();
         $this->assertSame($director->id, $application->refresh()->engagement_assigned_by);
         $this->assertSame('12.50', $application->engagement_percentage);
+        $this->assertStringContainsString('receives 12.50%.', $application->engagement_policy['sections'][1]['description']);
         Notification::assertSentOnDemand(ConsultancyUpdate::class, fn ($notice) => str_contains($notice->title, 'Your consultancy engagement is ready'));
         $policy->update(['privacy_notice' => 'Future policy revision.']);
 
-        $this->actingAs($user)->get('/en/expert/dashboard')->assertOk()->assertSee('Freelancer')
+        $this->actingAs($user)->get('/en/expert/dashboard')->assertOk()->assertSee('Long-term contract')
             ->assertSee('Continue onboarding')->assertDontSee('Scope of work');
         $this->get('/en/expert/dashboard/onboarding')->assertOk()
             ->assertSee('Complete your onboarding')->assertDontSee('Privacy notice')->assertDontSee('Participation policy')->assertDontSee('Future policy revision.')
@@ -341,19 +342,20 @@ class ConsultancyApplicationTest extends TestCase
         $approved->save();
         Livewire::test(ListConsultancyApplications::class)
             ->assertTableActionVisible('delete', $application)
-            ->assertTableActionHidden('delete', $approved);
+            ->assertTableActionVisible('delete', $approved);
         Livewire::test(ViewConsultancyApplication::class, ['record' => $application->id])
             ->callAction('delete')
             ->assertRedirect();
-        $this->assertModelMissing($application);
+        $this->assertSoftDeleted($application);
         $pending = $approved->replicate()->fill([
             'email' => 'pending@example.org', 'status' => Application::WING,
         ]);
         $pending->save();
         Livewire::test(ListConsultancyApplications::class)
-            ->callTableBulkAction('delete', [$pending, $approved]);
-        $this->assertModelMissing($pending);
-        $this->assertModelExists($approved);
+            ->callTableBulkAction('delete', [$pending]);
+        $this->assertSoftDeleted($pending);
+        Livewire::test(ListConsultancyEngagements::class)->callTableAction('delete', $approved);
+        $this->assertSoftDeleted($approved);
     }
 
     private function reviewer(string $stage): User

@@ -17,7 +17,7 @@ class OrderDelivery
 
     public function __construct(private ExpertWallet $wallet) {}
 
-    public function assign(Order $order, User $staff, array $ids): void
+    public function assign(Order $order, User $staff, array $ids, array $percentages = []): void
     {
         abort_unless($staff->can('update', $order) && ConsultancyEngagement::canAssign($staff), 403);
         $data = validator(['experts' => $ids], [
@@ -25,23 +25,27 @@ class OrderDelivery
             'experts.*' => ['required', 'integer', 'distinct'],
         ])->validate();
 
-        DB::transaction(function () use ($order, $data): void {
+        DB::transaction(function () use ($order, $data, $percentages): void {
             $locked = $this->lock($order);
             $existing = $locked->expertAssignments()->get()->keyBy('consultancy_application_id');
             $this->requireUnpaid($locked);
 
             $ids = $data['experts'];
-            $experts = Application::whereIn('id', $ids)->where('status', Application::APPROVED)
-                ->whereNotNull('signed_at')->orderBy('id')->lockForUpdate()->get();
+            $experts = Application::whereIn('id', $ids)->assignableToOrders()->orderBy('id')->lockForUpdate()->get();
             if ($experts->count() !== count($ids)) {
-                $this->fail('experts', 'Choose experts with signed engagements.');
+                $this->fail('experts', 'Choose approved experts who are eligible for order assignments.');
             }
 
             $locked->expertAssignments()->whereNotIn('consultancy_application_id', $ids)->delete();
             foreach ($experts as $expert) {
                 $assignment = $existing->get($expert->id)
                     ?? $locked->expertAssignments()->make(['consultancy_application_id' => $expert->id]);
-                $assignment->engagement_percentage = $expert->engagement_percentage ?? '0.00';
+                $assignment->engagement_percentage = $expert->contract_type === null
+                    ? validator(
+                        ['percentages' => [$expert->id => $percentages[$expert->id] ?? $assignment->engagement_percentage]],
+                        ["percentages.{$expert->id}" => ConsultancyEngagement::PERCENTAGE_RULES],
+                    )->validate()['percentages'][$expert->id]
+                    : ($assignment->engagement_percentage ?? $expert->engagement_percentage ?? '0.00');
                 $assignment->save();
             }
         });
@@ -201,8 +205,8 @@ class OrderDelivery
                 }
 
                 $application = $assignment->application;
-                if ($application->status !== Application::APPROVED || ! $application->signed_at) {
-                    $this->fail('earnings', 'All experts receiving credit must have active, signed engagements.');
+                if ($application->trashed()) {
+                    continue;
                 }
 
                 $this->wallet->credit($application, $staff, Money::fromMinor($amount), "{$locked->number} / earnings ".Money::fromMinor($target));

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ConsultancyApplication extends Model
 {
+    use SoftDeletes;
+
     public const WING = 'wing_review';
     public const DIRECTOR = 'director_review';
     public const APPROVED = 'approved';
@@ -22,6 +26,24 @@ class ConsultancyApplication extends Model
         'long_term' => 'Long-term contract',
         'freelancer' => 'Freelancer (short-term contract)',
     ];
+
+    public function canWorkOnOrders(): bool
+    {
+        return $this->signed_at !== null || $this->orderAssignments()->exists();
+    }
+
+    public function scopeAssignableToOrders(Builder $query): Builder
+    {
+        return $query->where('status', self::APPROVED)
+            ->where(fn (Builder $query) => $query->whereNull('contract_type')->orWhereNotNull('signed_at'));
+    }
+
+    protected static function booted(): void
+    {
+        static::deleted(function (self $application): void {
+            $application->expert()->update(['is_active' => false]);
+        });
+    }
 
     public static function contractLabel(string $contract, ?string $locale = null): string
     {

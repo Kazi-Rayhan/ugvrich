@@ -2,9 +2,12 @@
 
 @php
     $links = ['expert.dashboard' => ['grid', 'overview']];
+    $canWorkOnOrders = $application->canWorkOnOrders();
+    if ($canWorkOnOrders) {
+        $links['expert.orders.index'] = ['briefcase', 'assignments'];
+    }
     if ($application->signed_at) {
         $links += [
-            'expert.orders.index' => ['briefcase', 'assignments'],
             'expert.profile.show' => ['user', 'profile'],
             'expert.portfolio.index' => ['document', 'portfolio'],
         ];
@@ -108,13 +111,15 @@
                     </div>
                 </div>
 
-                @if ($application->signed_at)
+                @if ($canWorkOnOrders)
                     <div class="space-y-1 border-t border-ink-100 pt-3 lg:pt-4">
                         <h2 class="px-3 text-[12px] font-semibold text-ink-600">{{ __('consultancy_engagement.nav_engagement') }}</h2>
+                        @if ($application->signed_at)
                         <a href="{{ route('expert.contract.show') }}" @if ($contractActive) aria-current="page" @endif class="{{ $linkClasses }}">
                             <x-ui-icon name="briefcase" class="size-[18px] shrink-0 text-ink-500 group-aria-[current=page]:text-teal-700" />
                             {{ __('consultancy_engagement.details') }}
                         </a>
+                        @endif
                         <details @if ($walletActive) open @endif class="group/wallet">
                             <summary @class([$linkClasses, 'cursor-pointer list-none [&::-webkit-details-marker]:hidden', 'bg-teal-50 text-teal-900' => $walletActive])>
                                 <x-ui-icon name="wallet" class="size-[18px] shrink-0 text-teal-700" />
@@ -222,6 +227,8 @@
                         <a href="{{ route('expert.contract.show') }}" @if ($contractActive) aria-current="page" @endif class="{{ $linkClasses }}">
                             <x-ui-icon name="briefcase" class="size-5 shrink-0" /> {{ __('consultancy_engagement.details') }}
                         </a>
+                    @endif
+                    @if ($canWorkOnOrders)
                         @foreach ($walletLinks as $key => $label)
                             @php($routeName = 'expert.wallet.'.$key)
                             <a href="{{ route($routeName) }}" @if ($isCurrent($routeName)) aria-current="page" @endif class="{{ $linkClasses }}">

@@ -100,7 +100,7 @@ class ExpertWallet
     {
         abort_unless($staff->can($status === Entry::PAID ? 'markPaid' : 'review', $record), 403);
         DB::transaction(function () use ($record, $staff, $status, $reference, $note): void {
-            Application::query()->lockForUpdate()->findOrFail($record->consultancy_application_id);
+            Application::withTrashed()->lockForUpdate()->findOrFail($record->consultancy_application_id);
             $entry = Entry::query()->lockForUpdate()->findOrFail($record->id);
             $allowed = match ($entry->status) {
                 Entry::PENDING => [Entry::APPROVED, Entry::REJECTED],
@@ -126,6 +126,9 @@ class ExpertWallet
 
     private function lockActiveApplication(int $id): Application
     {
-        return Application::query()->where('status', Application::APPROVED)->whereNotNull('signed_at')->lockForUpdate()->findOrFail($id);
+        $application = Application::query()->where('status', Application::APPROVED)->lockForUpdate()->findOrFail($id);
+        abort_unless($application->canWorkOnOrders(), 403);
+
+        return $application;
     }
 }

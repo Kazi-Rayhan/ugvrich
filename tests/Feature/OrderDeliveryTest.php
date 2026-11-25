@@ -21,6 +21,50 @@ class OrderDeliveryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_an_expert_without_a_contract_uses_an_order_specific_rate(): void
+    {
+        $admin = User::factory()->create();
+        $user = User::factory()->create(['role' => User::EXPERT]);
+        $category = ServiceCategory::create(['name' => 'Advisory', 'slug' => 'advisory']);
+        $expert = Application::create([
+            'user_id' => $user->id, 'name' => $user->name, 'email' => $user->email,
+            'phone' => '1234567', 'location' => 'Barishal', 'occupation' => 'Consultant',
+            'service_category_id' => $category->id, 'education' => [], 'skills' => [],
+            'status' => Application::APPROVED,
+        ]);
+        $order = Order::create([
+            'client_id' => Client::create(['name' => 'Example client'])->id,
+            'order_date' => today(),
+            'status' => 'confirmed',
+        ]);
+        $order->items()->create(['service_name' => 'Advisory', 'unit_price' => 100]);
+        $order->recalculate();
+
+        $this->actingAs($admin);
+        Livewire::test(ViewOrder::class, ['record' => $order->id])
+            ->mountAction('assignExperts')
+            ->fillForm(['experts' => [$expert->id]])
+            ->callMountedAction()
+            ->assertHasActionErrors(["percentages.{$expert->id}" => 'required'])
+            ->fillForm(['percentages' => [$expert->id => '25.50']])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('25.50', $order->expertAssignments()->sole()->engagement_percentage);
+        $this->assertNull($expert->fresh()->contract_type);
+        $delivery = app(OrderDelivery::class);
+        $delivery->plan($order, $admin, [['title' => 'Delivery', 'tasks' => []]]);
+        $delivery->complete($order, $admin, $order->fresh()->delivery_milestones[0]['id']);
+        PaymentRecorder::record($order, [
+            'paid_on' => today()->toDateString(), 'method' => 'cash',
+            'amount' => '100', 'status' => Payment::CONFIRMED,
+        ], $admin);
+        $this->assertSame(2550, $delivery->release($order, $admin));
+        $this->actingAs($user)->get(route('expert.orders.show', $order))->assertOk();
+        $this->get(route('expert.wallet.show'))->assertOk();
+        $this->get(route('expert.profile.show'))->assertForbidden();
+    }
+
     public function test_an_expert_team_can_work_through_milestones_and_split_confirmed_earnings(): void
     {
         $admin = User::factory()->create();
@@ -29,7 +73,7 @@ class OrderDeliveryTest extends TestCase
             'user_id' => $user->id, 'name' => $user->name, 'email' => $user->email,
             'phone' => '1234567', 'location' => 'Barishal', 'occupation' => 'Consultant',
             'service_category_id' => $category->id, 'education' => [], 'skills' => [],
-            'status' => Application::APPROVED, 'signed_at' => now(), 'engagement_percentage' => 50,
+            'status' => Application::APPROVED, 'signed_at' => now(), 'contract_type' => 'long_term', 'engagement_percentage' => 50,
         ]));
         [$first, $second, $other] = $applications->all();
         $order = Order::create([
