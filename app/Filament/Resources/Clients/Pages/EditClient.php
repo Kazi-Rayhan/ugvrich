@@ -35,10 +35,6 @@ class EditClient extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            // A client with proposals or orders stays: those records point at it.
-            DeleteAction::make()
-                ->visible(fn (Client $record) => ! $record->proposals()->exists() && ! $record->orders()->exists()),
-        ];
+        return [DeleteAction::make()];
     }
 }

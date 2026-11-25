@@ -18,6 +18,7 @@ use App\Models\WorkOrder;
 use App\Models\User;
 use App\Support\Money;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -35,6 +36,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -55,11 +57,14 @@ class OrderResource extends Resource
 
     protected static ?string $modelLabel = 'Order';
 
-    /** Only an order with no payments, and not made from a proposal, can be removed; others are cancelled. */
-    public static function canDelete(Model $record): bool
+    public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return $record->proposal_id === null && $record->work_order_id === null
-            && ! $record->payments()->exists() && ! $record->expertAssignments()->exists() && parent::canDelete($record);
+        if ($record->proposal_id !== null || $record->work_order_id !== null
+            || $record->payments()->exists() || $record->expertAssignments()->exists()) {
+            return Response::deny();
+        }
+
+        return parent::getDeleteAuthorizationResponse($record);
     }
 
     public static function form(Schema $schema): Schema
@@ -304,7 +309,7 @@ class OrderResource extends Resource
                 SelectFilter::make('categories')->relationship('categories', 'name')->multiple()->preload(),
                 SelectFilter::make('assigned_to')->label('Responsible staff')->relationship('assignee', 'name'),
             ])
-            ->recordActions([ViewAction::make(), EditAction::make()])
+            ->recordActions([ViewAction::make(), EditAction::make(), DeleteAction::make()])
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Orders are made by converting an accepted proposal.');
     }

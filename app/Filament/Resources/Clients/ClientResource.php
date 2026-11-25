@@ -7,6 +7,7 @@ use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Models\Client;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,6 +20,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Unique;
 
 /**
@@ -36,6 +39,15 @@ class ClientResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Client';
+
+    public static function getDeleteAuthorizationResponse(Model $record): Response
+    {
+        if ($record->proposals()->exists() || $record->orders()->exists()) {
+            return Response::deny();
+        }
+
+        return parent::getDeleteAuthorizationResponse($record);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -163,7 +175,7 @@ class ClientResource extends Resource
             ->filters([
                 SelectFilter::make('organization_type')->label('Type')->options(Client::organizationTypeOptions()),
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([EditAction::make(), DeleteAction::make()])
             ->emptyStateHeading('No clients yet')
             ->emptyStateDescription('Clients are added from the proposal form, or here.');
     }

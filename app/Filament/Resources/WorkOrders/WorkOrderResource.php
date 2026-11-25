@@ -22,6 +22,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
@@ -60,9 +61,13 @@ class WorkOrderResource extends Resource
         return $record->status !== 'confirmed' && parent::canEdit($record);
     }
 
-    public static function canDelete(Model $record): bool
+    public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        return $record->status !== 'confirmed' && ! $record->order()->exists() && parent::canDelete($record);
+        if ($record->status === 'confirmed' || $record->order()->exists()) {
+            return Response::deny();
+        }
+
+        return parent::getDeleteAuthorizationResponse($record);
     }
 
     public static function acceptAction(): Action
