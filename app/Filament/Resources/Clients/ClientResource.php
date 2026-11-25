@@ -6,6 +6,7 @@ use App\Filament\Resources\Clients\Pages\CreateClient;
 use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Models\Client;
+use App\Support\Sales\ClientDeletion;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -42,11 +43,14 @@ class ClientResource extends Resource
 
     public static function getDeleteAuthorizationResponse(Model $record): Response
     {
-        if ($record->proposals()->exists() || $record->orders()->exists()) {
-            return Response::deny();
-        }
+        return static::getEditAuthorizationResponse($record);
+    }
 
-        return parent::getDeleteAuthorizationResponse($record);
+    public static function deleteAction(): DeleteAction
+    {
+        return DeleteAction::make()
+            ->modalDescription('This permanently deletes the client and any linked proposals, work orders, orders, payments, and expert assignments. Posted finance entries are retained.')
+            ->using(fn (Client $record): bool => ClientDeletion::delete($record));
     }
 
     public static function form(Schema $schema): Schema
@@ -177,10 +181,7 @@ class ClientResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make()
-                    ->button()
-                    ->authorizationTooltip()
-                    ->authorizationMessage('Deleting this client requires delete permission and no linked proposals or orders.'),
+                self::deleteAction()->button(),
             ])
             ->emptyStateHeading('No clients yet')
             ->emptyStateDescription('Clients are added from the proposal form, or here.');

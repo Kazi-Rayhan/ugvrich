@@ -51,8 +51,11 @@ class SalesDocumentCreationTest extends TestCase
             'work_order_id' => $confirmedWorkOrder->id,
         ]);
 
+        Livewire::test(ListClients::class)
+            ->assertActionEnabled(TestAction::make('delete')->table($unusedClient))
+            ->assertActionEnabled(TestAction::make('delete')->table($linkedClient));
+
         foreach ([
-            [ListClients::class, $unusedClient, $linkedClient],
             [ListOrders::class, $standaloneOrder, $linkedOrder],
             [ListWorkOrders::class, $draftWorkOrder, $confirmedWorkOrder],
         ] as [$page, $eligible, $protected]) {

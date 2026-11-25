@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Clients\Pages;
 use App\Filament\Resources\Clients\ClientResource;
 use App\Models\Client;
 use App\Support\Sales\ClientPortalAccess;
-use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,6 +34,6 @@ class EditClient extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [DeleteAction::make()];
+        return [ClientResource::deleteAction()];
     }
 }
