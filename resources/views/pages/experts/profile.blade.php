@@ -36,7 +36,7 @@
                         <p class="mt-1 text-[14px] wrap-anywhere text-white/80">{{ $expert->current_job }}</p>
                     @endif
                     <nav class="mt-5 flex flex-wrap gap-x-5 gap-y-1" aria-label="{{ __('site.experts.profile') }}">
-                        @foreach (['expert-biography' => [$biography, 'biography'], 'expert-skills' => [$skills || $expert->expertise, 'skills'], 'public-portfolio' => [$portfolios->isNotEmpty(), 'portfolio']] as $section => [$visible, $label])
+                        @foreach (['expert-biography' => [$biography, 'biography'], 'expert-skills' => [$skills, 'skills'], 'public-portfolio' => [$portfolios->isNotEmpty(), 'portfolio']] as $section => [$visible, $label])
                             @if ($visible)
                                 <a href="#{{ $section }}" class="inline-flex min-h-11 items-center gap-2 border-b border-white/30 text-sm font-semibold text-teal-100 hover:border-teal-200 hover:text-white">
                                     {{ __('consultancy_engagement.'.$label) }} <x-ui-icon name="arrow-right" class="size-4" />
@@ -59,20 +59,14 @@
                     </section>
                 @endif
 
-                @if ($skills || $expert->expertise)
-                    <section class="grid scroll-mt-28 gap-5 py-6 first:pt-0 sm:grid-cols-2 sm:py-8" id="expert-skills">
-                        @foreach (['expertise' => $expert->expertise ?? [], 'skills' => $skills] as $key => $entries)
-                            @if ($entries)
-                                <div class="min-w-0">
-                                    <h2 class="font-display text-xl font-bold text-navy-900">{{ __('consultancy_engagement.'.$key) }}</h2>
-                                    <ul class="mt-3 flex flex-wrap gap-2">
-                                        @foreach ($entries as $entry)
-                                            <li class="max-w-full rounded-md bg-teal-50 px-2.5 py-1 text-[13px] font-medium wrap-anywhere text-teal-900">{{ $entry }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-                        @endforeach
+                @if ($skills)
+                    <section class="scroll-mt-28 py-6 first:pt-0 sm:py-8" id="expert-skills">
+                        <h2 class="font-display text-xl font-bold text-navy-900">{{ __('consultancy_engagement.skills') }}</h2>
+                        <ul class="mt-3 flex flex-wrap gap-2">
+                            @foreach ($skills as $skill)
+                                <li class="max-w-full rounded-md bg-teal-50 px-2.5 py-1 text-[13px] font-medium wrap-anywhere text-teal-900">{{ $skill }}</li>
+                            @endforeach
+                        </ul>
                     </section>
                 @endif
 
