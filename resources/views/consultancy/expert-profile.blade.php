@@ -204,11 +204,8 @@
                 </label>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-                @foreach (['expertise' => ['expertise', $expert?->inLocale('expertise', 'en') ?? []], 'professional_skills' => ['skills', $expert?->inLocale('professional_skills', 'en') ?? array_column($application->skills ?? [], 'name')]] as $field => [$label, $entries])
-                    <x-expert-tags :name="$field" :label="__('consultancy_engagement.'.$label).' (English)'" :tags="$entries" />
-                @endforeach
-            </div>
+            <x-expert-tags name="professional_skills" :label="__('consultancy_engagement.skills').' (English)'"
+                :tags="$expert?->inLocale('professional_skills', 'en') ?? array_column($application->skills ?? [], 'name')" />
 
             <x-expert-bio-editor name="bio_html" :label="__('consultancy_engagement.biography').' (English)'" :html="$expert?->biography('en', false)" />
 
