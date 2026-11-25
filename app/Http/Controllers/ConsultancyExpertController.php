@@ -454,16 +454,22 @@ class ConsultancyExpertController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'occupation' => ['required', 'string', 'max:150'],
+            'name_bn' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'designation_bn' => ['sometimes', 'nullable', 'string', 'max:150'],
             'phone' => ['required', 'string', 'max:40'],
             'location' => ['required', 'string', 'max:150'],
             'bio' => ['nullable', 'string', 'max:3000'],
             'bio_html' => ['sometimes', 'nullable', 'string', 'max:16000'],
             'bio_html_bn' => ['sometimes', 'nullable', 'string', 'max:16000'],
             'expertise' => ['sometimes', 'nullable', 'string', 'max:4000'],
+            'expertise_bn' => ['sometimes', 'nullable', 'string', 'max:4000'],
             'professional_skills' => ['sometimes', 'nullable', 'string', 'max:4000'],
+            'professional_skills_bn' => ['sometimes', 'nullable', 'string', 'max:4000'],
             'department' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'department_bn' => ['sometimes', 'nullable', 'string', 'max:150'],
             'affiliation_type' => ['sometimes', 'nullable', Rule::in(Application::AFFILIATIONS)],
             'current_job' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'current_job_bn' => ['sometimes', 'nullable', 'string', 'max:150'],
             'linkedin' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
         ]);
@@ -471,9 +477,12 @@ class ConsultancyExpertController extends Controller
         $profile = [
             'name' => $data['name'],
             'designation' => $data['occupation'],
-            ...array_intersect_key($data, array_flip(['bio', 'department', 'affiliation_type', 'current_job', 'linkedin'])),
+            ...array_intersect_key($data, array_flip([
+                'name_bn', 'designation_bn', 'bio', 'department', 'department_bn',
+                'affiliation_type', 'current_job', 'current_job_bn', 'linkedin',
+            ])),
         ];
-        foreach (['expertise', 'professional_skills'] as $field) {
+        foreach (['expertise', 'expertise_bn', 'professional_skills', 'professional_skills_bn'] as $field) {
             if (array_key_exists($field, $data)) {
                 $lines = preg_split('/[,，،\r\n]+/u', $data[$field] ?? '');
                 $profile[$field] = array_values(array_unique(array_filter(array_map('trim', $lines), 'filled')));

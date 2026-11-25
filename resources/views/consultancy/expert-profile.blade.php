@@ -179,9 +179,9 @@
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 @foreach ([
-                    'name' => ['public_name', $name, 150, 'text', true],
-                    'occupation' => ['designation', $designation, 150, 'text', true],
-                    'current_job' => ['current_job', $expert?->current_job, 150, 'text', false],
+                    'name' => ['public_name', $expert?->inLocale('name', 'en') ?? $application->name, 150, 'text', true],
+                    'occupation' => ['designation', $expert?->inLocale('designation', 'en') ?? $application->occupation, 150, 'text', true],
+                    'current_job' => ['current_job', $expert?->inLocale('current_job', 'en'), 150, 'text', false],
                     'phone' => ['phone', $application->phone, 40, 'tel', true],
                     'location' => ['location', $application->location, 150, 'text', true],
                     'department' => ['department', $expert?->inLocale('department', 'en'), 150, 'text', false],
@@ -189,6 +189,7 @@
                 ] as $key => [$label, $value, $max, $type, $required])
                     <label class="field-label">
                         {{ __('consultancy_engagement.'.$label) }}
+                        @if (in_array($key, ['name', 'occupation', 'current_job', 'department'], true)) (English) @endif
                         <input class="field-input mt-2" name="{{ $key }}" type="{{ $type }}" value="{{ old($key, $value) }}" maxlength="{{ $max }}" @required($required)>
                     </label>
                 @endforeach
@@ -204,15 +205,27 @@
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                @foreach (['expertise' => ['expertise', $expert?->inLocale('expertise', 'en') ?? []], 'professional_skills' => ['skills', $skills]] as $field => [$label, $entries])
-                    <x-expert-tags :name="$field" :label="__('consultancy_engagement.'.$label)" :tags="$entries" />
+                @foreach (['expertise' => ['expertise', $expert?->inLocale('expertise', 'en') ?? []], 'professional_skills' => ['skills', $expert?->inLocale('professional_skills', 'en') ?? array_column($application->skills ?? [], 'name')]] as $field => [$label, $entries])
+                    <x-expert-tags :name="$field" :label="__('consultancy_engagement.'.$label).' (English)'" :tags="$entries" />
                 @endforeach
             </div>
 
-            <div class="grid gap-4 xl:grid-cols-2">
-                <x-expert-bio-editor name="bio_html" :label="__('consultancy_engagement.biography').' (English)'" :html="$expert?->biography('en', false)" />
-                <x-expert-bio-editor name="bio_html_bn" :label="__('consultancy_engagement.biography').' ('.__('consultancy_engagement.language_bn').')'" :html="$expert?->biography('bn', false)" />
-            </div>
+            <x-expert-bio-editor name="bio_html" :label="__('consultancy_engagement.biography').' (English)'" :html="$expert?->biography('en', false)" />
+
+            <fieldset class="grid min-w-0 gap-4 rounded-lg border border-ink-200 p-4 sm:grid-cols-2" lang="bn">
+                <legend class="px-2 font-semibold text-ink-900">বাংলা প্রোফাইল</legend>
+                @foreach (['name_bn' => 'public_name', 'designation_bn' => 'designation', 'department_bn' => 'department', 'current_job_bn' => 'current_job'] as $field => $label)
+                    <label class="field-label">
+                        {{ __('consultancy_engagement.'.$label, locale: 'bn') }}
+                        <input class="field-input mt-2" name="{{ $field }}" type="text" value="{{ old($field, $expert?->{$field}) }}" maxlength="150">
+                    </label>
+                @endforeach
+                <x-expert-tags name="expertise_bn" :label="__('consultancy_engagement.expertise', locale: 'bn')" :tags="$expert?->expertise_bn ?? []" />
+                <x-expert-tags name="professional_skills_bn" :label="__('consultancy_engagement.skills', locale: 'bn')" :tags="$expert?->professional_skills_bn ?? []" />
+                <div class="sm:col-span-2">
+                    <x-expert-bio-editor name="bio_html_bn" :label="__('consultancy_engagement.biography', locale: 'bn')" :html="$expert?->biography('bn', false)" />
+                </div>
+            </fieldset>
 
             <div class="profile-editor-footer">
                 <button type="submit" class="profile-save"><x-ui-icon name="check" /> {{ __('consultancy_engagement.save') }}</button>

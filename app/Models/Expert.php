@@ -18,7 +18,9 @@ class Expert extends Model
         'name',
         'designation',
         'department',
+        'current_job',
         'expertise',
+        'professional_skills',
         'research_interests',
         'bio',
     ];
@@ -31,6 +33,7 @@ class Expert extends Model
         'expertise' => 'array',
         'expertise_bn' => 'array',
         'professional_skills' => 'array',
+        'professional_skills_bn' => 'array',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];

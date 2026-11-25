@@ -242,6 +242,7 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('Research Assistant')->assertSee('2020-01-01')->assertSee('2021-12-31')
             ->assertSee('BSc')->assertSee('2022 to present')->assertSee('Planning')->assertSee('expert@example.org')
             ->assertSee('Areas of expertise')->assertSee('data-editor', false)
+            ->assertSee('name="name_bn"', false)->assertSee('name="professional_skills_bn"', false)
             ->assertSee('Public profile photo')->assertSee('enctype="multipart/form-data"', false);
         $this->get('/expert/dashboard/portfolio')->assertOk();
         $representativeImage = UploadedFile::fake()->image('representative.jpg', 100, 40)->getContent();
@@ -281,6 +282,12 @@ class ConsultancyApplicationTest extends TestCase
         $this->get('/experts')->assertOk()->assertSee('Example Expert');
         $this->put(route('expert.profile'), [
             'name' => 'Updated Expert', 'occupation' => 'Consultant', 'phone' => '1234567', 'location' => 'Barishal',
+            'name_bn' => 'পরীক্ষামূলক বিশেষজ্ঞ',
+            'designation_bn' => 'পরামর্শক',
+            'department_bn' => 'প্রকৌশল বিভাগ',
+            'current_job_bn' => 'গ্রিডওয়ার্কস',
+            'expertise_bn' => 'সিস্টেম ডিজাইন',
+            'professional_skills_bn' => 'প্রশিক্ষণ, নথি প্রস্তুতি',
             'bio_html' => '<p style="color:red"><strong>Public biography</strong></p><ul><li>First item</li></ul>',
             'bio_html_bn' => '<p><em>বাংলা জীবনী</em></p>',
             'expertise' => 'Systems design, Automation, Automation',
@@ -291,11 +298,12 @@ class ConsultancyApplicationTest extends TestCase
             'profile_photo' => UploadedFile::fake()->image('portrait.png', 160, 160),
         ])->assertRedirect();
         $expert = $application->expert()->sole();
-        $this->assertSame('Updated Expert', $expert->name);
+        $this->assertSame('Updated Expert', $expert->inLocale('name', 'en'));
         Storage::disk('public')->assertExists($expert->photo);
         $this->assertStringStartsWith('experts/profile-photos/'.$application->id.'/', $expert->photo);
-        $this->assertSame(['Systems design', 'Automation'], $expert->expertise);
-        $this->assertSame(['Documentation', 'Mentoring'], $expert->professional_skills);
+        $this->assertSame(['Systems design', 'Automation'], $expert->inLocale('expertise', 'en'));
+        $this->assertSame(['Documentation', 'Mentoring'], $expert->inLocale('professional_skills', 'en'));
+        $this->assertSame(['সিস্টেম ডিজাইন'], $expert->expertise_bn);
         $this->assertStringNotContainsString('style=', $expert->bio_html);
         $this->get('/en/experts/'.$expert->slug)->assertOk()
             ->assertSee(Storage::disk('public')->url($expert->photo))
@@ -303,6 +311,12 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('Gridworks')->assertSee('External')->assertDontSee('Reliable infrastructure')
             ->assertDontSee('expert@example.org')->assertDontSee('1234567');
         $this->get('/experts/'.$expert->slug)->assertOk()->assertSee('বাংলা জীবনী');
+        $this->get('/experts/'.$expert->slug)->assertOk()
+            ->assertSee('পরীক্ষামূলক বিশেষজ্ঞ')->assertSee('পরামর্শক')
+            ->assertSee('প্রকৌশল বিভাগ')->assertSee('গ্রিডওয়ার্কস')->assertSee('নথি প্রস্তুতি');
+        $this->get('/expert/dashboard/profile')->assertOk()
+            ->assertSee('value="Updated Expert"', false)
+            ->assertSee('value="পরীক্ষামূলক বিশেষজ্ঞ"', false);
         $this->post(route('expert.portfolio.upload'), [
             'title' => 'Sample', 'portfolio' => UploadedFile::fake()->image('sample.png'),
         ])->assertRedirect();
