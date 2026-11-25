@@ -146,13 +146,6 @@ class ConsultancyRequestsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                // Starts a proposal with the requester as the client (matched to an existing one if known).
-                Action::make('proposal')
-                    ->label('Create proposal')
-                    ->icon('heroicon-o-document-plus')
-                    ->color('primary')
-                    ->authorize('create', \App\Models\Proposal::class)
-                    ->url(fn ($record) => \App\Filament\Resources\Proposals\ProposalResource::getUrl('create', ['request' => $record->id])),
                 // The controlled service work order (সেবা কার্যাদেশ), started from this request.
                 Action::make('workOrder')
                     ->label('Create work order')
