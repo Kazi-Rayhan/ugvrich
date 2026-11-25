@@ -87,7 +87,6 @@
                 <div><dt>{{ __('expert_mou.designation') }}</dt><dd>{{ $designation }}</dd></div>
                 <div><dt>{{ __('expert_mou.organization') }}</dt><dd>{{ $organization }}</dd></div>
                 <div><dt>{{ __('expert_mou.date') }}</dt><dd>{{ $signedDate }}</dd></div>
-                <div><dt>{{ __('expert_mou.seal') }}</dt><dd></dd></div>
             </dl>
         </section>
     </section>
