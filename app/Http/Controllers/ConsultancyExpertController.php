@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Services\ConsultancyReview;
+use App\Services\ExpertMouPdf;
 use App\Services\ExpertWallet;
 use App\Services\OrderDelivery;
 use App\Support\ExpertBiography;
@@ -238,9 +239,54 @@ class ConsultancyExpertController extends Controller
         return view('consultancy.expert-portfolio', ['application' => $this->application($request, signed: true)->load('expert', 'portfolios')]);
     }
 
-    public function showContract(Request $request)
+    public function showContract(Request $request, ExpertMouPdf $pdf)
     {
-        return view('consultancy.expert-contract', ['application' => $this->application($request, signed: true)->load('expert')]);
+        return response()->view('consultancy.expert-contract', [
+            ...$this->contractData($request),
+            'pdfAvailable' => $pdf->browser() !== null,
+        ], headers: ['Cache-Control' => 'private, no-store']);
+    }
+
+    public function printContract(Request $request)
+    {
+        return response()->view('consultancy.contract-print', $this->contractData($request), headers: [
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    public function downloadContract(Request $request, ExpertMouPdf $pdf)
+    {
+        $data = $this->contractData($request);
+        $browser = $pdf->browser();
+        if ($browser === null) {
+            return redirect()->route(app()->isLocale('en') ? 'en.expert.contract.print' : 'expert.contract.print');
+        }
+
+        try {
+            $content = $pdf->render($data, $browser);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return redirect()->route(app()->isLocale('en') ? 'en.expert.contract.print' : 'expert.contract.print');
+        }
+
+        return response($content, headers: [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="UGV-RICH-MoU-'.$data['application']->id.'-'.app()->getLocale().'.pdf"',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    private function contractData(Request $request): array
+    {
+        $application = $this->application($request, signed: true)->load('expert', 'category', 'expertiseServices');
+        $signature = $application->signature_path ? Storage::disk('local')->get($application->signature_path) : null;
+
+        return [
+            'application' => $application,
+            'signature' => $signature === null ? null : 'data:image/png;base64,'.base64_encode($signature),
+            'logo' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('media/logo-mark.png'))),
+        ];
     }
 
     public function showWallet(Request $request, ExpertWallet $wallet)

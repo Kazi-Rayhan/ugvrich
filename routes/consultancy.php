@@ -22,6 +22,8 @@ Route::middleware('auth')->prefix('expert/dashboard')->name('expert.')->group(fu
     Route::get('/profile', [ConsultancyExpertController::class, 'showProfile'])->name('profile.show');
     Route::get('/portfolio', [ConsultancyExpertController::class, 'showPortfolio'])->name('portfolio.index');
     Route::get('/contract', [ConsultancyExpertController::class, 'showContract'])->name('contract.show');
+    Route::get('/contract/print', [ConsultancyExpertController::class, 'printContract'])->name('contract.print');
+    Route::get('/contract/pdf', [ConsultancyExpertController::class, 'downloadContract'])->name('contract.pdf');
     Route::get('/wallet', [ConsultancyExpertController::class, 'showWallet'])->name('wallet.show');
     Route::get('/wallet/payment-methods', [ConsultancyExpertController::class, 'showPayoutMethods'])->name('wallet.methods');
     Route::get('/wallet/withdrawals', [ConsultancyExpertController::class, 'showWithdrawals'])->name('wallet.withdrawals');

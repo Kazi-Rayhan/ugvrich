@@ -209,6 +209,8 @@ class ConsultancyApplicationTest extends TestCase
         $this->get('/expert/dashboard/profile')->assertForbidden();
         $this->get('/expert/dashboard/portfolio')->assertForbidden();
         $this->get('/expert/dashboard/contract')->assertForbidden();
+        $this->get('/en/expert/dashboard/contract/print')->assertForbidden();
+        $this->get('/en/expert/dashboard/contract/pdf')->assertForbidden();
         $this->put(route('expert.profile'))->assertForbidden();
         $this->post(route('expert.portfolio.upload'))->assertForbidden();
         $this->postJson(route('expert.sign'), [
@@ -243,6 +245,23 @@ class ConsultancyApplicationTest extends TestCase
             ->assertSee('Public profile photo')->assertSee('enctype="multipart/form-data"', false);
         $this->get('/expert/dashboard/portfolio')->assertOk();
         $this->get('/en/expert/dashboard/contract')->assertOk()->assertSee('Scope of work')->assertSee('12.50%');
+        $this->get('/en/expert/dashboard/contract/print')->assertOk()
+            ->assertSee('Memorandum of Understanding')
+            ->assertSee('the first 2 years.')
+            ->assertSee('Schedule A')
+            ->assertSee('data:image/png;base64,', escape: false)
+            ->assertDontSee('Witness');
+        $this->get('/expert/dashboard/contract/print')->assertOk()
+            ->assertSee('সমঝোতা স্মারক')
+            ->assertDontSee('সাক্ষী');
+        $pdf = $this->mock(\App\Services\ExpertMouPdf::class);
+        $pdf->shouldReceive('browser')->once()->andReturn('/test/chromium');
+        $pdf->shouldReceive('render')->once()->withArgs(fn (array $data, string $browser) =>
+            $data['application']->is($application) && $browser === '/test/chromium'
+        )->andReturn('%PDF-test');
+        $this->get('/en/expert/dashboard/contract/pdf')->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="UGV-RICH-MoU-'.$application->id.'-en.pdf"');
 
         $this->get('/experts')->assertOk()->assertSee('Example Expert');
         $this->put(route('expert.profile'), [
