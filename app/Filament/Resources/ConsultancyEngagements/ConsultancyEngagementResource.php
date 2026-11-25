@@ -46,6 +46,8 @@ class ConsultancyEngagementResource extends Resource
                     ->badge()->placeholder(__('consultancy_engagement.awaiting'))
                     ->formatStateUsing(fn (string $state) => Application::contractLabel($state)),
                 TextColumn::make('engagement_percentage')->label(__('consultancy_engagement.percentage'))->suffix('%')->placeholder(__('consultancy_engagement.not_set')),
+                TextColumn::make('engagement_term_years')->label(__('consultancy_engagement.term_years'))
+                    ->placeholder(__('consultancy_engagement.not_set'))->sortable(),
                 TextColumn::make('engagementAssigner.name')->label(__('consultancy_engagement.assigned_by'))->placeholder('—'),
                 TextColumn::make('engagement_assigned_at')->label(__('consultancy_engagement.assigned_at'))->dateTime(),
                 TextColumn::make('signed_at')->label(__('consultancy_engagement.signed_at'))->dateTime(),
@@ -65,9 +67,11 @@ class ConsultancyEngagementResource extends Resource
                             ->options(['long_term' => Application::contractLabel('long_term')])->default('long_term')->required(),
                         TextInput::make('percentage')->label(__('consultancy_engagement.percentage'))->required()->numeric()
                             ->minValue(0)->maxValue(100)->step(0.01)->suffix('%')->rule('decimal:0,2'),
+                        TextInput::make('term_years')->label(__('consultancy_engagement.term_years'))->required()->integer()
+                            ->minValue(1)->maxValue(ConsultancyEngagement::MAX_TERM_YEARS),
                     ])
                     ->action(function (Application $record, array $data): void {
-                        app(ConsultancyEngagement::class)->assign($record, auth()->user(), $data['contract'], $data['percentage'] ?? null);
+                        app(ConsultancyEngagement::class)->assign($record, auth()->user(), $data['contract'], $data['percentage'] ?? null, $data['term_years'] ?? null);
                         $record->refresh();
                     })
                     ->successNotificationTitle(__('consultancy_engagement.assigned')),

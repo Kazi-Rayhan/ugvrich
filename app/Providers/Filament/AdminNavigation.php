@@ -40,6 +40,7 @@ use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\ServiceCategories\ServiceCategoryResource;
 use App\Filament\Resources\Services\ServiceResource;
 use App\Filament\Resources\Settings\SettingResource;
+use App\Filament\Resources\Signatures\SignatureResource;
 use App\Filament\Resources\Stats\StatResource;
 use App\Filament\Resources\StudentMemberships\StudentMembershipResource;
 use App\Filament\Resources\StudentTeams\StudentTeamResource;
@@ -176,6 +177,7 @@ class AdminNavigation
                 $this->resource('Users', Heroicon::OutlinedUsers, UserResource::class),
                 $this->resource('Roles', Heroicon::OutlinedShieldCheck, RoleResource::class),
                 $this->resource('Permissions', Heroicon::OutlinedKey, PermissionResource::class),
+                $this->resource('Signatures', Heroicon::OutlinedPencilSquare, SignatureResource::class),
                 NavigationItem::make('Settings')
                     ->icon(Heroicon::OutlinedCog8Tooth)
                     ->url(fn () => ManageSiteSettings::getUrl())

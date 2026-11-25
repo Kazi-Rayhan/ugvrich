@@ -175,6 +175,7 @@ class ConsultancyApplicationTest extends TestCase
                 'sections' => [
                     ['title' => 'Scope of work', 'title_bn' => 'কাজের পরিধি', 'description' => 'Complete the agreed deliverables.', 'description_bn' => 'সম্মত কাজগুলো সম্পন্ন করুন।'],
                     ['title' => '6. Revenue Sharing and Payment policies', 'title_bn' => 'প্রতিবেদন', 'description' => 'Provide a written project summary. The expert receives ___ %.', 'description_bn' => 'প্রকল্পের লিখিত সারসংক্ষেপ দিন।'],
+                    ['title' => '12. Term, Renewal, and Termination', 'title_bn' => '১২. মেয়াদ, নবায়ন ও সমাপ্তি', 'description' => 'This MoU shall remain in force for the first (__________) year.', 'description_bn' => 'এই সমঝোতা স্মারক প্রথম (__________) বছর কার্যকর থাকবে।'],
                 ],
             ])->assertHasNoErrors();
         $policyVersion = $policy->refresh()->version;
@@ -184,14 +185,17 @@ class ConsultancyApplicationTest extends TestCase
         $this->actingAs($director)->get('/admin/consultancy-engagements')->assertOk()->assertSee('Awaiting assignment');
         $this->get('/admin/consultancy-engagement-policies')->assertForbidden();
         Livewire::test(ListConsultancyEngagements::class)
-            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '101'])
-            ->assertHasTableActionErrors(['percentage']);
+            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '101', 'term_years' => '1.5'])
+            ->assertHasTableActionErrors(['percentage', 'term_years']);
         Livewire::test(ListConsultancyEngagements::class)
-            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '12.50'])
+            ->callTableAction('assign', $application, ['contract' => 'long_term', 'percentage' => '12.50', 'term_years' => '2'])
             ->assertHasNoErrors();
         $this->assertSame($director->id, $application->refresh()->engagement_assigned_by);
         $this->assertSame('12.50', $application->engagement_percentage);
         $this->assertStringContainsString('receives 12.50%.', $application->engagement_policy['sections'][1]['description']);
+        $this->assertSame(2, $application->engagement_term_years);
+        $this->assertStringContainsString('the first 2 years.', $application->engagement_policy['sections'][2]['description']);
+        $this->assertStringContainsString('2 বছর', $application->engagement_policy['sections'][2]['description_bn']);
         Notification::assertSentOnDemand(ConsultancyUpdate::class, fn ($notice) => str_contains($notice->title, 'Your consultancy engagement is ready'));
         $policy->update(['privacy_notice' => 'Future policy revision.']);
 
@@ -211,7 +215,7 @@ class ConsultancyApplicationTest extends TestCase
             'terms' => '1', 'policy_version' => $policyVersion,
             'signature' => $this->signature(),
         ])->assertUnprocessable()->assertJsonValidationErrors(['reviewed.percentage', 'reviewed.section_0', 'reviewed.section_1']);
-        $reviews = ['percentage' => '1', 'section_0' => '1', 'section_1' => '1'];
+        $reviews = ['percentage' => '1', 'section_0' => '1', 'section_1' => '1', 'section_2' => '1'];
         $this->postJson(route('expert.sign'), [
             'terms' => '1', 'policy_version' => $policyVersion,
             'reviewed' => $reviews,

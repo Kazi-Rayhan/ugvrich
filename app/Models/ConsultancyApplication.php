@@ -111,6 +111,7 @@ class ConsultancyApplication extends Model
         'engagement_policy' => 'array',
         'engagement_assigned_at' => 'datetime',
         'engagement_percentage' => 'decimal:2',
+        'engagement_term_years' => 'integer',
         'signed_at' => 'datetime',
         'wallet_destinations' => 'encrypted:array',
     ];

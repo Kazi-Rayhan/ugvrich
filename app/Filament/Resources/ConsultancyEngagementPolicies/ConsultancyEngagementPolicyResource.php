@@ -52,9 +52,9 @@ class ConsultancyEngagementPolicyResource extends Resource
                                 TextInput::make('title')->label(__('consultancy_engagement.title').' (English)')->required()->maxLength(150),
                                 TextInput::make('title_bn')->label(__('consultancy_engagement.title').' (বাংলা)')->required()->maxLength(150),
                                 Textarea::make('description')->label(__('consultancy_engagement.description').' (English)')->required()->maxLength(6000)->rows(4)
-                                    ->helperText('Use :percentage where the assigned percentage should appear.'),
+                                    ->helperText('Use :percentage for the assigned rate and :term_years for the term in years.'),
                                 Textarea::make('description_bn')->label(__('consultancy_engagement.description').' (বাংলা)')->required()->maxLength(6000)->rows(4)
-                                    ->helperText('Use :percentage where the assigned percentage should appear.'),
+                                    ->helperText('Use :percentage for the assigned rate and :term_years for the term in years.'),
                             ])
                             ->defaultItems(0)->maxItems(20)
                             ->addActionLabel(__('consultancy_engagement.add_section'))

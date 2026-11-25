@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'term_years' => 'মেয়াদ (বছর)',
     'profile_design' => [
         'photo' => 'প্রকাশ্য প্রোফাইল ছবি',
         'photo_help' => '৩ এমবি পর্যন্ত JPG, PNG বা WebP ছবি বেছে নিয়ে প্রোফাইল সংরক্ষণ করুন।',

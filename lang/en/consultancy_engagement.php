@@ -61,6 +61,7 @@ return [
     'pending' => 'Engagement pending',
     'details' => 'Contract details',
     'percentage' => 'Engagement percentage',
+    'term_years' => 'Term (years)',
     'waiting' => 'Waiting for engagement assignment',
     'waiting_hint' => 'Your application is approved. We will email you when your engagement is ready.',
     'onboarding' => 'Complete your onboarding',
