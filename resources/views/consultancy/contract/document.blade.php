@@ -1,5 +1,6 @@
 @php
     $signedDate = $application->signed_at?->copy()->timezone('Asia/Dhaka')->locale(app()->getLocale())->isoFormat('LL');
+    $assignedDate = $application->engagement_assigned_at?->copy()->timezone('Asia/Dhaka')->locale(app()->getLocale())->isoFormat('LL');
     $designation = $application->designation ?: $application->occupation;
     $organization = $application->department_organization ?: $application->current_job;
     $contact = implode(' · ', array_filter([$application->location, $application->email, $application->phone]));
@@ -72,8 +73,7 @@
                 </div>
                 <div><dt>{{ __('expert_mou.name') }}</dt><dd>{{ $representativeName }}</dd></div>
                 <div><dt>{{ __('expert_mou.designation') }}</dt><dd>{{ $representativeDesignation }}</dd></div>
-                <div><dt>{{ __('expert_mou.date') }}</dt><dd></dd></div>
-                <div><dt>{{ __('expert_mou.seal') }}</dt><dd></dd></div>
+                <div><dt>{{ __('expert_mou.date') }}</dt><dd>{{ $assignedDate }}</dd></div>
             </dl>
         </section>
         <section class="mou-panel mou-panel-expert">
